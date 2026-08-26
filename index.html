@@ -110,35 +110,35 @@
             No es necesario tomar fotos de la unidad.
         </div>
         
-        <!-- ✅ FOTOS DE ENTRADA: ahora con opción de cámara O galería -->
+        <!-- ✅ FOTOS DE ENTRADA: Ajustadas para forzar cámara directa con capture="environment" -->
         <div id="fotos-entrada" class="hidden">
-            <input type="file" id="fotoInput" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewOdo')">
+            <input type="file" id="fotoInput" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewOdo')">
             <button class="btn-principal btn-foto" onclick="document.getElementById('fotoInput').click()">📸 FOTO ODÓMETRO</button>
             <img id="previewOdo" class="img-preview">
 
-            <input type="file" id="fotoFrontal" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewFrontal')">
+            <input type="file" id="fotoFrontal" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewFrontal')">
             <button class="btn-principal btn-foto" onclick="document.getElementById('fotoFrontal').click()">📸 FOTO FRONTAL</button>
             <img id="previewFrontal" class="img-preview">
 
-            <input type="file" id="fotoVin" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewVin')">
+            <input type="file" id="fotoVin" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewVin')">
             <button class="btn-principal btn-foto" onclick="document.getElementById('fotoVin').click()">📸 FOTO VIN (SERIE)</button>
             <img id="previewVin" class="img-preview">
 
-            <input type="file" id="fotoTrasera" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewTrasera')">
+            <input type="file" id="fotoTrasera" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewTrasera')">
             <button class="btn-principal btn-foto" onclick="document.getElementById('fotoTrasera').click()">📸 PARTE TRASERA</button>
             <img id="previewTrasera" class="img-preview">
 
-            <input type="file" id="fotoDerecha" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewDerecha')">
+            <input type="file" id="fotoDerecha" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewDerecha')">
             <button class="btn-principal btn-foto" onclick="document.getElementById('fotoDerecha').click()">📸 LATERAL DERECHO</button>
             <img id="previewDerecha" class="img-preview">
 
-            <input type="file" id="fotoIzquierda" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewIzquierda')">
+            <input type="file" id="fotoIzquierda" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewIzquierda')">
             <button class="btn-principal btn-foto" onclick="document.getElementById('fotoIzquierda').click()">📸 LATERAL IZQUIERDO</button>
             <img id="previewIzquierda" class="img-preview">
         </div>
 
-        <!-- FOTO DE LICENCIA -->
-        <input type="file" id="fotoLicencia" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewLicencia')">
+        <!-- FOTO DE LICENCIA: Ajustada para forzar cámara directa -->
+        <input type="file" id="fotoLicencia" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewLicencia')">
         <button class="btn-principal btn-foto" onclick="document.getElementById('fotoLicencia').click()">📸 FOTO LICENCIA OPERADOR</button>
         <img id="previewLicencia" class="img-preview">
 
@@ -175,7 +175,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ MEJORADO =====
-    // ===== Versión 3.6: botón de MANTENIMIENTO + fotos con cámara/galería =====
+    // ===== Versión 3.6: botón de MANTENIMIENTO + fotos solo con cámara en Entrada/Salida =====
     const VERSION_APP = "3.6";
 
     (function verificarVersion() {
