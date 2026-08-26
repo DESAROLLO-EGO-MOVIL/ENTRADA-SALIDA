@@ -109,17 +109,17 @@
 
         <div id="div-correctivo" class="hidden">
             <label>Descripción del trabajo realizado (Correctivo):</label>
-            <textarea id="comentariosCorrectivo" style="width:100%; height:80px;" placeholder="Describe qué se le cambió o reparó a la unidad..."></textarea>
+            <textarea id="comentariosCorrectivo" style="width:100%; height:80px;" placeholder="Describe qué se le cambió..."></textarea>
         </div>
 
         <label>5. Evidencias Fotográficas:</label>
 
         <input type="file" id="fotoTablero" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewTablero')">
-        <button class="btn-principal btn-foto" onclick="document.getElementById('fotoTablero').click()">📸 FOTO TABLERO (ODÓMETRO)</button>
+        <button class="btn-principal btn-foto" onclick="document.getElementById('fotoTablero').click()">📸 FOTO TABLERO</button>
         <img id="previewTablero" class="img-preview">
 
         <input type="file" id="fotoEconomico" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewEconomico')">
-        <button class="btn-principal btn-foto" onclick="document.getElementById('fotoEconomico').click()">📸 FOTO ECONÓMICO (FRONTAL)</button>
+        <button class="btn-principal btn-foto" onclick="document.getElementById('fotoEconomico').click()">📸 FOTO ECONÓMICO</button>
         <img id="previewEconomico" class="img-preview">
 
         <input type="file" id="fotoPiezas" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewPiezas', 'countPiezas')">
@@ -128,7 +128,7 @@
         <div id="previewPiezas"></div>
 
         <input type="file" id="fotoAntes" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewAntes', 'countAntes')">
-        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoAntes').click()">🖼️ FOTOS ANTES</button>
+        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoAntes').click()">️ FOTOS ANTES</button>
         <div id="countAntes" class="foto-multiple-count"></div>
         <div id="previewAntes"></div>
 
@@ -155,7 +155,6 @@
     const CLOUD_NAME = "dygb7qjgt";
     const UPLOAD_PRESET = "ego_fotos";
     const LOGO_INSTITUTO = "https://res.cloudinary.com/dygb7qjgt/image/upload/v1787759762/instituto_de_movilidad_gp5kqe.png";
-    const LOGO_EGO = "https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg";
 
     const TEXTOS_MANTO = {
         "M1": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE AIRE",
@@ -332,7 +331,7 @@
             const data = await resp.json();
             return data.secure_url || "";
         } catch (e) {
-            console.error("Error subiendo imagen:", e);
+            console.error("Error subiendo:", e);
             return "";
         }
     }
@@ -350,8 +349,8 @@
         const fTablero = document.getElementById('fotoTablero').files[0];
         const fEconomico = document.getElementById('fotoEconomico').files[0];
 
-        if (!ruta || !unidad || !km || !manto) return alert("⚠️ Completa Ruta, Unidad, KM y Tipo de Mantenimiento.");
-        if (!fTablero || !fEconomico) return alert("📸 Las fotos de Tablero y Económico son obligatorias.");
+        if (!ruta || !unidad || !km || !manto) return alert("⚠️ Completa todos los campos obligatorios");
+        if (!fTablero || !fEconomico) return alert("📸 Sube las fotos de Tablero y Económico");
 
         const btn = document.getElementById('btnGenerar');
         const status = document.getElementById('statusMsg');
@@ -378,12 +377,12 @@
             for (let f of fDespues) urlsDespues.push(await subirACloudinary(f));
             actualizarBarra(70);
 
-            status.innerText = "Guardando registro...";
+            status.innerText = "Guardando...";
             const comentarios = manto === "CORRECTIVO" ? document.getElementById('comentariosCorrectivo').value : "";
             
             const payload = {
-                ruta: ruta, unidad: unidad, km: km, manto: manto,
-                movimiento: "MANTENIMIENTO", comentarios: comentarios,
+                ruta, unidad, km, manto,
+                movimiento: "MANTENIMIENTO", comentarios,
                 fotoOdo: urlTablero, fotoFrontal: urlEconomico,
                 fotoLicencia: "N/A", fotoVin: "N/A", fotoTrasera: "N/A",
                 fotoDerecha: "N/A", fotoIzquierda: "N/A"
@@ -392,16 +391,32 @@
             await fetch(URL_WEBAPP, { method: "POST", body: JSON.stringify(payload) });
             actualizarBarra(90);
 
-            status.innerText = "Generando hoja...";
-            actualizarBarra(100);
-
-            abrirVistaPrevia({
-                unidad, ruta, km, manto, comentarios,
+            status.innerText = "Abriendo hoja...";
+            
+            // ✅ ABRIR EN NUEVA PESTAÑA de forma confiable
+            const hojaHTML = generarHTMLHoja({
+                unidad, km, manto, comentarios,
                 urlTablero, urlEconomico, urlsPiezas, urlsAntes, urlsDespues
             });
+            
+            const blob = new Blob([hojaHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const nuevaVentana = window.open(url, '_blank');
+            
+            if (!nuevaVentana) {
+                alert("⚠️ El navegador bloqueó la ventana emergente. Permita las ventanas emergentes para este sitio.");
+                return;
+            }
+            
+            URL.revokeObjectURL(url);
+            actualizarBarra(100);
 
             btn.innerText = "✅ HOJA GENERADA";
-            setTimeout(() => location.reload(), 2000);
+            setTimeout(() => {
+                btn.innerText = " GENERAR OTRA";
+                btn.disabled = false;
+                btn.onclick = () => location.reload();
+            }, 2000);
 
         } catch (e) {
             alert("❌ Error: " + e.message);
@@ -410,7 +425,7 @@
         }
     }
 
-    function abrirVistaPrevia(data) {
+    function generarHTMLHoja(data) {
         const info = (unidadesInfo && unidadesInfo[data.unidad]) ? unidadesInfo[data.unidad] : {};
         const marca = info.marca || "GOLDEN DRAGON";
         const anio = info.anio || "2024";
@@ -421,42 +436,41 @@
         
         let descripcion = "";
         if (data.manto === "CORRECTIVO") {
-            descripcion = data.comentarios || "Mantenimiento correctivo realizado";
+            descripcion = data.comentarios || "Mantenimiento correctivo";
         } else {
             descripcion = TEXTOS_MANTO[data.manto] || "";
         }
 
-        const html = `
-<!DOCTYPE html>
+        return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Evidencia Mantenimiento - Unidad ${data.unidad}</title>
+<title>Mantenimiento Unidad ${data.unidad}</title>
 <style>
-@page { size: letter; margin: 10mm; }
-body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-.header { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-.header img { width: 80px; margin-right: 15px; }
-.header h1 { margin: 0; font-size: 18px; text-transform: uppercase; }
+@page { size: letter landscape; margin: 15mm; }
+body { font-family: Arial, sans-serif; margin: 0; padding: 20px; font-size: 11px; }
+.header { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 3px solid #000; padding-bottom: 10px; }
+.header img { width: 100px; margin-right: 20px; }
+.header h1 { margin: 0; font-size: 20px; text-transform: uppercase; font-weight: bold; }
 .arrendadora { font-weight: bold; margin-bottom: 15px; font-size: 12px; }
-.datos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; font-size: 11px; }
-.datos div { margin: 2px 0; }
+.datos { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 15px; }
+.datos div { margin: 3px 0; }
 .tabla { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-.tabla th, .tabla td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 11px; }
-.tabla th { background: #f0f0f0; }
-.fotos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.fotos-grid img { width: 100%; height: auto; border: 1px solid #ccc; }
+.tabla th, .tabla td { border: 2px solid #000; padding: 8px; text-align: left; }
+.tabla th { background: #e0e0e0; font-weight: bold; }
+.fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.fotos img { width: 100%; height: auto; border: 1px solid #999; }
 .firmas { margin-top: 40px; display: flex; justify-content: space-between; }
-.firma { border-top: 1px solid #000; width: 30%; padding-top: 5px; text-align: center; font-size: 10px; }
-@media print { .no-print { display: none; } }
-.btn-print { position: fixed; top: 10px; right: 10px; padding: 10px 20px; background: #1a73e8; color: white; border: none; cursor: pointer; border-radius: 5px; }
+.firma { border-top: 1px solid #000; width: 30%; padding-top: 5px; text-align: center; font-size: 10px; min-height: 60px; }
+.btn-print { position: fixed; top: 10px; right: 10px; padding: 12px 24px; background: #1a73e8; color: white; border: none; cursor: pointer; border-radius: 5px; font-size: 16px; }
+@media print { .btn-print { display: none; } }
 </style>
 </head>
 <body>
-<button class="btn-print no-print" onclick="window.print()">🖨️ IMPRIMIR</button>
+<button class="btn-print" onclick="window.print()">🖨️ IMPRIMIR / PDF</button>
 
 <div class="header">
-    <img src="${LOGO_INSTITUTO}" alt="Logo">
+    <img src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1787759762/instituto_de_movilidad_gp5kqe.png" alt="Logo">
     <h1>EVIDENCIA DE MANTENIMIENTO PREVENTIVO</h1>
 </div>
 
@@ -475,7 +489,7 @@ body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
 
 <table class="tabla">
     <tr><th>DESCRIPCIÓN DEL TRABAJO REALIZADO</th></tr>
-    <tr><td style="height: 80px; white-space: pre-line;">${descripcion}</td></tr>
+    <tr><td style="height: 100px; white-space: pre-line;">${descripcion}</td></tr>
 </table>
 
 <table class="tabla">
@@ -485,11 +499,13 @@ body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
     </tr>
     <tr>
         <td style="vertical-align: top;">
-            ${data.urlsPiezas.length ? data.urlsPiezas.map(u => `<img src="${u}" style="max-width:48%; margin:2px;">`).join('') : 'Sin fotos'}
+            ${data.urlsPiezas.length ? data.urlsPiezas.map(u => `<img src="${u}" style="max-width:48%; margin:2px; display:inline-block;">`).join('') : '<div style="height:150px; display:flex; align-items:center; justify-content:center; color:#999;">Sin fotos</div>'}
         </td>
         <td style="vertical-align: top;">
-            <img src="${data.urlEconomico}" style="max-width:48%; margin:2px;">
-            <img src="${data.urlTablero}" style="max-width:48%; margin:2px;">
+            <div class="fotos">
+                <img src="${data.urlEconomico}" alt="Económico">
+                <img src="${data.urlTablero}" alt="Tablero">
+            </div>
         </td>
     </tr>
 </table>
@@ -501,10 +517,10 @@ body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
     </tr>
     <tr>
         <td style="vertical-align: top;">
-            ${data.urlsAntes.length ? data.urlsAntes.map(u => `<img src="${u}" style="max-width:48%; margin:2px;">`).join('') : 'Sin fotos'}
+            ${data.urlsAntes.length ? data.urlsAntes.map(u => `<img src="${u}" style="max-width:48%; margin:2px; display:inline-block;">`).join('') : '<div style="height:150px; display:flex; align-items:center; justify-content:center; color:#999;">Sin fotos</div>'}
         </td>
         <td style="vertical-align: top;">
-            ${data.urlsDespues.length ? data.urlsDespues.map(u => `<img src="${u}" style="max-width:48%; margin:2px;">`).join('') : 'Sin fotos'}
+            ${data.urlsDespues.length ? data.urlsDespues.map(u => `<img src="${u}" style="max-width:48%; margin:2px; display:inline-block;">`).join('') : '<div style="height:150px; display:flex; align-items:center; justify-content:center; color:#999;">Sin fotos</div>'}
         </td>
     </tr>
 </table>
@@ -514,14 +530,10 @@ body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
     <div class="firma">NOMBRE Y FIRMA TRANSPORTISTA</div>
     <div class="firma">NOMBRE Y FIRMA DE GESTIÓN DEL TRANSPORTE<br>DEL INSTITUTO DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEÓN</div>
 </div>
-<div style="margin-top: 15px; font-size: 9px; color: #666;">*ANEXAR INE DE LAS PERSONAS QUE FIRMAN.</div>
+<div style="margin-top: 15px; font-size: 9px; color: #666; text-align: center;">*ANEXAR INE DE LAS PERSONAS QUE FIRMAN</div>
 
 </body>
 </html>`;
-
-        document.open();
-        document.write(html);
-        document.close();
     }
 </script>
 </body>
