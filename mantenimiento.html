@@ -34,7 +34,7 @@
 <div class="container">
     <div class="header-logo">
         <img src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg" alt="Logo Empresa" class="logo-img">
-        <h2> HOJA DE MANTENIMIENTO</h2>
+        <h2>HOJA DE MANTENIMIENTO</h2>
     </div>
 
     <!-- SECCIÓN LOGIN -->
@@ -136,7 +136,7 @@
 
         <!-- ANTES (MÚLTIPLES) -->
         <input type="file" id="fotoAntes" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewAntes', 'countAntes')">
-        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoAntes').click()">️ FOTOS ANTES (puedes elegir varias)</button>
+        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoAntes').click()">🖼️ FOTOS ANTES (puedes elegir varias)</button>
         <div id="countAntes" class="foto-multiple-count"></div>
         <div id="previewAntes"></div>
 
@@ -151,7 +151,7 @@
         </div>
         <div id="statusMsg" class="status"></div>
 
-        <button id="btnGenerar" class="btn-principal" onclick="generarHoja()"> GENERAR HOJA DE MANTENIMIENTO</button>
+        <button id="btnGenerar" class="btn-principal" onclick="generarHoja()">🔧 GENERAR HOJA DE MANTENIMIENTO</button>
         <button class="btn-principal btn-atras" onclick="location.reload()">ATRÁS</button>
     </div>
 </div>
@@ -349,6 +349,7 @@
         const bar = document.getElementById('progressBar');
         bar.style.width = porcentaje + "%";
     }
+
     async function generarHoja() {
         const ruta = document.getElementById('ruta').value;
         const unidad = document.getElementById('unidad').value;
@@ -357,8 +358,8 @@
         const fTablero = document.getElementById('fotoTablero').files[0];
         const fEconomico = document.getElementById('fotoEconomico').files[0];
 
-        if (!ruta || !unidad || !km || !manto) return alert("️ Completa Ruta, Unidad, KM y Tipo de Mantenimiento.");
-        if (!fTablero || !fEconomico) return alert(" Las fotos de Tablero y Económico son obligatorias.");
+        if (!ruta || !unidad || !km || !manto) return alert("⚠️ Completa Ruta, Unidad, KM y Tipo de Mantenimiento.");
+        if (!fTablero || !fEconomico) return alert("📸 Las fotos de Tablero y Económico son obligatorias.");
 
         const btn = document.getElementById('btnGenerar');
         const status = document.getElementById('statusMsg');
@@ -408,7 +409,7 @@
             status.innerText = "¡Generando hoja de evidencia!";
             actualizarBarra(100);
 
-            // Abrir la hoja de evidencia en una nueva pestaña
+            // ✅ CORRECCIÓN: Reemplazar el documento actual en lugar de abrir ventana nueva (evita bloqueo en móviles)
             abrirVistaPrevia({
                 unidad, ruta, km, manto, comentarios,
                 urlTablero, urlEconomico, urlsPiezas, urlsAntes, urlsDespues,
@@ -441,7 +442,7 @@
             descripcion = `<strong># DE MANTENIMIENTO PREVENTIVO: ${data.manto}</strong><br><br>${textos.replace(/\n/g, '<br>')}`;
         }
 
-        const generarBloqueFotos = (urls, titulo) => {
+        const generarBloqueFotos = (urls) => {
             if (!urls || urls.length === 0) return `<td style="padding:10px; text-align:center; color:#999;">Sin fotos</td>`;
             return urls.map(u => `<td style="padding:5px;"><img src="${u}" style="max-width:100%; height:auto; border:1px solid #ccc;"></td>`).join('');
         };
@@ -451,6 +452,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Evidencia de Mantenimiento - Unidad ${data.unidad}</title>
 <style>
     body { font-family: Arial, sans-serif; margin: 20px; color: #000; }
@@ -468,9 +470,11 @@
     .firma-linea { border-top: 1px solid #000; width: 30%; padding-top: 5px; }
     @media print { body { margin: 0; } .no-print { display: none; } }
     .btn-imprimir { position: fixed; top: 10px; right: 10px; padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; z-index: 1000; }
+    .btn-volver { position: fixed; top: 10px; left: 10px; padding: 10px 20px; background: #666; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; z-index: 1000; text-decoration: none; }
 </style>
 </head>
 <body>
+<a href="mantenimiento.html" class="btn-volver no-print">⬅️ VOLVER</a>
 <button class="btn-imprimir no-print" onclick="window.print()">🖨️ IMPRIMIR / GUARDAR PDF</button>
 
 <div class="header">
@@ -528,14 +532,15 @@
     <div class="firma-linea">NOMBRE Y FIRMA TRANSPORTISTA</div>
     <div class="firma-linea">NOMBRE Y FIRMA DE GESTIÓN DEL TRANSPORTE<br>DEL INSTITUTO DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEÓN</div>
 </div>
-<div style="margin-top: 20px; font-size: 10px; color: #666;">*ANEXAR LA/NE DE LAS PERSONAS QUE FIRMAN.</div>
+<div style="margin-top: 20px; font-size: 10px; color: #666;">*ANEXAR INE DE LAS PERSONAS QUE FIRMAN.</div>
 
 </body>
 </html>`;
 
-        const nuevaVentana = window.open('', '_blank');
-        nuevaVentana.document.write(html);
-        nuevaVentana.document.close();
+        // ✅ AQUÍ ESTÁ EL CAMBIO CLAVE: Reemplaza el documento actual en lugar de abrir ventana nueva
+        document.open();
+        document.write(html);
+        document.close();
     }
 </script>
 </body>
