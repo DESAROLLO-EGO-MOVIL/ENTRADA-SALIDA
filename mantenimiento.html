@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>E.G.O - Hoja de Mantenimiento</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .container { max-width: 400px; width: 100%; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .header-logo { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #34a853; padding-bottom: 10px; }
+        .logo-img { max-width: 180px; height: auto; margin-bottom: 10px; }
+        h2 { color: #34a853; text-align: center; margin: 0; text-transform: uppercase; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #444; }
+        select, input, textarea { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
+        select:focus, input:focus, textarea:focus { border-color: #34a853; }
+        .btn-principal { width: 100%; padding: 18px; background-color: #34a853; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.2s; margin-top: 10px; }
+        .btn-principal:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-foto { background-color: #1a73e8; margin-bottom: 10px; font-size: 14px; padding: 12px; }
+        .btn-atras { background-color: #666; font-size: 14px; }
+        .hidden { display: none !important; }
+        .img-preview { width: 100%; border-radius: 8px; margin-top: 5px; margin-bottom: 10px; display: none; border: 1px solid #ddd; }
+        .info-box { background-color: #e8f5e9; border: 1px solid #34a853; border-radius: 8px; padding: 12px; margin: 10px 0; font-size: 13px; }
+        .info-box strong { color: #1a73e8; }
+        .status { text-align: center; font-size: 14px; color: #666; margin-top: 10px; font-weight: bold; }
+        #progressContainer { width: 100%; background-color: #eee; border-radius: 10px; margin-top: 15px; display: none; overflow: hidden; border: 1px solid #ddd; }
+        #progressBar { width: 0%; height: 20px; background-color: #34a853; transition: width 0.4s ease; }
+        .foto-multiple { background-color: #ff9800; }
+        .foto-multiple-count { font-size: 12px; color: #666; text-align: center; margin-top: -8px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-logo">
+        <img src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg" alt="Logo Empresa" class="logo-img">
+        <h2> HOJA DE MANTENIMIENTO</h2>
+    </div>
+
+    <!-- SECCIÓN LOGIN -->
+    <div id="sec-pass">
+        <label>Contraseña de Acceso:</label>
+        <input type="text" id="passInput" placeholder="Escribe aquí..." style="-webkit-text-security: disc;">
+        <button class="btn-principal" onclick="verificarPass()">INGRESAR</button>
+    </div>
+
+    <!-- SECCIÓN FORMULARIO -->
+    <div id="sec-form" class="hidden">
+        <label>1. Seleccione la Ruta:</label>
+        <select id="ruta" onchange="actualizarUnidades()">
+            <option value="">-- Seleccionar --</option>
+            <option value="AEROPUERTO Y GRIEGA">AEROPUERTO Y GRIEGA</option>
+            <option value="EXPO AEROPUERTO">EXPO AEROPUERTO</option>
+            <option value="ALIANZA REAL">ALIANZA REAL</option>
+            <option value="CIENEGA DE FLORES">CIENEGA DE FLORES</option>
+            <option value="Nuevas Unidades">Nuevas Unidades</option>
+            <option value="PALMIRAS">PALMIRAS</option>
+            <option value="PRO VIVIENDA">PRO VIVIENDA</option>
+            <option value="RUTA 1">RUTA 1</option>
+            <option value="RUTA 2">RUTA 2</option>
+            <option value="RUTA 13">RUTA 13</option>
+            <option value="RUTA 20">RUTA 20</option>
+            <option value="RUTA 39">RUTA 39</option>
+            <option value="RUTA 41">RUTA 41</option>
+            <option value="RUTA 68">RUTA 68</option>
+            <option value="RUTA 109">RUTA 109</option>
+            <option value="RUTA 117">RUTA 117</option>
+            <option value="RUTA 160">RUTA 160</option>
+            <option value="RUTA 201">RUTA 201</option>
+            <option value="RUTA 218">RUTA 218</option>
+            <option value="RUTA 223">RUTA 223</option>
+            <option value="RUTA 227">RUTA 227</option>
+            <option value="RUTA 228">RUTA 228</option>
+            <option value="RUTA 233">RUTA 233</option>
+            <option value="RUTA 310">RUTA 310</option>
+            <option value="RUTA 311">RUTA 311</option>
+            <option value="RUTA 313">RUTA 313</option>
+            <option value="RUTA 527">RUTA 527</option>
+            <option value="RUTA 601">RUTA 601</option>
+            <option value="Ruta 685/198">Ruta 685/198</option>
+            <option value="VALLE SOLEADO">VALLE SOLEADO</option>
+            <option value="VISTAS DEL CARMEN">VISTAS DEL CARMEN</option>
+        </select>
+
+        <label>2. Seleccione la Unidad:</label>
+        <select id="unidad" onchange="cargarInfoUnidad()"><option value="">-- Elija ruta --</option></select>
+
+        <!-- INFO AUTO-LLENADA -->
+        <div id="info-unidad" class="info-box hidden">
+            <div><strong>Marca:</strong> <span id="info-marca">-</span></div>
+            <div><strong>Año:</strong> <span id="info-anio">-</span></div>
+            <div><strong>VIN:</strong> <span id="info-vin">-</span></div>
+            <div><strong>Placas:</strong> <span id="info-placas">-</span></div>
+            <div><strong>Empresa:</strong> <span id="info-empresa">-</span></div>
+        </div>
+
+        <label>3. Kilometraje Actual:</label>
+        <input type="number" id="km" placeholder="Ej: 150000" inputmode="numeric">
+
+        <label>4. Tipo de Mantenimiento:</label>
+        <select id="manto" onchange="toggleCorrectivo()">
+            <option value="">-- Seleccionar --</option>
+            <option value="M1">M1</option>
+            <option value="M2">M2</option>
+            <option value="M3">M3</option>
+            <option value="M4">M4</option>
+            <option value="M5">M5</option>
+            <option value="M6">M6</option>
+            <option value="M7">M7</option>
+            <option value="CORRECTIVO">CORRECTIVO</option>
+        </select>
+
+        <!-- COMENTARIOS CORRECTIVO -->
+        <div id="div-correctivo" class="hidden">
+            <label>Descripción del trabajo realizado (Correctivo):</label>
+            <textarea id="comentariosCorrectivo" style="width:100%; height:80px;" placeholder="Describe qué se le cambió o reparó a la unidad..."></textarea>
+        </div>
+
+        <label>5. Evidencias Fotográficas:</label>
+
+        <!-- TABLERO (ODÓMETRO) -->
+        <input type="file" id="fotoTablero" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewTablero')">
+        <button class="btn-principal btn-foto" onclick="document.getElementById('fotoTablero').click()">📸 FOTO TABLERO (ODÓMETRO)</button>
+        <img id="previewTablero" class="img-preview">
+
+        <!-- ECONÓMICO (FRONTAL) -->
+        <input type="file" id="fotoEconomico" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewEconomico')">
+        <button class="btn-principal btn-foto" onclick="document.getElementById('fotoEconomico').click()">📸 FOTO ECONÓMICO (FRONTAL)</button>
+        <img id="previewEconomico" class="img-preview">
+
+        <!-- PIEZAS NUEVAS (MÚLTIPLES) -->
+        <input type="file" id="fotoPiezas" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewPiezas', 'countPiezas')">
+        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoPiezas').click()">🖼️ FOTOS PIEZAS NUEVAS (puedes elegir varias)</button>
+        <div id="countPiezas" class="foto-multiple-count"></div>
+        <div id="previewPiezas"></div>
+
+        <!-- ANTES (MÚLTIPLES) -->
+        <input type="file" id="fotoAntes" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewAntes', 'countAntes')">
+        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoAntes').click()">️ FOTOS ANTES (puedes elegir varias)</button>
+        <div id="countAntes" class="foto-multiple-count"></div>
+        <div id="previewAntes"></div>
+
+        <!-- DESPUÉS (MÚLTIPLES) -->
+        <input type="file" id="fotoDespues" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewDespues', 'countDespues')">
+        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoDespues').click()">🖼️ FOTOS DESPUÉS (puedes elegir varias)</button>
+        <div id="countDespues" class="foto-multiple-count"></div>
+        <div id="previewDespues"></div>
+
+        <div id="progressContainer">
+            <div id="progressBar"></div>
+        </div>
+        <div id="statusMsg" class="status"></div>
+
+        <button id="btnGenerar" class="btn-principal" onclick="generarHoja()"> GENERAR HOJA DE MANTENIMIENTO</button>
+        <button class="btn-principal btn-atras" onclick="location.reload()">ATRÁS</button>
+    </div>
+</div>
+
+<!-- CARGAR CATÁLOGO -->
+<script src="catalogo.js"></script>
+
+<script>
+    const CLAVE_ACCESO = "EGO";
+    const URL_WEBAPP = "https://script.google.com/macros/s/AKfycbzSYGJNO-VSxYa8v0EGYYJVsJy5RPw1rkurLX-jDcFux4WTNBr6JHanINJbSeHkeAlRMw/exec";
+    const CLOUD_NAME = "dygb7qjgt";
+    const UPLOAD_PRESET = "ego_fotos";
+    const LOGO_INSTITUTO = "https://res.cloudinary.com/dygb7qjgt/image/upload/v1787759762/instituto_de_movilidad_gp5kqe.png";
+
+    const TEXTOS_MANTO = {
+        "M1": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE AIRE",
+        "M2": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE TRANSMISION\nSE REALIZO CAMBIO DE FILTRO DE AIRE\nSE LE REALIZO CAMBIO DE FILTRO DE GAS",
+        "M3": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE AIRE\nSE REALIZO CAMBIO DE ACEITE DE DIFERENCIAL",
+        "M4": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE AIRE",
+        "M5": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE AIRE\nSE REALIZO CAMBIO DE FILTROS Y ACEITE DE TRANSMISION\nSE REALIZO CAMBIO DE SECADOR COMPLETO\nSE LE REALIZO CAMBIO DE FILTRO DE GAS",
+        "M6": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE AIRE\nSE REALIZO CAMBIO DE FILTROS DE TRANSMISION\nSE REALIZO CAMBIO DE SECADOR COMPLETO\nSE LE REALIZO CAMBIO DE FILTRO DE GAS",
+        "M7": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE AIRE\nSE REALIZO CAMBIO DE FILTROS Y ACEITE DE TRANSMISION\nSE REALIZO CAMBIO DE SECADOR COMPLETO\nSE LE REALIZO CAMBIO DE FILTRO DE GAS\nSE REALIZO CAMBIO DE ACEITE DE DIFERENCIAL"
+    };
+
+    const unidadesData = { 
+        "AEROPUERTO Y GRIEGA": ["6070", "6074", "6078", "6083", "6085", "6086", "6087", "6089", "6095", "6097"],
+        "EXPO AEROPUERTO": ["7054", "7055", "7056", "7057", "7058", "7059", "7060", "7061", "7062"],
+        "ALIANZA REAL": ["6003", "6013", "6015", "6026", "6027", "6028", "6036", "6038", "6039", "6044", "6045", "6047", "6050", "6053", "6059", "6065", "6066", "6075", "6081", "6082", "6092", "6096", "6098", "6099", "6100"],
+        "CIENEGA DE FLORES": ["3386", "3409", "3415", "3425", "3427", "3431", "3433", "3450", "3459", "3466", "3544", "3565", "3579", "3584", "3585"],
+        "Nuevas Unidades": ["7000"],
+        "PALMIRAS": ["6048", "6055", "6076", "6079", "6093"],
+        "PRO VIVIENDA": ["6005", "6008", "6009", "6011", "6014", "6019", "6022", "6029", "6030", "6031", "6033", "6037", "6040", "6041", "6042", "6052", "6056", "6058", "6062", "6063", "6064", "6067", "6069"],
+        "RUTA 1": ["3263", "3289", "3326", "3384", "3385", "3410", "3441", "3474", "3478", "3479", "3480", "3484", "3487", "3495", "3496", "3505", "3506", "3520", "3529", "3530", "3532", "3534", "3535", "3536", "3537", "3539", "3540", "3541", "3542", "3543", "3582"],
+        "RUTA 2": ["3332", "3360", "3368", "3392", "3395", "3407", "3435", "3445", "3545", "3555", "3588", "3591"],
+        "RUTA 13": ["3329", "3353", "3418", "3429", "3442", "3461", "3470", "3546", "3549", "3586"],
+        "RUTA 20": ["6004", "6012", "6016", "6017", "6018", "6020", "6032", "6034", "6035", "6043", "6046", "6049", "6051", "6057", "6061", "6068", "6071", "6072", "6073", "6084", "6090", "6091"],
+        "RUTA 39": ["3240", "3304", "3345", "3348", "3351", "3362", "3381", "3395", "3397", "3398", "3417", "3421", "3422", "3436", "3439", "3446", "3449", "3472", "3500", "3501", "3523", "3528", "3531", "3559", "3578", "3590", "3592"],
+        "RUTA 41": ["3010", "3196", "3212", "3224", "3233", "3247", "3276", "3284", "3293", "3296", "3297", "3298", "3299", "3300", "3306", "3307", "3311", "3316", "3317", "3322", "3323", "3324", "3352", "3383", "3420", "3423", "3473", "3483", "3484", "3486", "3490", "3492", "3504", "3508", "3509", "3512", "3548", "3589", "3597", "7025", "7026", "7027", "7028", "7100"],
+        "RUTA 68": ["3215", "3242", "3253", "3254", "3255", "3256", "3257", "3259", "3261", "3264", "3265", "3266", "3267", "3268", "3270", "3271", "3272", "3273", "3274", "3275", "3276", "3277", "3278", "3279", "3280", "3281", "3282", "3283", "3285", "3286", "3287", "3288", "3290", "3291", "3294", "3295", "3434", "3463", "3552", "3593"],
+        "RUTA 109": ["3050", "3195", "3197", "3199", "3200", "3201", "3202", "3203", "3204", "3205", "3207", "3208", "3209", "3213", "3217", "3218", "3219", "3220", "3225", "3226", "3229", "3230", "3231", "3232", "3234", "3235", "3238", "3239", "3241", "3243", "3245", "3246", "3248", "3249", "3252", "3428", "3430", "3482", "3484", "3489", "3503", "3511", "3599", "3600"],
+        "RUTA 117": ["3163", "3164", "3165", "3166", "3167", "3168", "3169", "3170", "3171", "3172", "3173", "3174", "3175", "3176", "3177", "3178", "3179", "3180", "3181", "3182", "3183", "3184", "3185", "3186", "3187", "3188", "3189", "3190", "3191", "3192"],
+        "RUTA 160": ["7029", "7030", "7031", "7032", "7033", "7034", "7035", "7036", "7037", "7038", "7039", "7040", "7041", "7042", "7043", "7044", "7045", "7046", "7047", "7048", "7049", "7050", "7051", "7052", "7053"],
+        "RUTA 201": ["3214", "3223", "3244", "3258", "3262", "3302", "3314", "3437", "3507", "3538", "3547", "3563", "3568", "3574", "3583"],
+        "RUTA 218": ["3331", "3333", "3334", "3336", "3337", "3338", "3339", "3341", "3342", "3350", "3355", "3356", "3404", "3406", "3408", "3412", "3416", "3419", "3424", "3432", "3440", "3454"],
+        "RUTA 223": ["3206", "3210", "3211", "3221", "3228", "3236", "3237", "3250", "3269", "3313", "3328", "3405", "3414", "3564", "3595"],
+        "RUTA 227": ["7001", "7002", "7003", "7004", "7005", "7006", "7007", "7008", "7009", "7010", "7011", "7012", "7013", "7014", "7015", "7016", "7017", "7018", "7019", "7020", "7021", "7022", "7023", "7024"],
+        "RUTA 228": ["3019", "3021", "3022", "3023", "3024", "3025", "3026", "3027", "3028", "3029", "3030", "3031", "3032", "3033", "3034", "3035", "3036", "3037", "3038", "3039", "3040", "3041", "3042", "3043", "3045", "3046", "3047", "3048", "3049", "3052", "3053", "3054", "3055", "3056", "3057", "3058", "3059", "3060", "3061", "3062", "3198", "3216"],
+        "RUTA 233": ["3001", "3002", "3003", "3004", "3005", "3044", "3123", "3251", "3305", "3325", "3340", "3344", "3380", "3390", "3399", "3401", "3448", "3455", "3476", "3522", "3554", "3556", "3561", "3580", "3587", "3594", "3598", "7080", "7081", "7082", "7083", "7084", "7085", "7086", "7087", "7088", "7089", "7090", "7091", "7092", "7093", "7094", "7095", "7096", "7097", "7098", "7099"],
+        "RUTA 310": ["3011", "3012", "3013", "3014", "3015", "3016", "3017", "3018", "3020", "3051", "3088", "3089", "3090", "3091", "3092", "3093", "3094", "3095", "3096", "3097", "3098", "3099", "3100", "3101", "3102", "3103", "3104", "3130", "3131", "3132", "3133", "3134", "3135", "3136", "3137", "3138", "3139", "3140", "3141", "3142", "3143", "3144", "3145", "3146", "3147", "3148", "3149", "3150", "3151", "3152", "3153", "3154", "3155", "3156", "3157", "3158", "3159", "3160", "3161", "3162", "3447", "3451", "3457", "3458", "3465", "3467", "3550", "3551", "3557", "3558", "3560", "3562", "3566", "3567", "3569", "3570", "3571", "3572", "3573", "3575", "3577", "3581", "3596"],
+        "RUTA 311": ["3227", "3260", "3292", "3301", "3308", "3309", "3310", "3312", "3315", "3318", "3319", "3320", "3321", "3475", "3477", "3484", "3488", "3493", "3494", "3497", "3498"],
+        "RUTA 313": ["3499", "3502", "3510", "3513", "3514", "3516", "3517", "3518", "3519", "3521", "3524", "3526", "3527"],
+        "RUTA 527": ["3063", "3064", "3065", "3066", "3067", "3068", "3069", "3070", "3071", "3072", "3073", "3074", "3075", "3076", "3077", "3078", "3079", "3080", "3081", "3082", "3083", "3084", "3085", "3086", "3087", "3354", "3358", "3361", "3363", "3365", "3366", "3369", "3370", "3371", "3372", "3373", "3375", "3376", "3377", "3378", "3379", "3394", "3400", "3444", "3453", "3456", "3460", "3462", "3464", "3468", "3469", "3471"],
+        "RUTA 601": ["3105", "3106", "3107", "3108", "3109", "3110", "3111", "3112", "3113", "3114", "3115", "3116", "3117", "3118", "3119", "3120", "3121", "3122", "3124", "3125", "3126", "3127", "3128", "3129", "3193", "3330", "3335", "3343", "3346", "3347", "3349", "3357", "3359", "3364", "3367", "3382", "3387", "3388", "3389", "3391", "3393", "3396", "3402", "3411", "3413"],
+        "Ruta 685/198": ["3438", "3374", "3481", "3525", "3576"],
+        "VALLE SOLEADO": ["3006", "3007", "3008", "3009", "3194", "3303", "3327", "3403", "3443", "3452", "3491", "3515", "3533", "3553", "7063", "7064", "7065", "7066", "7067", "7068", "7069", "7070", "7071", "7072", "7073", "7074", "7075", "7076", "7077", "7078", "7079"],
+        "VISTAS DEL CARMEN": ["6001", "6002", "6006", "6007", "6010", "6021", "6023", "6024", "6025", "6054", "6060", "6077", "6080", "6088", "6094"]
+    };
+
+    function verificarPass() {
+        const input = document.getElementById('passInput');
+        if(input.value.toUpperCase() === CLAVE_ACCESO) {
+            document.getElementById('sec-pass').classList.add('hidden');
+            document.getElementById('sec-form').classList.remove('hidden');
+        } else {
+            alert("Contraseña Incorrecta");
+            input.value = "";
+        }
+    }
+
+    function actualizarUnidades() {
+        const r = document.getElementById('ruta').value;
+        const u = document.getElementById('unidad');
+        u.innerHTML = '<option value="">-- Seleccionar --</option>';
+        if (r && unidadesData[r]) {
+            unidadesData[r].forEach(num => {
+                const opt = document.createElement('option');
+                opt.value = num;
+                opt.textContent = "Unidad " + num;
+                u.appendChild(opt);
+            });
+        }
+        document.getElementById('info-unidad').classList.add('hidden');
+    }
+
+    function cargarInfoUnidad() {
+        const u = document.getElementById('unidad').value;
+        const infoBox = document.getElementById('info-unidad');
+        if (u && unidadesInfo && unidadesInfo[u]) {
+            const info = unidadesInfo[u];
+            document.getElementById('info-marca').textContent = info.marca || "-";
+            document.getElementById('info-anio').textContent = info.anio || "-";
+            document.getElementById('info-vin').textContent = info.vin || "-";
+            document.getElementById('info-placas').textContent = info.placas || "-";
+            document.getElementById('info-empresa').textContent = info.empresa || "-";
+            infoBox.classList.remove('hidden');
+        } else {
+            infoBox.classList.add('hidden');
+        }
+    }
+
+    function toggleCorrectivo() {
+        const manto = document.getElementById('manto').value;
+        const divCorr = document.getElementById('div-correctivo');
+        if (manto === "CORRECTIVO") {
+            divCorr.classList.remove('hidden');
+        } else {
+            divCorr.classList.add('hidden');
+        }
+    }
+
+    function mostrarPreview(input, imgId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => { 
+                const img = document.getElementById(imgId);
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function mostrarMultiples(input, containerId, countId) {
+        const container = document.getElementById(containerId);
+        const countDiv = document.getElementById(countId);
+        container.innerHTML = '';
+        if (input.files && input.files.length > 0) {
+            countDiv.textContent = input.files.length + " foto(s) seleccionada(s)";
+            Array.from(input.files).forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-preview';
+                    img.style.display = 'block';
+                    container.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        } else {
+            countDiv.textContent = '';
+        }
+    }
+
+    async function comprimirImagen(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_WIDTH = 1600; 
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob((blob) => {
+                        const newFile = new File([blob], "foto.jpg", { type: 'image/jpeg' });
+                        resolve(newFile);
+                    }, 'image/jpeg', 0.85); 
+                };
+            };
+        });
+    }
+
+    async function subirACloudinary(file) {
+        if(!file) return "";
+        const archivoLigero = await comprimirImagen(file);
+        const formData = new FormData();
+        formData.append('file', archivoLigero);
+        formData.append('upload_preset', UPLOAD_PRESET);
+        try {
+            const resp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            return data.secure_url || "";
+        } catch (e) {
+            return "";
+        }
+    }
+
+    function actualizarBarra(porcentaje) {
+        const bar = document.getElementById('progressBar');
+        bar.style.width = porcentaje + "%";
+    }
+    async function generarHoja() {
+        const ruta = document.getElementById('ruta').value;
+        const unidad = document.getElementById('unidad').value;
+        const km = document.getElementById('km').value;
+        const manto = document.getElementById('manto').value;
+        const fTablero = document.getElementById('fotoTablero').files[0];
+        const fEconomico = document.getElementById('fotoEconomico').files[0];
+
+        if (!ruta || !unidad || !km || !manto) return alert("️ Completa Ruta, Unidad, KM y Tipo de Mantenimiento.");
+        if (!fTablero || !fEconomico) return alert(" Las fotos de Tablero y Económico son obligatorias.");
+
+        const btn = document.getElementById('btnGenerar');
+        const status = document.getElementById('statusMsg');
+        const progressCont = document.getElementById('progressContainer');
+        
+        btn.disabled = true;
+        btn.innerText = "PROCESANDO...";
+        progressCont.style.display = 'block';
+        actualizarBarra(5);
+
+        try {
+            status.innerText = "Subiendo fotos del tablero y económico...";
+            const urlTablero = await subirACloudinary(fTablero);
+            const urlEconomico = await subirACloudinary(fEconomico);
+            actualizarBarra(30);
+
+            status.innerText = "Subiendo fotos de piezas, antes y después...";
+            const fPiezas = document.getElementById('fotoPiezas').files;
+            const fAntes = document.getElementById('fotoAntes').files;
+            const fDespues = document.getElementById('fotoDespues').files;
+
+            let urlsPiezas = [], urlsAntes = [], urlsDespues = [];
+            for (let f of fPiezas) urlsPiezas.push(await subirACloudinary(f));
+            for (let f of fAntes) urlsAntes.push(await subirACloudinary(f));
+            for (let f of fDespues) urlsDespues.push(await subirACloudinary(f));
+            actualizarBarra(70);
+
+            status.innerText = "Guardando registro en el sistema...";
+            const comentarios = manto === "CORRECTIVO" ? document.getElementById('comentariosCorrectivo').value : "";
+            
+            const payload = {
+                ruta: ruta, unidad: unidad, km: km, manto: manto,
+                movimiento: "MANTENIMIENTO", comentarios: comentarios,
+                fotoOdo: urlTablero, fotoFrontal: urlEconomico,
+                fotoLicencia: "N/A", fotoVin: "N/A", fotoTrasera: "N/A",
+                fotoDerecha: "N/A", fotoIzquierda: "N/A"
+            };
+
+            const respuesta = await fetch(URL_WEBAPP, { method: "POST", body: JSON.stringify(payload) });
+            let filaGuardada = "", hojaGuardada = "";
+            try {
+                const res = await respuesta.json();
+                if(res && res.row) { filaGuardada = res.row; hojaGuardada = res.hoja; }
+            } catch(e) {}
+            actualizarBarra(90);
+
+            status.innerText = "¡Generando hoja de evidencia!";
+            actualizarBarra(100);
+
+            // Abrir la hoja de evidencia en una nueva pestaña
+            abrirVistaPrevia({
+                unidad, ruta, km, manto, comentarios,
+                urlTablero, urlEconomico, urlsPiezas, urlsAntes, urlsDespues,
+                filaGuardada, hojaGuardada
+            });
+
+            btn.innerText = "✅ HOJA GENERADA";
+            btn.onclick = () => location.reload();
+
+        } catch (e) {
+            alert("❌ Error al generar la hoja: " + e.message);
+            btn.disabled = false;
+            btn.innerText = "🔧 GENERAR HOJA DE MANTENIMIENTO";
+        }
+    }
+
+    function abrirVistaPrevia(data) {
+        const info = (unidadesInfo && unidadesInfo[data.unidad]) ? unidadesInfo[data.unidad] : {};
+        const marca = info.marca || "GOLDEN DRAGON";
+        const anio = info.anio || "2024";
+        const vin = info.vin || "N/A";
+        const empresa = info.empresa || "N/A";
+        const fecha = new Date().toLocaleDateString('es-MX');
+        
+        let descripcion = "";
+        if (data.manto === "CORRECTIVO") {
+            descripcion = `<strong>CORRECTIVO:</strong><br>${data.comentarios.replace(/\n/g, '<br>')}`;
+        } else {
+            const textos = TEXTOS_MANTO[data.manto] || "";
+            descripcion = `<strong># DE MANTENIMIENTO PREVENTIVO: ${data.manto}</strong><br><br>${textos.replace(/\n/g, '<br>')}`;
+        }
+
+        const generarBloqueFotos = (urls, titulo) => {
+            if (!urls || urls.length === 0) return `<td style="padding:10px; text-align:center; color:#999;">Sin fotos</td>`;
+            return urls.map(u => `<td style="padding:5px;"><img src="${u}" style="max-width:100%; height:auto; border:1px solid #ccc;"></td>`).join('');
+        };
+
+        const html = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Evidencia de Mantenimiento - Unidad ${data.unidad}</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; color: #000; }
+    .header { display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+    .header img { max-width: 100px; margin-right: 20px; }
+    .header h1 { margin: 0; font-size: 20px; text-transform: uppercase; }
+    .arrendadora { font-weight: bold; margin-bottom: 15px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 12px; }
+    th { background-color: #f2f2f2; }
+    .datos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .foto-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .foto-row img { max-width: 45%; height: auto; border: 1px solid #ccc; }
+    .firmas { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 12px; }
+    .firma-linea { border-top: 1px solid #000; width: 30%; padding-top: 5px; }
+    @media print { body { margin: 0; } .no-print { display: none; } }
+    .btn-imprimir { position: fixed; top: 10px; right: 10px; padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; z-index: 1000; }
+</style>
+</head>
+<body>
+<button class="btn-imprimir no-print" onclick="window.print()">🖨️ IMPRIMIR / GUARDAR PDF</button>
+
+<div class="header">
+    <img src="${LOGO_INSTITUTO}" alt="Logo Instituto">
+    <h1>EVIDENCIA DE MANTENIMIENTO PREVENTIVO</h1>
+</div>
+
+<div class="arrendadora">ARRENDADORA: EGO MOVIL S.A DE C.V</div>
+
+<div class="datos-grid">
+    <div><strong>UNIDAD:</strong> ${data.unidad}</div>
+    <div><strong>MARCA:</strong> ${marca}</div>
+    <div><strong>ODÓMETRO:</strong> ${Number(data.km).toLocaleString()} KM</div>
+    <div><strong>AÑO/MODELO:</strong> ${anio}</div>
+    <div><strong>PLACAS:</strong> ${info.placas || "PERMISO"}</div>
+    <div><strong>VIN:</strong> ${vin}</div>
+    <div><strong>FECHA:</strong> ${fecha}</div>
+    <div><strong>TRANSPORTISTA:</strong> ${empresa}</div>
+</div>
+
+<table>
+    <tr><th>DESCRIPCIÓN DEL TRABAJO REALIZADO</th></tr>
+    <tr><td style="height: 100px;">${descripcion}</td></tr>
+</table>
+
+<table>
+    <tr>
+        <th style="width:50%;">FOTOGRAFÍAS DE LAS PIEZAS NUEVAS</th>
+        <th style="width:50%;">FOTOGRAFÍAS DEL TABLERO Y ECONÓMICO DEL AUTOBÚS</th>
+    </tr>
+    <tr>
+        <td><div class="foto-row">${generarBloqueFotos(data.urlsPiezas)}</div></td>
+        <td>
+            <div class="foto-row">
+                <img src="${data.urlEconomico}" style="max-width:48%;">
+                <img src="${data.urlTablero}" style="max-width:48%;">
+            </div>
+        </td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th style="width:50%;">FOTOGRAFÍAS DE LA EVIDENCIA DEL TRABAJO - ANTES</th>
+        <th style="width:50%;">FOTOGRAFÍAS DE LA EVIDENCIA DEL TRABAJO - DESPUÉS</th>
+    </tr>
+    <tr>
+        <td><div class="foto-row">${generarBloqueFotos(data.urlsAntes)}</div></td>
+        <td><div class="foto-row">${generarBloqueFotos(data.urlsDespues)}</div></td>
+    </tr>
+</table>
+
+<div class="firmas">
+    <div class="firma-linea">NOMBRE Y FIRMA DE ARRENDADORA</div>
+    <div class="firma-linea">NOMBRE Y FIRMA TRANSPORTISTA</div>
+    <div class="firma-linea">NOMBRE Y FIRMA DE GESTIÓN DEL TRANSPORTE<br>DEL INSTITUTO DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEÓN</div>
+</div>
+<div style="margin-top: 20px; font-size: 10px; color: #666;">*ANEXAR LA/NE DE LAS PERSONAS QUE FIRMAN.</div>
+
+</body>
+</html>`;
+
+        const nuevaVentana = window.open('', '_blank');
+        nuevaVentana.document.write(html);
+        nuevaVentana.document.close();
+    }
+</script>
+</body>
+</html>
