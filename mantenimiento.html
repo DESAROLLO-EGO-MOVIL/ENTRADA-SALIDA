@@ -37,14 +37,12 @@
         <h2>HOJA DE MANTENIMIENTO</h2>
     </div>
 
-    <!-- SECCIÓN LOGIN -->
     <div id="sec-pass">
         <label>Contraseña de Acceso:</label>
         <input type="text" id="passInput" placeholder="Escribe aquí..." style="-webkit-text-security: disc;">
         <button class="btn-principal" onclick="verificarPass()">INGRESAR</button>
     </div>
 
-    <!-- SECCIÓN FORMULARIO -->
     <div id="sec-form" class="hidden">
         <label>1. Seleccione la Ruta:</label>
         <select id="ruta" onchange="actualizarUnidades()">
@@ -85,7 +83,6 @@
         <label>2. Seleccione la Unidad:</label>
         <select id="unidad" onchange="cargarInfoUnidad()"><option value="">-- Elija ruta --</option></select>
 
-        <!-- INFO AUTO-LLENADA -->
         <div id="info-unidad" class="info-box hidden">
             <div><strong>Marca:</strong> <span id="info-marca">-</span></div>
             <div><strong>Año:</strong> <span id="info-anio">-</span></div>
@@ -110,7 +107,6 @@
             <option value="CORRECTIVO">CORRECTIVO</option>
         </select>
 
-        <!-- COMENTARIOS CORRECTIVO -->
         <div id="div-correctivo" class="hidden">
             <label>Descripción del trabajo realizado (Correctivo):</label>
             <textarea id="comentariosCorrectivo" style="width:100%; height:80px;" placeholder="Describe qué se le cambió o reparó a la unidad..."></textarea>
@@ -118,31 +114,26 @@
 
         <label>5. Evidencias Fotográficas:</label>
 
-        <!-- TABLERO (ODÓMETRO) -->
         <input type="file" id="fotoTablero" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewTablero')">
         <button class="btn-principal btn-foto" onclick="document.getElementById('fotoTablero').click()">📸 FOTO TABLERO (ODÓMETRO)</button>
         <img id="previewTablero" class="img-preview">
 
-        <!-- ECONÓMICO (FRONTAL) -->
         <input type="file" id="fotoEconomico" accept="image/*" class="hidden" onchange="mostrarPreview(this, 'previewEconomico')">
         <button class="btn-principal btn-foto" onclick="document.getElementById('fotoEconomico').click()">📸 FOTO ECONÓMICO (FRONTAL)</button>
         <img id="previewEconomico" class="img-preview">
 
-        <!-- PIEZAS NUEVAS (MÚLTIPLES) -->
         <input type="file" id="fotoPiezas" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewPiezas', 'countPiezas')">
-        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoPiezas').click()">🖼️ FOTOS PIEZAS NUEVAS (puedes elegir varias)</button>
+        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoPiezas').click()">🖼️ FOTOS PIEZAS NUEVAS</button>
         <div id="countPiezas" class="foto-multiple-count"></div>
         <div id="previewPiezas"></div>
 
-        <!-- ANTES (MÚLTIPLES) -->
         <input type="file" id="fotoAntes" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewAntes', 'countAntes')">
-        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoAntes').click()">🖼️ FOTOS ANTES (puedes elegir varias)</button>
+        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoAntes').click()">🖼️ FOTOS ANTES</button>
         <div id="countAntes" class="foto-multiple-count"></div>
         <div id="previewAntes"></div>
 
-        <!-- DESPUÉS (MÚLTIPLES) -->
         <input type="file" id="fotoDespues" accept="image/*" multiple class="hidden" onchange="mostrarMultiples(this, 'previewDespues', 'countDespues')">
-        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoDespues').click()">🖼️ FOTOS DESPUÉS (puedes elegir varias)</button>
+        <button class="btn-principal btn-foto foto-multiple" onclick="document.getElementById('fotoDespues').click()">🖼️ FOTOS DESPUÉS</button>
         <div id="countDespues" class="foto-multiple-count"></div>
         <div id="previewDespues"></div>
 
@@ -151,12 +142,11 @@
         </div>
         <div id="statusMsg" class="status"></div>
 
-        <button id="btnGenerar" class="btn-principal" onclick="generarHoja()">🔧 GENERAR HOJA DE MANTENIMIENTO</button>
+        <button id="btnGenerar" class="btn-principal" onclick="generarHoja()">🔧 GENERAR HOJA</button>
         <button class="btn-principal btn-atras" onclick="location.reload()">ATRÁS</button>
     </div>
 </div>
 
-<!-- CARGAR CATÁLOGO -->
 <script src="catalogo.js"></script>
 
 <script>
@@ -165,6 +155,7 @@
     const CLOUD_NAME = "dygb7qjgt";
     const UPLOAD_PRESET = "ego_fotos";
     const LOGO_INSTITUTO = "https://res.cloudinary.com/dygb7qjgt/image/upload/v1787759762/instituto_de_movilidad_gp5kqe.png";
+    const LOGO_EGO = "https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg";
 
     const TEXTOS_MANTO = {
         "M1": "SE REALIZO CAMBIO DE ACEITE MOTOR Y FILTRO DE ACEITE MOTOR\nSE REALIZO CAMBIO DE FILTRO DE AIRE",
@@ -280,7 +271,7 @@
         container.innerHTML = '';
         if (input.files && input.files.length > 0) {
             countDiv.textContent = input.files.length + " foto(s) seleccionada(s)";
-            Array.from(input.files).forEach((file, idx) => {
+            Array.from(input.files).forEach((file) => {
                 const reader = new FileReader();
                 reader.onload = e => {
                     const img = document.createElement('img');
@@ -341,6 +332,7 @@
             const data = await resp.json();
             return data.secure_url || "";
         } catch (e) {
+            console.error("Error subiendo imagen:", e);
             return "";
         }
     }
@@ -371,12 +363,11 @@
         actualizarBarra(5);
 
         try {
-            status.innerText = "Subiendo fotos del tablero y económico...";
+            status.innerText = "Subiendo fotos...";
             const urlTablero = await subirACloudinary(fTablero);
             const urlEconomico = await subirACloudinary(fEconomico);
             actualizarBarra(30);
 
-            status.innerText = "Subiendo fotos de piezas, antes y después...";
             const fPiezas = document.getElementById('fotoPiezas').files;
             const fAntes = document.getElementById('fotoAntes').files;
             const fDespues = document.getElementById('fotoDespues').files;
@@ -387,7 +378,7 @@
             for (let f of fDespues) urlsDespues.push(await subirACloudinary(f));
             actualizarBarra(70);
 
-            status.innerText = "Guardando registro en el sistema...";
+            status.innerText = "Guardando registro...";
             const comentarios = manto === "CORRECTIVO" ? document.getElementById('comentariosCorrectivo').value : "";
             
             const payload = {
@@ -398,31 +389,24 @@
                 fotoDerecha: "N/A", fotoIzquierda: "N/A"
             };
 
-            const respuesta = await fetch(URL_WEBAPP, { method: "POST", body: JSON.stringify(payload) });
-            let filaGuardada = "", hojaGuardada = "";
-            try {
-                const res = await respuesta.json();
-                if(res && res.row) { filaGuardada = res.row; hojaGuardada = res.hoja; }
-            } catch(e) {}
+            await fetch(URL_WEBAPP, { method: "POST", body: JSON.stringify(payload) });
             actualizarBarra(90);
 
-            status.innerText = "¡Generando hoja de evidencia!";
+            status.innerText = "Generando hoja...";
             actualizarBarra(100);
 
-            // ✅ CORRECCIÓN: Reemplazar el documento actual en lugar de abrir ventana nueva (evita bloqueo en móviles)
             abrirVistaPrevia({
                 unidad, ruta, km, manto, comentarios,
-                urlTablero, urlEconomico, urlsPiezas, urlsAntes, urlsDespues,
-                filaGuardada, hojaGuardada
+                urlTablero, urlEconomico, urlsPiezas, urlsAntes, urlsDespues
             });
 
             btn.innerText = "✅ HOJA GENERADA";
-            btn.onclick = () => location.reload();
+            setTimeout(() => location.reload(), 2000);
 
         } catch (e) {
-            alert("❌ Error al generar la hoja: " + e.message);
+            alert("❌ Error: " + e.message);
             btn.disabled = false;
-            btn.innerText = "🔧 GENERAR HOJA DE MANTENIMIENTO";
+            btn.innerText = "🔧 GENERAR HOJA";
         }
     }
 
@@ -432,112 +416,109 @@
         const anio = info.anio || "2024";
         const vin = info.vin || "N/A";
         const empresa = info.empresa || "N/A";
+        const placas = info.placas || "PERMISO";
         const fecha = new Date().toLocaleDateString('es-MX');
         
         let descripcion = "";
         if (data.manto === "CORRECTIVO") {
-            descripcion = `<strong>CORRECTIVO:</strong><br>${data.comentarios.replace(/\n/g, '<br>')}`;
+            descripcion = data.comentarios || "Mantenimiento correctivo realizado";
         } else {
-            const textos = TEXTOS_MANTO[data.manto] || "";
-            descripcion = `<strong># DE MANTENIMIENTO PREVENTIVO: ${data.manto}</strong><br><br>${textos.replace(/\n/g, '<br>')}`;
+            descripcion = TEXTOS_MANTO[data.manto] || "";
         }
-
-        const generarBloqueFotos = (urls) => {
-            if (!urls || urls.length === 0) return `<td style="padding:10px; text-align:center; color:#999;">Sin fotos</td>`;
-            return urls.map(u => `<td style="padding:5px;"><img src="${u}" style="max-width:100%; height:auto; border:1px solid #ccc;"></td>`).join('');
-        };
 
         const html = `
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Evidencia de Mantenimiento - Unidad ${data.unidad}</title>
+<title>Evidencia Mantenimiento - Unidad ${data.unidad}</title>
 <style>
-    body { font-family: Arial, sans-serif; margin: 20px; color: #000; }
-    .header { display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-    .header img { max-width: 100px; margin-right: 20px; }
-    .header h1 { margin: 0; font-size: 20px; text-transform: uppercase; }
-    .arrendadora { font-weight: bold; margin-bottom: 15px; font-size: 14px; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-    th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 12px; }
-    th { background-color: #f2f2f2; }
-    .datos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-    .foto-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-    .foto-row img { max-width: 45%; height: auto; border: 1px solid #ccc; }
-    .firmas { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 12px; }
-    .firma-linea { border-top: 1px solid #000; width: 30%; padding-top: 5px; }
-    @media print { body { margin: 0; } .no-print { display: none; } }
-    .btn-imprimir { position: fixed; top: 10px; right: 10px; padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; z-index: 1000; }
-    .btn-volver { position: fixed; top: 10px; left: 10px; padding: 10px 20px; background: #666; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; z-index: 1000; text-decoration: none; }
+@page { size: letter; margin: 10mm; }
+body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+.header { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+.header img { width: 80px; margin-right: 15px; }
+.header h1 { margin: 0; font-size: 18px; text-transform: uppercase; }
+.arrendadora { font-weight: bold; margin-bottom: 15px; font-size: 12px; }
+.datos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; font-size: 11px; }
+.datos div { margin: 2px 0; }
+.tabla { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+.tabla th, .tabla td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 11px; }
+.tabla th { background: #f0f0f0; }
+.fotos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.fotos-grid img { width: 100%; height: auto; border: 1px solid #ccc; }
+.firmas { margin-top: 40px; display: flex; justify-content: space-between; }
+.firma { border-top: 1px solid #000; width: 30%; padding-top: 5px; text-align: center; font-size: 10px; }
+@media print { .no-print { display: none; } }
+.btn-print { position: fixed; top: 10px; right: 10px; padding: 10px 20px; background: #1a73e8; color: white; border: none; cursor: pointer; border-radius: 5px; }
 </style>
 </head>
 <body>
-<a href="mantenimiento.html" class="btn-volver no-print">⬅️ VOLVER</a>
-<button class="btn-imprimir no-print" onclick="window.print()">🖨️ IMPRIMIR / GUARDAR PDF</button>
+<button class="btn-print no-print" onclick="window.print()">🖨️ IMPRIMIR</button>
 
 <div class="header">
-    <img src="${LOGO_INSTITUTO}" alt="Logo Instituto">
+    <img src="${LOGO_INSTITUTO}" alt="Logo">
     <h1>EVIDENCIA DE MANTENIMIENTO PREVENTIVO</h1>
 </div>
 
 <div class="arrendadora">ARRENDADORA: EGO MOVIL S.A DE C.V</div>
 
-<div class="datos-grid">
+<div class="datos">
     <div><strong>UNIDAD:</strong> ${data.unidad}</div>
     <div><strong>MARCA:</strong> ${marca}</div>
     <div><strong>ODÓMETRO:</strong> ${Number(data.km).toLocaleString()} KM</div>
     <div><strong>AÑO/MODELO:</strong> ${anio}</div>
-    <div><strong>PLACAS:</strong> ${info.placas || "PERMISO"}</div>
+    <div><strong>PLACAS:</strong> ${placas}</div>
     <div><strong>VIN:</strong> ${vin}</div>
     <div><strong>FECHA:</strong> ${fecha}</div>
     <div><strong>TRANSPORTISTA:</strong> ${empresa}</div>
 </div>
 
-<table>
+<table class="tabla">
     <tr><th>DESCRIPCIÓN DEL TRABAJO REALIZADO</th></tr>
-    <tr><td style="height: 100px;">${descripcion}</td></tr>
+    <tr><td style="height: 80px; white-space: pre-line;">${descripcion}</td></tr>
 </table>
 
-<table>
+<table class="tabla">
     <tr>
-        <th style="width:50%;">FOTOGRAFÍAS DE LAS PIEZAS NUEVAS</th>
-        <th style="width:50%;">FOTOGRAFÍAS DEL TABLERO Y ECONÓMICO DEL AUTOBÚS</th>
+        <th style="width:50%">FOTOGRAFÍAS DE LAS PIEZAS NUEVAS</th>
+        <th style="width:50%">FOTOGRAFÍAS DEL TABLERO Y ECONÓMICO</th>
     </tr>
     <tr>
-        <td><div class="foto-row">${generarBloqueFotos(data.urlsPiezas)}</div></td>
-        <td>
-            <div class="foto-row">
-                <img src="${data.urlEconomico}" style="max-width:48%;">
-                <img src="${data.urlTablero}" style="max-width:48%;">
-            </div>
+        <td style="vertical-align: top;">
+            ${data.urlsPiezas.length ? data.urlsPiezas.map(u => `<img src="${u}" style="max-width:48%; margin:2px;">`).join('') : 'Sin fotos'}
+        </td>
+        <td style="vertical-align: top;">
+            <img src="${data.urlEconomico}" style="max-width:48%; margin:2px;">
+            <img src="${data.urlTablero}" style="max-width:48%; margin:2px;">
         </td>
     </tr>
 </table>
 
-<table>
+<table class="tabla">
     <tr>
-        <th style="width:50%;">FOTOGRAFÍAS DE LA EVIDENCIA DEL TRABAJO - ANTES</th>
-        <th style="width:50%;">FOTOGRAFÍAS DE LA EVIDENCIA DEL TRABAJO - DESPUÉS</th>
+        <th style="width:50%">FOTOGRAFÍAS DE LA EVIDENCIA - ANTES</th>
+        <th style="width:50%">FOTOGRAFÍAS DE LA EVIDENCIA - DESPUÉS</th>
     </tr>
     <tr>
-        <td><div class="foto-row">${generarBloqueFotos(data.urlsAntes)}</div></td>
-        <td><div class="foto-row">${generarBloqueFotos(data.urlsDespues)}</div></td>
+        <td style="vertical-align: top;">
+            ${data.urlsAntes.length ? data.urlsAntes.map(u => `<img src="${u}" style="max-width:48%; margin:2px;">`).join('') : 'Sin fotos'}
+        </td>
+        <td style="vertical-align: top;">
+            ${data.urlsDespues.length ? data.urlsDespues.map(u => `<img src="${u}" style="max-width:48%; margin:2px;">`).join('') : 'Sin fotos'}
+        </td>
     </tr>
 </table>
 
 <div class="firmas">
-    <div class="firma-linea">NOMBRE Y FIRMA DE ARRENDADORA</div>
-    <div class="firma-linea">NOMBRE Y FIRMA TRANSPORTISTA</div>
-    <div class="firma-linea">NOMBRE Y FIRMA DE GESTIÓN DEL TRANSPORTE<br>DEL INSTITUTO DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEÓN</div>
+    <div class="firma">NOMBRE Y FIRMA DE ARRENDADORA</div>
+    <div class="firma">NOMBRE Y FIRMA TRANSPORTISTA</div>
+    <div class="firma">NOMBRE Y FIRMA DE GESTIÓN DEL TRANSPORTE<br>DEL INSTITUTO DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEÓN</div>
 </div>
-<div style="margin-top: 20px; font-size: 10px; color: #666;">*ANEXAR INE DE LAS PERSONAS QUE FIRMAN.</div>
+<div style="margin-top: 15px; font-size: 9px; color: #666;">*ANEXAR INE DE LAS PERSONAS QUE FIRMAN.</div>
 
 </body>
 </html>`;
 
-        // ✅ AQUÍ ESTÁ EL CAMBIO CLAVE: Reemplaza el documento actual en lugar de abrir ventana nueva
         document.open();
         document.write(html);
         document.close();
