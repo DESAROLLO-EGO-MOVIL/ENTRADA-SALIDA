@@ -55,7 +55,6 @@
         <label style="text-align: center; margin-bottom: 15px;">¿Qué movimiento reportará?</label>
         <button class="btn-principal btn-modo" onclick="abrirFormulario('ENTRADA')">📥 ENTRADA</button>
         <button class="btn-principal btn-modo" onclick="abrirFormulario('SALIDA')">📤 SALIDA</button>
-        <!-- ✅ NUEVO: botón independiente del módulo de mantenimiento -->
         <button class="btn-principal btn-modo" style="border-color: #34a853; color: #34a853;" onclick="window.location.href='mantenimiento.html'">🔧 HOJA DE MANTENIMIENTO</button>
         <button class="btn-principal btn-modo" style="border-color: #ff9800; color: #ff9800; margin-top: 5px;" onclick="window.open('https://dantesotomayor17-stack.github.io/gestion-servicios-ego/', '_blank')">📋 PROGRAMAR HOJA DE SERVICIO</button>
     </div>
@@ -110,7 +109,6 @@
             No es necesario tomar fotos de la unidad.
         </div>
         
-        <!-- ✅ FOTOS DE ENTRADA: Ajustadas para forzar cámara directa con capture="environment" -->
         <div id="fotos-entrada" class="hidden">
             <input type="file" id="fotoInput" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewOdo')">
             <button class="btn-principal btn-foto" onclick="document.getElementById('fotoInput').click()">📸 FOTO ODÓMETRO</button>
@@ -137,7 +135,6 @@
             <img id="previewIzquierda" class="img-preview">
         </div>
 
-        <!-- FOTO DE LICENCIA: Ajustada para forzar cámara directa -->
         <input type="file" id="fotoLicencia" accept="image/*" capture="environment" class="hidden" onchange="mostrarPreview(this, 'previewLicencia')">
         <button class="btn-principal btn-foto" onclick="document.getElementById('fotoLicencia').click()">📸 FOTO LICENCIA OPERADOR</button>
         <img id="previewLicencia" class="img-preview">
@@ -175,8 +172,8 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ MEJORADO =====
-    // ===== Versión 3.6: botón de MANTENIMIENTO + fotos solo con cámara en Entrada/Salida =====
-    const VERSION_APP = "3.6";
+    // Versión 3.8: Blindaje estricto de guardado en Excel + fotos aseguradas en caché
+    const VERSION_APP = "3.8";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -307,6 +304,7 @@
                     
                     ctx.fillStyle = "white";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
                     ctx.drawImage(img, 0, 0, width, height);
                     
                     canvas.toBlob((blob) => {
@@ -341,6 +339,9 @@
         bar.style.width = porcentaje + "%";
     }
 
+    // Variable global en memoria para fotos en caso de reintento
+    let urlsFotosCache = null;
+
     async function iniciarRegistro() {
         const status = document.getElementById('statusMsg');
         const btn = document.getElementById('btnRegistrar');
@@ -355,40 +356,54 @@
         const obsEst = document.getElementById('obsEsteticas') ? document.getElementById('obsEsteticas').value : ""; 
         const m = document.getElementById('manto').value;     
 
-        if (!r || !u || !k || !fLic) return alert("⚠️ Ruta, Unidad, KM y Licencia son obligatorios.");
+        if (!r || !u || !k) return alert("⚠️ Ruta, Unidad y KM son obligatorios.");
 
-        if (MODO_SELECCIONADO === "ENTRADA") {
+        if (!urlsFotosCache && !fLic) return alert("⚠️ La foto de la Licencia es obligatoria.");
+
+        if (MODO_SELECCIONADO === "ENTRADA" && !urlsFotosCache) {
             const fOdo = document.getElementById('fotoInput').files[0];
             const fFro = document.getElementById('fotoFrontal').files[0];
             if (!fOdo || !fFro) return alert("📸 FALTAN FOTOS. En Entrada, Odómetro y Frontal son obligatorias.");
         }
 
         btn.disabled = true;
-        btn.innerText = "SUBIENDO...";
         progressCont.style.display = 'block'; 
-        actualizarBarra(5); 
         
         try {
-            let urlOdo = "", urlFro = "", urlLic = "", urlVin = "", urlTra = "", urlDer = "", urlIzq = "";
+            // PASO 1: Subir fotos (solo si no están ya en caché)
+            if (!urlsFotosCache) {
+                btn.innerText = "SUBIENDO FOTOS...";
+                btn.style.backgroundColor = "#1a73e8";
+                actualizarBarra(10);
+                
+                let urlOdo = "", urlFro = "", urlLic = "", urlVin = "", urlTra = "", urlDer = "", urlIzq = "";
 
-            if (MODO_SELECCIONADO === "ENTRADA") {
-                status.innerText = "Subiendo fotos de Entrada...";
-                urlOdo = await subirACloudinary(document.getElementById('fotoInput').files[0]);
-                urlFro = await subirACloudinary(document.getElementById('fotoFrontal').files[0]); 
-                urlVin = await subirACloudinary(document.getElementById('fotoVin').files[0]);
-                urlTra = await subirACloudinary(document.getElementById('fotoTrasera').files[0]);
-                urlDer = await subirACloudinary(document.getElementById('fotoDerecha').files[0]);
-                urlIzq = await subirACloudinary(document.getElementById('fotoIzquierda').files[0]);
-            } else {
-                status.innerText = "Preparando registro de Salida...";
+                if (MODO_SELECCIONADO === "ENTRADA") {
+                    status.innerText = "Subiendo evidencias fotográficas...";
+                    urlOdo = await subirACloudinary(document.getElementById('fotoInput').files[0]);
+                    actualizarBarra(25);
+                    urlFro = await subirACloudinary(document.getElementById('fotoFrontal').files[0]); 
+                    actualizarBarra(40);
+                    urlVin = await subirACloudinary(document.getElementById('fotoVin').files[0]);
+                    urlTra = await subirACloudinary(document.getElementById('fotoTrasera').files[0]);
+                    urlDer = await subirACloudinary(document.getElementById('fotoDerecha').files[0]);
+                    urlIzq = await subirACloudinary(document.getElementById('fotoIzquierda').files[0]);
+                    actualizarBarra(65);
+                } else {
+                    status.innerText = "Preparando registro de Salida...";
+                }
+
+                status.innerText = "Subiendo Licencia...";
+                urlLic = await subirACloudinary(fLic);
+                actualizarBarra(80);
+
+                urlsFotosCache = { urlOdo, urlFro, urlLic, urlVin, urlTra, urlDer, urlIzq };
             }
 
-            status.innerText = "Subiendo Licencia...";
-            urlLic = await subirACloudinary(fLic);
-            actualizarBarra(80);
+            // PASO 2: Guardar en Excel con 3 reintentos automáticos
+            btn.innerText = "REGISTRANDO EN EXCEL...";
+            status.innerText = "Conectando con Google Sheets...";
 
-            status.innerText = "Guardando en Excel...";
-            
             const payload = {
                 ruta: r, 
                 unidad: u, 
@@ -396,35 +411,57 @@
                 manto: (MODO_SELECCIONADO === "ENTRADA") ? m : "N/A - SALIDA",
                 movimiento: MODO_SELECCIONADO,
                 comentarios: c,
-                fotoOdo: urlOdo, 
-                fotoFrontal: urlFro, 
-                fotoLicencia: urlLic,
-                fotoVin: urlVin,
-                fotoTrasera: urlTra,
-                fotoDerecha: urlDer,
-                fotoIzquierda: urlIzq
+                fotoOdo: urlsFotosCache.urlOdo, 
+                fotoFrontal: urlsFotosCache.urlFro, 
+                fotoLicencia: urlsFotosCache.urlLic,
+                fotoVin: urlsFotosCache.urlVin,
+                fotoTrasera: urlsFotosCache.urlTra,
+                fotoDerecha: urlsFotosCache.urlDer,
+                fotoIzquierda: urlsFotosCache.urlIzq
             };
-
-            const respuesta = await fetch(URL_WEBAPP, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
 
             let filaGuardada = "";
             let hojaGuardada = "";
-            try {
-                const resultado = await respuesta.json();
-                if(resultado && resultado.row) {
-                    filaGuardada = resultado.row;
-                    hojaGuardada = resultado.hoja || "";
+            let guardadoExitoso = false;
+            const maxIntentos = 3;
+
+            for (let intento = 1; intento <= maxIntentos; intento++) {
+                try {
+                    status.innerText = `Guardando en Excel (Intento ${intento} de ${maxIntentos})...`;
+                    
+                    const respuesta = await fetch(URL_WEBAPP, {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    });
+
+                    const resultado = await respuesta.json();
+
+                    if (resultado && resultado.row) {
+                        filaGuardada = resultado.row;
+                        hojaGuardada = resultado.hoja || r;
+                        guardadoExitoso = true;
+                        break;
+                    }
+                } catch (errIntento) {
+                    console.warn(`Intento ${intento} fallido:`, errIntento);
+                    if (intento < maxIntentos) {
+                        await new Promise(res => setTimeout(res, 2000));
+                    }
                 }
-            } catch(e) {
-                console.log("Aviso: El script de Google aún no devuelve JSON o sigue en no-cors.");
             }
 
+            // CANDADO: Si no confirma la fila, no se permite generar hoja
+            if (!guardadoExitoso || !filaGuardada) {
+                throw new Error("Google Sheets no confirmó el guardado de la fila.");
+            }
+
+            // PASO 3: Generación de hoja autorizada
             actualizarBarra(100);
-            status.innerText = "¡Datos guardados con éxito!";
-            
+            status.innerText = "¡Datos guardados con éxito en Excel!";
+            urlsFotosCache = null; // Vaciamos caché de fotos
+
+            const fechaHoy = new Date().toISOString().slice(0, 10);
+
             if (MODO_SELECCIONADO === "ENTRADA") {
                 btn.style.display = 'none';
                 btnAtras.style.display = 'none';
@@ -434,7 +471,7 @@
                 btnHoja.style.backgroundColor = "#ff9800"; 
                 btnHoja.innerText = "📋 GENERAR HOJA DE SERVICIO";
                 btnHoja.onclick = () => {
-                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&manto=${encodeURIComponent(m)}&f_frontal=${encodeURIComponent(urlFro)}&f_trasera=${encodeURIComponent(urlTra)}&f_derecha=${encodeURIComponent(urlDer)}&f_izquierda=${encodeURIComponent(urlIzq)}&f_licencia=${encodeURIComponent(urlLic)}`;
+                    const urlServicio = `https://dantesotomayor17-stack.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaHoy}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&manto=${encodeURIComponent(m)}&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
                     window.location.href = urlServicio;
                 };
                 status.parentNode.insertBefore(btnHoja, status.nextSibling);
@@ -447,7 +484,7 @@
                 btnVolver.onclick = () => location.reload();
                 status.parentNode.insertBefore(btnVolver, btnHoja.nextSibling);
 
-                alert("✅ ENTRADA REGISTRADA. Haz clic en el botón NARANJA para generar la Hoja de Servicio.");
+                alert("✅ ENTRADA REGISTRADA EN EXCEL. Haz clic en el botón NARANJA para generar la Hoja de Servicio.");
             
             } else {
                 btn.style.display = 'none';
@@ -458,7 +495,7 @@
                 btnHojaSalida.style.backgroundColor = "#e91e63";
                 btnHojaSalida.innerText = "📋 GENERAR FORMATO ENTREGA";
                 btnHojaSalida.onclick = () => {
-                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&movimiento=SALIDA&f_frontal=${encodeURIComponent(urlFro)}&f_trasera=${encodeURIComponent(urlTra)}&f_derecha=${encodeURIComponent(urlDer)}&f_izquierda=${encodeURIComponent(urlIzq)}&f_licencia=${encodeURIComponent(urlLic)}`;
+                    const urlServicio = `https://dantesotomayor17-stack.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaHoy}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&movimiento=SALIDA&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
                     window.location.href = urlServicio;
                 };
                 status.parentNode.insertBefore(btnHojaSalida, status.nextSibling);
@@ -471,13 +508,15 @@
                 btnVolver.onclick = () => location.reload();
                 status.parentNode.insertBefore(btnVolver, btnHojaSalida.nextSibling);
 
-                alert("✅ SALIDA REGISTRADA. Haz clic en el botón ROSA para generar el Formato de Entrega.");
+                alert("✅ SALIDA REGISTRADA EN EXCEL. Haz clic en el botón ROSA para generar el Formato de Entrega.");
             }
 
         } catch (e) {
-            alert("❌ Error al guardar.");
+            status.innerText = "⚠️ La conexión con Excel falló. Las fotos ya están a salvo.";
             btn.disabled = false;
-            btn.innerText = "REGISTRAR DATOS";
+            btn.style.backgroundColor = "#d97706";
+            btn.innerText = "⚠️ REINTENTAR GUARDAR EN EXCEL";
+            alert("⚠️ No se pudo confirmar la fila en Google Sheets. Las fotos YA están guardadas en la nube. Solo presiona el botón naranja de 'REINTENTAR GUARDAR EN EXCEL'.");
         }
     }
 </script>
