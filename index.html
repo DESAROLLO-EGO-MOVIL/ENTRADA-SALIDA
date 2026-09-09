@@ -35,6 +35,9 @@
 
         #progressContainer { width: 100%; background-color: #eee; border-radius: 10px; margin-top: 15px; display: none; overflow: hidden; border: 1px solid #ddd; }
         #progressBar { width: 0%; height: 20px; background-color: #1a73e8; transition: width 0.4s ease; }
+
+        .box-fecha-salida { background: #f8fafc; border: 2px dashed #1a73e8; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+        .box-fecha-salida label { margin-top: 0; color: #1a73e8; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -60,6 +63,12 @@
     </div>
 
     <div id="sec-form" class="hidden">
+        <!-- MODIFICADOR DE FECHA PERSONALIZADA PARA SALIDA -->
+        <div id="div-fecha-salida" class="box-fecha-salida hidden">
+            <label>📅 Fecha del Movimiento (Salida):</label>
+            <input type="date" id="fechaSalidaPersonalizada" style="margin-bottom: 0;">
+        </div>
+
         <label>1. Seleccione la Ruta:</label>
         <select id="ruta" onchange="actualizarUnidades()">
             <option value="">-- Seleccionar --</option>
@@ -171,8 +180,8 @@
 </div>
 
 <script>
-    // ===== SISTEMA ANTI-CACHÉ MEJORADO =====
-    const VERSION_APP = "3.9";
+    // ===== SISTEMA ANTI-CACHÉ =====
+    const VERSION_APP = "4.1";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -186,7 +195,8 @@
     })();
 
     const CLAVE_ACCESO = "EGO";
-    const URL_WEBAPP = "https://script.google.com/macros/s/AKfycbzSYGJNO-VSxYa8v0EGYYJVsJy5RPw1rkurLX-jDcFux4WTNBr6JHanINJbSeHkeAlRMw/exec";
+    // URL Web App actualizada de Google Apps Script
+    const URL_WEBAPP = "https://script.google.com/macros/s/AKfycbxcwxND04enMlkP5dWQW7lbQmBd7EL_nlm8MN89umtCLHYmsX7r_a7tFkmxgUnvDgAhQQ/exec";
     const CLOUD_NAME = "dygb7qjgt";
     const UPLOAD_PRESET = "ego_fotos";
     let MODO_SELECCIONADO = "";
@@ -242,14 +252,21 @@
         document.getElementById('sec-form').classList.remove('hidden');
         document.getElementById('titulo').innerText = "SISTEMA EGO: " + modo;
 
+        const hoyISO = new Date().toISOString().slice(0, 10);
+
         if(modo === "SALIDA") {
             document.getElementById('fotos-entrada').classList.add('hidden');
             document.getElementById('div-manto').classList.add('hidden');
             document.getElementById('aviso-salida').classList.remove('hidden');
+            
+            const boxFecha = document.getElementById('div-fecha-salida');
+            boxFecha.classList.remove('hidden');
+            document.getElementById('fechaSalidaPersonalizada').value = hoyISO;
         } else {
             document.getElementById('fotos-entrada').classList.remove('hidden');
             document.getElementById('div-manto').classList.remove('hidden');
             document.getElementById('aviso-salida').classList.add('hidden');
+            document.getElementById('div-fecha-salida').classList.add('hidden');
         }
     }
 
@@ -338,7 +355,6 @@
         bar.style.width = porcentaje + "%";
     }
 
-    // Variable global en memoria para fotos en caso de reintento
     let urlsFotosCache = null;
 
     async function iniciarRegistro() {
@@ -365,11 +381,17 @@
             if (!fOdo || !fFro) return alert("📸 FALTAN FOTOS. En Entrada, Odómetro y Frontal son obligatorias.");
         }
 
+        let fechaMovimiento = new Date().toISOString().slice(0, 10);
+        if (MODO_SELECCIONADO === "SALIDA") {
+            const fechaInput = document.getElementById('fechaSalidaPersonalizada').value;
+            if (fechaInput) fechaMovimiento = fechaInput;
+        }
+
         btn.disabled = true;
         progressCont.style.display = 'block'; 
         
         try {
-            // PASO 1: Subir fotos (solo si no están ya en memoria)
+            // PASO 1: Subida de fotos
             if (!urlsFotosCache) {
                 btn.innerText = "SUBIENDO FOTOS...";
                 btn.style.backgroundColor = "#1a73e8";
@@ -399,7 +421,7 @@
                 urlsFotosCache = { urlOdo, urlFro, urlLic, urlVin, urlTra, urlDer, urlIzq };
             }
 
-            // PASO 2: Guardar en Excel con 3 reintentos automáticos
+            // PASO 2: Guardar en Excel con reintentos
             btn.innerText = "REGISTRANDO EN EXCEL...";
             status.innerText = "Conectando con Google Sheets...";
 
@@ -410,6 +432,7 @@
                 manto: (MODO_SELECCIONADO === "ENTRADA") ? m : "N/A - SALIDA",
                 movimiento: MODO_SELECCIONADO,
                 comentarios: c,
+                fechaPersonalizada: fechaMovimiento,
                 fotoOdo: urlsFotosCache.urlOdo, 
                 fotoFrontal: urlsFotosCache.urlFro, 
                 fotoLicencia: urlsFotosCache.urlLic,
@@ -449,17 +472,14 @@
                 }
             }
 
-            // CANDADO DE SEGURIDAD: Si no confirma la fila, no se muestra el botón para generar hoja
             if (!guardadoExitoso || !filaGuardada) {
                 throw new Error("Google Sheets no confirmó el guardado de la fila.");
             }
 
-            // PASO 3: Éxito total
+            // PASO 3: Éxito total y despliegue de botones
             actualizarBarra(100);
             status.innerText = "¡Datos guardados con éxito en Excel!";
-            urlsFotosCache = null; // Limpiamos el respaldo
-
-            const fechaHoy = new Date().toISOString().slice(0, 10);
+            urlsFotosCache = null;
 
             if (MODO_SELECCIONADO === "ENTRADA") {
                 btn.style.display = 'none';
@@ -470,7 +490,7 @@
                 btnHoja.style.backgroundColor = "#ff9800"; 
                 btnHoja.innerText = "📋 GENERAR HOJA DE SERVICIO";
                 btnHoja.onclick = () => {
-                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaHoy}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&manto=${encodeURIComponent(m)}&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
+                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaMovimiento}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&manto=${encodeURIComponent(m)}&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
                     window.location.href = urlServicio;
                 };
                 status.parentNode.insertBefore(btnHoja, status.nextSibling);
@@ -494,7 +514,7 @@
                 btnHojaSalida.style.backgroundColor = "#e91e63";
                 btnHojaSalida.innerText = "📋 GENERAR FORMATO ENTREGA";
                 btnHojaSalida.onclick = () => {
-                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaHoy}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&movimiento=SALIDA&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
+                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaMovimiento}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&movimiento=SALIDA&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
                     window.location.href = urlServicio;
                 };
                 status.parentNode.insertBefore(btnHojaSalida, status.nextSibling);
@@ -515,7 +535,7 @@
             btn.disabled = false;
             btn.style.backgroundColor = "#d97706";
             btn.innerText = "⚠️ REINTENTAR GUARDAR EN EXCEL";
-            alert("⚠️ No se pudo confirmar la fila en Google Sheets. Las fotos YA están guardadas en la nube. Solo presiona el botón naranja de 'REINTENTAR GUARDAR EN EXCEL'.");
+            alert("⚠️ No se pudo confirmar la fila en Google Sheets. Las fotos YA están guardadas en la nube. Solo presiona 'REINTENTAR GUARDAR EN EXCEL'.");
         }
     }
 </script>
