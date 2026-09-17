@@ -63,7 +63,6 @@
     </div>
 
     <div id="sec-form" class="hidden">
-        <!-- MODIFICADOR DE FECHA PERSONALIZADA PARA SALIDA -->
         <div id="div-fecha-salida" class="box-fecha-salida hidden">
             <label>📅 Fecha del Movimiento (Salida):</label>
             <input type="date" id="fechaSalidaPersonalizada" style="margin-bottom: 0;">
@@ -181,7 +180,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "4.1";
+    const VERSION_APP = "4.2";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -195,7 +194,6 @@
     })();
 
     const CLAVE_ACCESO = "EGO";
-    // URL Web App actualizada de Google Apps Script
     const URL_WEBAPP = "https://script.google.com/macros/s/AKfycbxcwxND04enMlkP5dWQW7lbQmBd7EL_nlm8MN89umtCLHYmsX7r_a7tFkmxgUnvDgAhQQ/exec";
     const CLOUD_NAME = "dygb7qjgt";
     const UPLOAD_PRESET = "ego_fotos";
@@ -214,7 +212,7 @@
         "RUTA 13": ["3329", "3353", "3418", "3429", "3442", "3461", "3470", "3546", "3549", "3586"],
         "RUTA 20": ["6004", "6012", "6016", "6017", "6018", "6020", "6032", "6034", "6035", "6043", "6046", "6049", "6051", "6057", "6061", "6068", "6071", "6072", "6073", "6084", "6090", "6091"],
         "RUTA 39": ["3240", "3304", "3345", "3348", "3351", "3362", "3381", "3395", "3397", "3398", "3417", "3421", "3422", "3426", "3436", "3439", "3446", "3449", "3472", "3500", "3501", "3523", "3528", "3531", "3559", "3578", "3590", "3592"],
-        "RUTA 41": ["3010", "3196", "3212", "3224", "3233", "3247", "3276", "3284", "3293", "3296", "3297", "3298", "3299", "3300", "3306", "3307", "3311", "3316", "3317", "3322", "3323", "3324", "3352", "3383", "3420", "3423", "3473", "3483", "3484", "3486", "3490", "3492", "3504", "3508", "3509", "3512", "3548", "3589", "3597", "7025", "7026", "7027", "7028", "7100"],
+        "RUTA 41": ["3010", "3196", "3212", "3224", "3233", "3247", "3276", "3284", "3293", "3296", "3297", "3298", "3299", "3300", "3306", "3307", "3311", "3316", "3317", "3322", "3323", "3324", "3352", "3383", "3420", "3423", "3473", "3483", "3484", "3485", "3486", "3490", "3492", "3504", "3508", "3509", "3512", "3548", "3589", "3597", "7025", "7026", "7027", "7028", "7100"],
         "RUTA 68": ["3215", "3242", "3253", "3254", "3255", "3256", "3257", "3259", "3261", "3264", "3265", "3266", "3267", "3268", "3270", "3271", "3272", "3273", "3274", "3275", "3276", "3277", "3278", "3279", "3280", "3281", "3282", "3283", "3285", "3286", "3287", "3288", "3290", "3291", "3294", "3295", "3434", "3463", "3552", "3593"],
         "RUTA 109": ["3050", "3195", "3197", "3199", "3200", "3201", "3202", "3203", "3204", "3205", "3207", "3208", "3209", "3213", "3217", "3218", "3219", "3220", "3225", "3226", "3229", "3230", "3231", "3232", "3234", "3235", "3238", "3239", "3241", "3243", "3245", "3246", "3248", "3249", "3252", "3428", "3430", "3482", "3484", "3489", "3503", "3511", "3599", "3600"],
         "RUTA 117": ["3163", "3164", "3165", "3166", "3167", "3168", "3169", "3170", "3171", "3172", "3173", "3174", "3175", "3176", "3177", "3178", "3179", "3180", "3181", "3182", "3183", "3184", "3185", "3186", "3187", "3188", "3189", "3190", "3191", "3192"],
@@ -391,7 +389,6 @@
         progressCont.style.display = 'block'; 
         
         try {
-            // PASO 1: Subida de fotos
             if (!urlsFotosCache) {
                 btn.innerText = "SUBIENDO FOTOS...";
                 btn.style.backgroundColor = "#1a73e8";
@@ -421,14 +418,13 @@
                 urlsFotosCache = { urlOdo, urlFro, urlLic, urlVin, urlTra, urlDer, urlIzq };
             }
 
-            // PASO 2: Guardar en Excel con reintentos
             btn.innerText = "REGISTRANDO EN EXCEL...";
             status.innerText = "Conectando con Google Sheets...";
 
             const payload = {
                 ruta: r, 
                 unidad: u, 
-                km: k,
+                km: k, 
                 manto: (MODO_SELECCIONADO === "ENTRADA") ? m : "N/A - SALIDA",
                 movimiento: MODO_SELECCIONADO,
                 comentarios: c,
@@ -476,7 +472,6 @@
                 throw new Error("Google Sheets no confirmó el guardado de la fila.");
             }
 
-            // PASO 3: Éxito total y despliegue de botones
             actualizarBarra(100);
             status.innerText = "¡Datos guardados con éxito en Excel!";
             urlsFotosCache = null;
