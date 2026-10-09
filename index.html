@@ -56,13 +56,28 @@
 
         .caratula-contenedor {
             background: #ffffff;
-            max-width: 820px;
+            max-width: 840px;
             margin: 20px auto;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 5px 25px rgba(0,0,0,0.3);
             color: #111;
             font-family: Arial, sans-serif;
+        }
+
+        .btn-quitar-fila {
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 7px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-quitar-fila:hover {
+            background: #d9363e;
         }
 
         @media print {
@@ -288,7 +303,8 @@
                     <th style="padding: 6px; border: 1px solid #888; width: 130px;">Ruta</th>
                     <th style="padding: 6px; border: 1px solid #888; width: 85px; text-align: right;">Km Salida</th>
                     <th style="padding: 6px; border: 1px solid #888;">Comentario / Trabajo Reportado</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 60px; text-align: center;">Físico</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 55px; text-align: center;">Físico</th>
+                    <th class="no-print" style="padding: 6px; border: 1px solid #888; width: 50px; text-align: center;">Acción</th>
                 </tr>
             </thead>
             <tbody id="cuerpoTablaCaratula">
@@ -328,7 +344,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "5.1";
+    const VERSION_APP = "5.2";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -401,6 +417,22 @@
         }
     }
 
+    function eliminarUnidadDeCaratula(unidadAEliminar, fechaFiltro) {
+        if (!confirm(`¿Deseas quitar la unidad ${unidadAEliminar} de la carátula de entrega del día ${fechaFiltro}?`)) {
+            return;
+        }
+
+        try {
+            let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
+            historial = historial.filter(item => !(item.fecha === fechaFiltro && item.unidad === unidadAEliminar));
+            localStorage.setItem("ego_salidas_historial", JSON.stringify(historial));
+            // Refresca la tabla y los conteos de inmediato
+            renderizarCaratulaPorFecha(fechaFiltro);
+        } catch (e) {
+            alert("No se pudo eliminar la unidad del registro.");
+        }
+    }
+
     function abrirCaratulaModal() {
         const hoyISO = new Date().toISOString().slice(0, 10);
         document.getElementById('filtroFechaCaratula').value = hoyISO;
@@ -435,7 +467,7 @@
         if (total === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 18px; color: #777; border: 1px solid #888;">
+                    <td colspan="7" style="text-align: center; padding: 18px; color: #777; border: 1px solid #888;">
                         No hay salidas registradas localmente en el sistema para la fecha seleccionada (${fechaFiltro}).
                     </td>
                 </tr>
@@ -456,6 +488,9 @@
                 <td style="padding: 6px; border: 1px solid #888; text-align: right;">${kmTexto}</td>
                 <td style="padding: 6px; border: 1px solid #888;">${comentarioTexto}</td>
                 <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">[ &nbsp; ]</td>
+                <td class="no-print" style="padding: 6px; border: 1px solid #888; text-align: center;">
+                    <button type="button" class="btn-quitar-fila" title="Quitar unidad" onclick="eliminarUnidadDeCaratula('${item.unidad}', '${fechaFiltro}')">✕ Quitar</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
