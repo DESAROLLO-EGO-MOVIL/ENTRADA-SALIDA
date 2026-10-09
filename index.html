@@ -254,13 +254,19 @@
             </div>
         </div>
 
-        <!-- Encabezado Membretado Oficial -->
-        <div style="border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end;">
-            <div>
-                <h2 style="margin: 0; font-size: 16px; text-transform: uppercase; color: #111; letter-spacing: 0.5px; text-align: left;">EGO MÓVIL MTY — CONTROL DE FLOTA</h2>
-                <h3 style="margin: 3px 0 0 0; font-size: 13px; font-weight: 600; color: #444;">CARÁTULA DE ENTREGA Y RECEPCIÓN DE DOCUMENTACIÓN FÍSICA (SALIDAS)</h3>
+        <!-- Encabezado Membretado Oficial con Logo Centrado -->
+        <div style="border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="flex: 1.2;">
+                <h2 style="margin: 0; font-size: 15px; text-transform: uppercase; color: #111; letter-spacing: 0.5px; text-align: left;">EGO MÓVIL MTY — CONTROL DE FLOTA</h2>
+                <h3 style="margin: 3px 0 0 0; font-size: 12px; font-weight: 600; color: #444;">CARÁTULA DE ENTREGA Y RECEPCIÓN DE DOCUMENTACIÓN FÍSICA (SALIDAS)</h3>
             </div>
-            <div style="text-align: right; font-size: 11px; color: #333;">
+
+            <!-- Logo al Centro -->
+            <div style="text-align: center; flex: 0.8;">
+                <img src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg" alt="Logo e-go" style="max-height: 44px; width: auto; object-fit: contain;">
+            </div>
+
+            <div style="text-align: right; font-size: 11px; color: #333; flex: 1; min-width: 140px;">
                 <p style="margin: 0;"><strong>Fecha:</strong> <span id="caratulaFechaTexto">--</span></p>
                 <p style="margin: 2px 0 0 0;"><strong>Generado:</strong> <span id="caratulaHoraTexto">--</span></p>
             </div>
@@ -322,7 +328,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "4.3";
+    const VERSION_APP = "5.1";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
