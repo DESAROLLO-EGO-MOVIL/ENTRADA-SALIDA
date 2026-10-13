@@ -186,6 +186,12 @@
         <label>3. Kilometraje Actual:</label>
         <input type="number" id="km" placeholder="Ej: 150000" inputmode="numeric">
 
+        <!-- Campo para Folio de Cita Previa (Exclusivo para ENTRADA) -->
+        <div id="div-folio" class="hidden">
+            <label>3.1. Folio de Cita Previa:</label>
+            <input type="text" id="folioCita" placeholder="Ej: CIT-1045 o Folio asignado" style="text-transform: uppercase;">
+        </div>
+
         <label>4. Evidencias (Fotos):</label>
 
         <div id="aviso-salida" class="aviso-salida hidden">
@@ -346,7 +352,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "7.0";
+    const VERSION_APP = "8.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -359,7 +365,7 @@
         }
     })();
 
-    // ===== CONFIGURACIÓN FIREBASE FIRESTORE =====
+    // ===== CONFIGURACIÓN FIREBASE FIRESTORE CON FALLBACK =====
     const firebaseConfig = {
         apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
         authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -369,10 +375,15 @@
         appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+    let db = null;
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.firestore();
+    } catch (e) {
+        console.warn("Firebase no inicializado:", e);
     }
-    const db = firebase.firestore();
 
     const CLAVE_ACCESO = "EGO";
     const URL_WEBAPP = "https://script.google.com/macros/s/AKfycbxcwxND04enMlkP5dWQW7lbQmBd7EL_nlm8MN89umtCLHYmsX7r_a7tFkmxgUnvDgAhQQ/exec";
@@ -422,17 +433,31 @@
         return "SIN RUTA ASIGNADA";
     }
 
+    // Guardado local resistente a fallos de cuota
+    function guardarEnStorageLocal(registro) {
+        try {
+            let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
+            historial = historial.filter(item => !(item.fecha === registro.fecha && item.unidad === registro.unidad));
+            historial.push(registro);
+            localStorage.setItem("ego_salidas_historial", JSON.stringify(historial));
+        } catch (e) {
+            console.warn("Error en storage local:", e);
+        }
+    }
+
     async function guardarSalidaEnFirestore(registro) {
+        guardarEnStorageLocal(registro);
+        if (!db) return;
         try {
             const docId = `${registro.fecha}_${registro.unidad}`;
             await db.collection("salidas_flota").doc(docId).set(registro, { merge: true });
         } catch (e) {
-            console.warn("Error guardando en Firestore:", e);
+            console.warn("Firestore bloqueado/cuota agotada. Guardado en memoria local activo.", e);
         }
     }
 
     async function agregarUnidadManualModal() {
-        const unidad = prompt("Introduce el número de unidad (ej. 3262):");
+        const unidad = prompt("Introduce el número de unidad (ej. 3503):");
         if (!unidad) return;
 
         const km = prompt(`Kilometraje de la unidad ${unidad}:`, "0");
@@ -445,8 +470,7 @@
             ruta: ruta,
             km: km ? km.trim() : "0",
             comentarios: comentarios ? comentarios.trim() : "Sin observaciones",
-            fecha: fechaActual,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            fecha: fechaActual
         };
 
         await guardarSalidaEnFirestore(nuevoRegistro);
@@ -459,12 +483,20 @@
         }
 
         try {
-            const docId = `${fechaFiltro}_${unidadAEliminar}`;
-            await db.collection("salidas_flota").doc(docId).delete();
-            renderizarCaratulaPorFecha(fechaFiltro);
-        } catch (e) {
-            alert("No se pudo quitar la unidad de Firestore.");
+            let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
+            historial = historial.filter(item => !(item.fecha === fechaFiltro && item.unidad === unidadAEliminar));
+            localStorage.setItem("ego_salidas_historial", JSON.stringify(historial));
+        } catch (e) {}
+
+        if (db) {
+            try {
+                const docId = `${fechaFiltro}_${unidadAEliminar}`;
+                await db.collection("salidas_flota").doc(docId).delete();
+            } catch (e) {
+                console.warn("No se pudo borrar de Firestore (posible cuota excedida)", e);
+            }
         }
+        renderizarCaratulaPorFecha(fechaFiltro);
     }
 
     function abrirCaratulaModal() {
@@ -483,68 +515,65 @@
         document.getElementById('caratulaFechaTexto').textContent = fechaFiltro;
         document.getElementById('caratulaHoraTexto').textContent = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 
-        const tbody = document.getElementById('cuerpoTablaCaratula');
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 18px; color: #1a73e8; border: 1px solid #888;">
-                    🔄 Consultando salidas en tiempo real desde Firebase...
-                </td>
-            </tr>
-        `;
+        let salidasFiltradas = [];
 
-        try {
-            const snapshot = await db.collection("salidas_flota").where("fecha", "==", fechaFiltro).get();
-            const salidasFiltradas = [];
-            snapshot.forEach(doc => salidasFiltradas.push(doc.data()));
-
-            tbody.innerHTML = '';
-            const total = salidasFiltradas.length;
-            document.getElementById('caratulaTotalLiberadas').textContent = total;
-            document.getElementById('caratulaTotalFisicas').textContent = total;
-
-            if (total === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 18px; color: #777; border: 1px solid #888;">
-                            No hay salidas registradas en Firebase para el ${fechaFiltro}.<br>
-                            <small style="color: #0d6efd; cursor: pointer; text-decoration: underline;" onclick="agregarUnidadManualModal()">👉 Haz clic aquí para añadir una unidad manualmente.</small>
-                        </td>
-                    </tr>
-                `;
-                return;
+        // 1. Intento leer desde Firestore
+        if (db) {
+            try {
+                const snapshot = await db.collection("salidas_flota").where("fecha", "==", fechaFiltro).get();
+                snapshot.forEach(doc => salidasFiltradas.push(doc.data()));
+            } catch (err) {
+                console.warn("Firestore bloqueado por cuota o red. Usando respaldo local.", err);
             }
+        }
 
-            salidasFiltradas.forEach((item, index) => {
-                const ruta = item.ruta || obtenerRutaDeUnidad(item.unidad);
-                const kmTexto = item.km ? Number(item.km).toLocaleString('es-MX') + ' Km' : '---';
-                const comentarioTexto = item.comentarios || 'Sin observaciones registradas';
+        // 2. Si Firebase falló o no trajo registros, recurro al historial local
+        if (salidasFiltradas.length === 0) {
+            try {
+                const historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
+                salidasFiltradas = historial.filter(item => item.fecha === fechaFiltro);
+            } catch (e) {
+                salidasFiltradas = [];
+            }
+        }
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="padding: 6px; border: 1px solid #888; text-align: center;">${index + 1}</td>
-                    <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">${item.unidad}</td>
-                    <td style="padding: 6px; border: 1px solid #888;">${ruta}</td>
-                    <td style="padding: 6px; border: 1px solid #888; text-align: right;">${kmTexto}</td>
-                    <td style="padding: 6px; border: 1px solid #888;">${comentarioTexto}</td>
-                    <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">[ &nbsp; ]</td>
-                    <td class="no-print" style="padding: 6px; border: 1px solid #888; text-align: center;">
-                        <button type="button" class="btn-quitar-fila" onclick="eliminarUnidadDeCaratula('${item.unidad}', '${fechaFiltro}')">✕</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+        const tbody = document.getElementById('cuerpoTablaCaratula');
+        tbody.innerHTML = '';
+        const total = salidasFiltradas.length;
+        document.getElementById('caratulaTotalLiberadas').textContent = total;
+        document.getElementById('caratulaTotalFisicas').textContent = total;
 
-        } catch (error) {
-            console.error("Error al consultar Firebase:", error);
+        if (total === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 18px; color: #d93025; border: 1px solid #888;">
-                        ⚠️ Error conectando con Firestore. Revisa tu conexión a internet.<br>
-                        <small style="color: #0d6efd; cursor: pointer; text-decoration: underline;" onclick="agregarUnidadManualModal()">👉 Puedes añadirla manualmente dando clic aquí.</small>
+                    <td colspan="7" style="text-align: center; padding: 18px; color: #777; border: 1px solid #888;">
+                        No hay salidas visibles para el ${fechaFiltro}.<br>
+                        <small style="color: #0d6efd; cursor: pointer; text-decoration: underline;" onclick="agregarUnidadManualModal()">👉 Haz clic aquí para añadir unidades manualmente desde Excel.</small>
                     </td>
                 </tr>
             `;
+            return;
         }
+
+        salidasFiltradas.forEach((item, index) => {
+            const ruta = item.ruta || obtenerRutaDeUnidad(item.unidad);
+            const kmTexto = item.km ? Number(item.km).toLocaleString('es-MX') + ' Km' : '---';
+            const comentarioTexto = item.comentarios || 'Sin observaciones registradas';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 6px; border: 1px solid #888; text-align: center;">${index + 1}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">${item.unidad}</td>
+                <td style="padding: 6px; border: 1px solid #888;">${ruta}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: right;">${kmTexto}</td>
+                <td style="padding: 6px; border: 1px solid #888;">${comentarioTexto}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">[ &nbsp; ]</td>
+                <td class="no-print" style="padding: 6px; border: 1px solid #888; text-align: center;">
+                    <button type="button" class="btn-quitar-fila" onclick="eliminarUnidadDeCaratula('${item.unidad}', '${fechaFiltro}')">✕</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     function verificarPass() {
@@ -570,6 +599,7 @@
             document.getElementById('fotos-entrada').classList.add('hidden');
             document.getElementById('div-manto').classList.add('hidden');
             document.getElementById('aviso-salida').classList.remove('hidden');
+            document.getElementById('div-folio').classList.add('hidden');
             
             const boxFecha = document.getElementById('div-fecha-salida');
             boxFecha.classList.remove('hidden');
@@ -579,6 +609,7 @@
             document.getElementById('div-manto').classList.remove('hidden');
             document.getElementById('aviso-salida').classList.add('hidden');
             document.getElementById('div-fecha-salida').classList.add('hidden');
+            document.getElementById('div-folio').classList.remove('hidden');
         }
     }
 
@@ -685,6 +716,12 @@
 
         if (!r || !u || !k) return alert("⚠️ Ruta, Unidad y KM son obligatorios.");
 
+        let folio = "N/A";
+        if (MODO_SELECCIONADO === "ENTRADA") {
+            folio = document.getElementById('folioCita').value.trim().toUpperCase();
+            if (!folio) return alert("⚠️ Es obligatorio ingresar el Número de Folio / Cita Previa.");
+        }
+
         if (!urlsFotosCache && !fLic) return alert("⚠️ La foto de la Licencia es obligatoria.");
 
         if (MODO_SELECCIONADO === "ENTRADA" && !urlsFotosCache) {
@@ -739,6 +776,7 @@
                 ruta: r, 
                 unidad: u, 
                 km: k, 
+                folioCita: folio,
                 manto: (MODO_SELECCIONADO === "ENTRADA") ? m : "N/A - SALIDA",
                 movimiento: MODO_SELECCIONADO,
                 comentarios: c,
@@ -786,16 +824,15 @@
                 throw new Error("Google Sheets no confirmó el guardado de la fila.");
             }
 
-            // Sincronización en tiempo real con Firestore si fue salida
+            // Sincronización en tiempo real y fallback local si fue salida
             if (MODO_SELECCIONADO === "SALIDA") {
-                status.innerText = "Sincronizando con Firebase...";
+                status.innerText = "Guardando copia de respaldo...";
                 await guardarSalidaEnFirestore({
                     unidad: u,
                     ruta: r,
                     km: k,
                     comentarios: c,
-                    fecha: fechaMovimiento,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    fecha: fechaMovimiento
                 });
             }
 
@@ -812,7 +849,7 @@
                 btnHoja.style.backgroundColor = "#ff9800"; 
                 btnHoja.innerText = "📋 GENERAR HOJA DE SERVICIO";
                 btnHoja.onclick = () => {
-                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaMovimiento}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&manto=${encodeURIComponent(m)}&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
+                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&folio=${encodeURIComponent(folio)}&fecha=${fechaMovimiento}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&manto=${encodeURIComponent(m)}&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
                     window.location.href = urlServicio;
                 };
                 status.parentNode.insertBefore(btnHoja, status.nextSibling);
@@ -849,7 +886,7 @@
                 btnVolver.onclick = () => location.reload();
                 status.parentNode.insertBefore(btnVolver, btnHojaSalida.nextSibling);
 
-                alert("✅ SALIDA REGISTRADA EN EXCEL Y EN FIREBASE. Haz clic en el botón ROSA para generar el Formato de Entrega.");
+                alert("✅ SALIDA REGISTRADA CON ÉXITO. Haz clic en el botón ROSA para generar el Formato de Entrega.");
             }
 
         } catch (e) {
