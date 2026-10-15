@@ -61,7 +61,7 @@
 
         .caratula-contenedor {
             background: #ffffff;
-            max-width: 840px;
+            max-width: 860px;
             margin: 20px auto;
             padding: 30px;
             border-radius: 8px;
@@ -192,6 +192,16 @@
             <input type="text" id="folioCita" placeholder="Ej: CIT-1045 o Folio asignado" style="text-transform: uppercase;">
         </div>
 
+        <!-- Campo Tipo de Mantenimiento (Exclusivo para SALIDA) -->
+        <div id="div-manto-salida" class="hidden">
+            <label style="color: #c2410c;">3.2. Tipo de Mantenimiento Liberado:</label>
+            <select id="mantoSalida" style="border-color: #f97316; font-weight: bold;">
+                <option value="">-- Seleccionar Tipo --</option>
+                <option value="PREVENTIVO">PREVENTIVO</option>
+                <option value="CORRECTIVO">CORRECTIVO</option>
+            </select>
+        </div>
+
         <label>4. Evidencias (Fotos):</label>
 
         <div id="aviso-salida" class="aviso-salida hidden">
@@ -306,13 +316,14 @@
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
             <thead>
                 <tr style="background: #e9ecef; border: 1px solid #888; text-align: left;">
-                    <th style="padding: 6px; border: 1px solid #888; width: 28px; text-align: center;">#</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 65px; text-align: center;">Unidad</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 130px;">Ruta</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 85px; text-align: right;">Km Salida</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 26px; text-align: center;">#</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 60px; text-align: center;">Unidad</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 120px;">Ruta</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 80px; text-align: right;">Km Salida</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 90px; text-align: center;">Tipo Mtto.</th>
                     <th style="padding: 6px; border: 1px solid #888;">Comentario / Trabajo Reportado</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 55px; text-align: center;">Físico</th>
-                    <th class="no-print" style="padding: 6px; border: 1px solid #888; width: 50px; text-align: center;">Acción</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 50px; text-align: center;">Físico</th>
+                    <th class="no-print" style="padding: 6px; border: 1px solid #888; width: 45px; text-align: center;">Acción</th>
                 </tr>
             </thead>
             <tbody id="cuerpoTablaCaratula">
@@ -352,7 +363,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "8.0";
+    const VERSION_APP = "8.5";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -461,6 +472,7 @@
         if (!unidad) return;
 
         const km = prompt(`Kilometraje de la unidad ${unidad}:`, "0");
+        const tipoManto = prompt(`Tipo de mantenimiento (PREVENTIVO o CORRECTIVO):`, "PREVENTIVO");
         const comentarios = prompt(`Comentario o trabajo reportado:`, "Salida de unidad");
         const fechaActual = document.getElementById('filtroFechaCaratula').value || new Date().toISOString().slice(0, 10);
         const ruta = obtenerRutaDeUnidad(unidad);
@@ -469,6 +481,7 @@
             unidad: unidad.trim(),
             ruta: ruta,
             km: km ? km.trim() : "0",
+            tipoManto: tipoManto ? tipoManto.trim().toUpperCase() : "PREVENTIVO",
             comentarios: comentarios ? comentarios.trim() : "Sin observaciones",
             fecha: fechaActual
         };
@@ -546,9 +559,9 @@
         if (total === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 18px; color: #777; border: 1px solid #888;">
+                    <td colspan="8" style="text-align: center; padding: 18px; color: #777; border: 1px solid #888;">
                         No hay salidas visibles para el ${fechaFiltro}.<br>
-                        <small style="color: #0d6efd; cursor: pointer; text-decoration: underline;" onclick="agregarUnidadManualModal()">👉 Haz clic aquí para añadir unidades manualmente desde Excel.</small>
+                        <small style="color: #0d6efd; cursor: pointer; text-decoration: underline;" onclick="agregarUnidadManualModal()">👉 Haz clic aquí para añadir unidades manualmente.</small>
                     </td>
                 </tr>
             `;
@@ -558,6 +571,7 @@
         salidasFiltradas.forEach((item, index) => {
             const ruta = item.ruta || obtenerRutaDeUnidad(item.unidad);
             const kmTexto = item.km ? Number(item.km).toLocaleString('es-MX') + ' Km' : '---';
+            const tipoMantoTexto = item.tipoManto || 'PREVENTIVO';
             const comentarioTexto = item.comentarios || 'Sin observaciones registradas';
 
             const tr = document.createElement('tr');
@@ -566,6 +580,7 @@
                 <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">${item.unidad}</td>
                 <td style="padding: 6px; border: 1px solid #888;">${ruta}</td>
                 <td style="padding: 6px; border: 1px solid #888; text-align: right;">${kmTexto}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">${tipoMantoTexto}</td>
                 <td style="padding: 6px; border: 1px solid #888;">${comentarioTexto}</td>
                 <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">[ &nbsp; ]</td>
                 <td class="no-print" style="padding: 6px; border: 1px solid #888; text-align: center;">
@@ -600,6 +615,7 @@
             document.getElementById('div-manto').classList.add('hidden');
             document.getElementById('aviso-salida').classList.remove('hidden');
             document.getElementById('div-folio').classList.add('hidden');
+            document.getElementById('div-manto-salida').classList.remove('hidden');
             
             const boxFecha = document.getElementById('div-fecha-salida');
             boxFecha.classList.remove('hidden');
@@ -610,6 +626,7 @@
             document.getElementById('aviso-salida').classList.add('hidden');
             document.getElementById('div-fecha-salida').classList.add('hidden');
             document.getElementById('div-folio').classList.remove('hidden');
+            document.getElementById('div-manto-salida').classList.add('hidden');
         }
     }
 
@@ -722,6 +739,12 @@
             if (!folio) return alert("⚠️ Es obligatorio ingresar el Número de Folio / Cita Previa.");
         }
 
+        let tipoSalidaManto = "N/A";
+        if (MODO_SELECCIONADO === "SALIDA") {
+            tipoSalidaManto = document.getElementById('mantoSalida').value;
+            if (!tipoSalidaManto) return alert("⚠️ Selecciona si el camión sale de mantenimiento PREVENTIVO o CORRECTIVO.");
+        }
+
         if (!urlsFotosCache && !fLic) return alert("⚠️ La foto de la Licencia es obligatoria.");
 
         if (MODO_SELECCIONADO === "ENTRADA" && !urlsFotosCache) {
@@ -777,7 +800,8 @@
                 unidad: u, 
                 km: k, 
                 folioCita: folio,
-                manto: (MODO_SELECCIONADO === "ENTRADA") ? m : "N/A - SALIDA",
+                tipoSalidaManto: tipoSalidaManto,
+                manto: (MODO_SELECCIONADO === "ENTRADA") ? m : ("SALIDA - " + tipoSalidaManto),
                 movimiento: MODO_SELECCIONADO,
                 comentarios: c,
                 fechaPersonalizada: fechaMovimiento,
@@ -831,6 +855,7 @@
                     unidad: u,
                     ruta: r,
                     km: k,
+                    tipoManto: tipoSalidaManto,
                     comentarios: c,
                     fecha: fechaMovimiento
                 });
@@ -873,7 +898,7 @@
                 btnHojaSalida.style.backgroundColor = "#e91e63";
                 btnHojaSalida.innerText = "📋 GENERAR FORMATO ENTREGA";
                 btnHojaSalida.onclick = () => {
-                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaMovimiento}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&movimiento=SALIDA&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
+                    const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${u}&ruta=${encodeURIComponent(r)}&km=${k}&fecha=${fechaMovimiento}&fila=${filaGuardada}&hoja=${encodeURIComponent(hojaGuardada)}&comentarios=${encodeURIComponent(c)}&obsest=${encodeURIComponent(obsEst)}&movimiento=SALIDA&manto=${encodeURIComponent(tipoSalidaManto)}&f_frontal=${encodeURIComponent(payload.fotoFrontal)}&f_trasera=${encodeURIComponent(payload.fotoTrasera)}&f_derecha=${encodeURIComponent(payload.fotoDerecha)}&f_izquierda=${encodeURIComponent(payload.fotoIzquierda)}&f_licencia=${encodeURIComponent(payload.fotoLicencia)}`;
                     window.location.href = urlServicio;
                 };
                 status.parentNode.insertBefore(btnHojaSalida, status.nextSibling);
@@ -886,7 +911,7 @@
                 btnVolver.onclick = () => location.reload();
                 status.parentNode.insertBefore(btnVolver, btnHojaSalida.nextSibling);
 
-                alert("✅ SALIDA REGISTRADA CON ÉXITO. Haz clic en el botón ROSA para generar el Formato de Entrega.");
+                alert("✅ SALIDA REGISTRADA CON ÉXITO (" + tipoSalidaManto + "). Haz clic en el botón ROSA para generar el Formato de Entrega.");
             }
 
         } catch (e) {
