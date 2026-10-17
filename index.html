@@ -12,9 +12,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-    <!-- Librerías de Generación y Lectura de QR -->
+    <!-- Generador de QR y Motor Nativo jsQR para iOS/Android -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
@@ -84,13 +84,6 @@
             background: #f0f9ff;
             margin-bottom: 15px;
             text-align: center;
-        }
-
-        #lectorQrCamara video {
-            border-radius: 8px;
-            width: 100% !important;
-            height: auto !important;
-            object-fit: cover;
         }
 
         /* Estilos de la Carátula / Modal */
@@ -237,10 +230,13 @@
     <!-- FORMULARIO DE ENTRADA / SALIDA REGULAR -->
     <div id="sec-form" class="hidden">
         
-        <!-- VISOR DEL ESCÁNER DE CÁMARA (EXCLUSIVO PARA ENTRADA) -->
+        <!-- VISOR DEL ESCÁNER DE CÁMARA NATIVO CON JSQR (EXCLUSIVO PARA ENTRADA) -->
         <div id="contenedorLectorCamara" class="hidden">
             <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #0369a1;">📷 Apunta la cámara al QR del operador:</p>
-            <div id="lectorQrCamara" style="width: 100%; border-radius: 8px; overflow: hidden; background: black;"></div>
+            <div style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; background: black;">
+                <video id="videoLector" playsinline muted autoplay style="width: 100%; height: auto; display: block;"></video>
+                <canvas id="canvasLector" class="hidden"></canvas>
+            </div>
             
             <input type="file" id="archivoQrInput" accept="image/*" class="hidden" onchange="escanearDesdeArchivo(this)">
             
@@ -470,7 +466,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "12.0";
+    const VERSION_APP = "13.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -509,7 +505,8 @@
     const UPLOAD_PRESET = "ego_fotos";
     let MODO_SELECCIONADO = "";
     let qrcodeInstancia = null;
-    let html5QrCodeScanner = null;
+    let videoStream = null;
+    let animacionFrameId = null;
 
     const unidadesData = { 
         "AEROPUERTO Y GRIEGA": ["6070", "6074", "6078", "6083", "6085", "6086", "6087", "6089", "6095", "6097"],
@@ -553,65 +550,92 @@
         return "SIN RUTA ASIGNADA";
     }
 
-    // ===== LÓGICA DE ESCANEO POR CÁMARA (OPTIMIZADA PARA SAFARI / IOS) =====
-    function iniciarEscaneoQR() {
+    // ===== LÓGICA DE ESCANEO DIRECTO CON JSQR (IOS & ANDROID) =====
+    async function iniciarEscaneoQR() {
         const contenedor = document.getElementById('contenedorLectorCamara');
         contenedor.classList.remove('hidden');
 
-        if (!html5QrCodeScanner) {
-            html5QrCodeScanner = new Html5Qrcode("lectorQrCamara", {
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
-                }
+        const video = document.getElementById('videoLector');
+
+        try {
+            videoStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" } }
             });
-        }
-
-        // Área de escaneo dinámica (75% del ancho del visor)
-        const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
-            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-            const edgeSize = Math.floor(minEdge * 0.75);
-            return { width: edgeSize, height: edgeSize };
-        };
-
-        const config = {
-            fps: 15,
-            qrbox: qrboxFunction,
-            aspectRatio: 1.0,
-            videoConstraints: {
-                facingMode: { ideal: "environment" },
-                focusMode: "continuous"
-            }
-        };
-
-        html5QrCodeScanner.start(
-            { facingMode: "environment" },
-            config,
-            onQrCodeSuccess,
-            onQrCodeError
-        ).catch(err => {
-            console.error("Error al iniciar cámara:", err);
-            alert("⚠️ No se pudo acceder a la cámara. Revisa los permisos en Ajustes > Safari > Cámara.");
+            video.srcObject = videoStream;
+            video.setAttribute("playsinline", "true");
+            await video.play();
+            animacionFrameId = requestAnimationFrame(escanearCuadroVideo);
+        } catch (err) {
+            console.error("Error al acceder a la cámara:", err);
+            alert("⚠️ No se pudo abrir la cámara. Revisa los permisos de cámara en el navegador.");
             contenedor.classList.add('hidden');
-        });
+        }
+    }
+
+    function escanearCuadroVideo() {
+        const video = document.getElementById('videoLector');
+        const canvas = document.getElementById('canvasLector');
+        const ctx = canvas.getContext('2d');
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const codigo = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert"
+            });
+
+            if (codigo && codigo.data) {
+                procesarResultadoQR(codigo.data);
+                return;
+            }
+        }
+        animacionFrameId = requestAnimationFrame(escanearCuadroVideo);
     }
 
     function detenerEscaneoQR() {
-        if (html5QrCodeScanner) {
-            html5QrCodeScanner.stop().then(() => {
-                document.getElementById('contenedorLectorCamara').classList.add('hidden');
-            }).catch(err => {
-                document.getElementById('contenedorLectorCamara').classList.add('hidden');
-            });
-        } else {
-            document.getElementById('contenedorLectorCamara').classList.add('hidden');
+        if (animacionFrameId) {
+            cancelAnimationFrame(animacionFrameId);
+            animacionFrameId = null;
         }
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+        }
+        document.getElementById('contenedorLectorCamara').classList.add('hidden');
     }
 
-    function onQrCodeError(errorMessage) {
-        // Silencioso mientras busca el encuadre
+    function escanearDesdeArchivo(input) {
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.getElementById('canvasLector');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const codigo = jsQR(imageData.data, imageData.width, imageData.height);
+
+                if (codigo && codigo.data) {
+                    procesarResultadoQR(codigo.data);
+                } else {
+                    alert("⚠️ No se detectó código QR en la imagen seleccionada.");
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
 
-    function onQrCodeSuccess(decodedText, decodedResult) {
+    function procesarResultadoQR(decodedText) {
         detenerEscaneoQR();
 
         try {
@@ -679,24 +703,6 @@
         } catch (e) {
             alert("ℹ️ Código QR detectado: " + decodedText);
         }
-    }
-
-    // Escanear seleccionando imagen desde la galería
-    function escanearDesdeArchivo(input) {
-        if (!input.files || input.files.length === 0) return;
-        const archivo = input.files[0];
-
-        if (!html5QrCodeScanner) {
-            html5QrCodeScanner = new Html5Qrcode("lectorQrCamara");
-        }
-
-        html5QrCodeScanner.scanFile(archivo, true)
-            .then(decodedText => {
-                onQrCodeSuccess(decodedText, null);
-            })
-            .catch(err => {
-                alert("⚠️ No se pudo leer ningún código QR en la imagen seleccionada.");
-            });
     }
 
     function cerrarFormulario() {
