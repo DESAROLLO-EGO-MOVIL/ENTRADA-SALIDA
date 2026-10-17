@@ -86,6 +86,13 @@
             text-align: center;
         }
 
+        #lectorQrCamara video {
+            border-radius: 8px;
+            width: 100% !important;
+            height: auto !important;
+            object-fit: cover;
+        }
+
         /* Estilos de la Carátula / Modal */
         #modalCaratulaEntrega {
             display: none;
@@ -234,7 +241,13 @@
         <div id="contenedorLectorCamara" class="hidden">
             <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #0369a1;">📷 Apunta la cámara al QR del operador:</p>
             <div id="lectorQrCamara" style="width: 100%; border-radius: 8px; overflow: hidden; background: black;"></div>
-            <button type="button" class="btn-principal" style="background: #ef4444; font-size: 13px; padding: 10px; margin-top: 8px;" onclick="detenerEscaneoQR()">✕ Cancelar Escaneo</button>
+            
+            <input type="file" id="archivoQrInput" accept="image/*" class="hidden" onchange="escanearDesdeArchivo(this)">
+            
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button type="button" class="btn-principal" style="background: #0284c7; font-size: 12px; padding: 10px; margin-top: 0; flex: 1;" onclick="document.getElementById('archivoQrInput').click()">🖼️ Cargar Foto QR</button>
+                <button type="button" class="btn-principal" style="background: #ef4444; font-size: 12px; padding: 10px; margin-top: 0; flex: 1;" onclick="detenerEscaneoQR()">✕ Cerrar</button>
+            </div>
         </div>
 
         <!-- BOTÓN DE ESCÁNER DE QR ENTRADA -->
@@ -457,7 +470,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "11.0";
+    const VERSION_APP = "12.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -540,22 +553,46 @@
         return "SIN RUTA ASIGNADA";
     }
 
-    // ===== LÓGICA DE ESCANEO POR CÁMARA (CON BLOQUEO DE FECHA) =====
+    // ===== LÓGICA DE ESCANEO POR CÁMARA (OPTIMIZADA PARA SAFARI / IOS) =====
     function iniciarEscaneoQR() {
         const contenedor = document.getElementById('contenedorLectorCamara');
         contenedor.classList.remove('hidden');
 
         if (!html5QrCodeScanner) {
-            html5QrCodeScanner = new Html5Qrcode("lectorQrCamara");
+            html5QrCodeScanner = new Html5Qrcode("lectorQrCamara", {
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
+            });
         }
 
-        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        // Área de escaneo dinámica (75% del ancho del visor)
+        const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const edgeSize = Math.floor(minEdge * 0.75);
+            return { width: edgeSize, height: edgeSize };
+        };
 
-        html5QrCodeScanner.start({ facingMode: "environment" }, config, onQrCodeSuccess, onQrCodeError)
-            .catch(err => {
-                alert("⚠️ No se pudo acceder a la cámara. Permite los permisos en el navegador.");
-                contenedor.classList.add('hidden');
-            });
+        const config = {
+            fps: 15,
+            qrbox: qrboxFunction,
+            aspectRatio: 1.0,
+            videoConstraints: {
+                facingMode: { ideal: "environment" },
+                focusMode: "continuous"
+            }
+        };
+
+        html5QrCodeScanner.start(
+            { facingMode: "environment" },
+            config,
+            onQrCodeSuccess,
+            onQrCodeError
+        ).catch(err => {
+            console.error("Error al iniciar cámara:", err);
+            alert("⚠️ No se pudo acceder a la cámara. Revisa los permisos en Ajustes > Safari > Cámara.");
+            contenedor.classList.add('hidden');
+        });
     }
 
     function detenerEscaneoQR() {
@@ -581,10 +618,10 @@
             const data = JSON.parse(decodedText);
             
             if (data && data.tipo === "EGO_CITA") {
-                const hoyLocal = new Date().toLocaleDateString('en-CA'); // Formato YYYY-MM-DD
+                const hoyLocal = new Date().toLocaleDateString('en-CA');
                 const fechaCita = data.fecha;
 
-                // CANDADO 1: CITA VENCIDA (Días anteriores)
+                // CANDADO 1: CITA VENCIDA
                 if (fechaCita && fechaCita < hoyLocal) {
                     alert(`⛔ ENTRADA DENEGADA: CITA VENCIDA\n\n` +
                           `• Unidad: ${data.unidad}\n` +
@@ -593,21 +630,21 @@
                           `• Fecha Actual: ${hoyLocal}\n\n` +
                           `⚠️ Esta unidad NO se presentó en su fecha asignada.\n` +
                           `Por política de patio, debe ser re-agendada con Logística/Mantenimiento.`);
-                    return; // Detiene completamente el autollenado
+                    return;
                 }
 
-                // CANDADO 2: CITA FUTURA (Se adelantó de fecha)
+                // CANDADO 2: CITA ADELANTADA
                 if (fechaCita && fechaCita > hoyLocal) {
                     const aceptarAdelantada = confirm(`⚠️ ATENCIÓN: CITA ADELANTADA\n\n` +
                           `La cita de la unidad ${data.unidad} está programada para el día: ${fechaCita}.\n` +
                           `Hoy es: ${hoyLocal}.\n\n` +
                           `¿Cuentas con autorización expresa para recibirla anticipadamente?`);
                     if (!aceptarAdelantada) {
-                        return; // Cancela si no está autorizada
+                        return;
                     }
                 }
 
-                // Si la fecha es válida (HOY o autorizada): Autollenado
+                // Autollenado
                 const rutaSelect = document.getElementById('ruta');
                 rutaSelect.value = data.ruta || obtenerRutaDeUnidad(data.unidad);
                 actualizarUnidades();
@@ -644,6 +681,24 @@
         }
     }
 
+    // Escanear seleccionando imagen desde la galería
+    function escanearDesdeArchivo(input) {
+        if (!input.files || input.files.length === 0) return;
+        const archivo = input.files[0];
+
+        if (!html5QrCodeScanner) {
+            html5QrCodeScanner = new Html5Qrcode("lectorQrCamara");
+        }
+
+        html5QrCodeScanner.scanFile(archivo, true)
+            .then(decodedText => {
+                onQrCodeSuccess(decodedText, null);
+            })
+            .catch(err => {
+                alert("⚠️ No se pudo leer ningún código QR en la imagen seleccionada.");
+            });
+    }
+
     function cerrarFormulario() {
         detenerEscaneoQR();
         location.reload();
@@ -656,7 +711,6 @@
         document.getElementById('titulo').innerText = "GENERAR CITA PREVIA";
         document.getElementById('cajaResultadoPaseQR').classList.add('hidden');
         
-        // Pone por defecto la fecha de hoy
         const hoyISO = new Date().toLocaleDateString('en-CA');
         document.getElementById('citaFechaProgramada').value = hoyISO;
     }
