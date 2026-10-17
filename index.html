@@ -12,22 +12,27 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- Librerías de Generación y Lectura de QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .container { max-width: 400px; width: 100%; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .container { max-width: 420px; width: 100%; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); box-sizing: border-box; }
         
         .header-logo { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; }
         .logo-img { max-width: 180px; height: auto; margin-bottom: 10px; }
         
-        h2 { color: #1a73e8; text-align: center; margin: 0; text-transform: uppercase; border-bottom: none; }
+        h2 { color: #1a73e8; text-align: center; margin: 0; text-transform: uppercase; border-bottom: none; font-size: 20px; }
         
-        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #444; }
-        select, input, textarea { width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
-        select:focus, input:focus { border-color: #1a73e8; }
-        .btn-principal { width: 100%; padding: 18px; background-color: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: bold; transition: 0.2s; margin-top: 10px; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; color: #444; font-size: 14px; }
+        select, input, textarea { width: 100%; padding: 14px; margin-bottom: 10px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 15px; outline: none; }
+        select:focus, input:focus, textarea:focus { border-color: #1a73e8; }
+        
+        .btn-principal { width: 100%; padding: 16px; background-color: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 17px; font-weight: bold; transition: 0.2s; margin-top: 10px; }
         .btn-principal:disabled { background-color: #ccc; cursor: not-allowed; }
         
-        .btn-modo { background-color: #fff; color: #1a73e8; border: 2px solid #1a73e8; margin-bottom: 15px; }
+        .btn-modo { background-color: #fff; color: #1a73e8; border: 2px solid #1a73e8; margin-bottom: 12px; padding: 14px; }
         .btn-modo:active { background-color: #1a73e8; color: white; }
 
         .btn-foto { background-color: #34a853; margin-bottom: 10px; font-size: 14px; padding: 12px; }
@@ -43,6 +48,43 @@
 
         .box-fecha-salida { background: #f8fafc; border: 2px dashed #1a73e8; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
         .box-fecha-salida label { margin-top: 0; color: #1a73e8; font-size: 14px; }
+
+        /* Estilos del Lector y Módulo QR */
+        .tarjeta-qr-pase {
+            background: #ffffff;
+            border: 2px solid #0f172a;
+            border-radius: 10px;
+            padding: 18px;
+            margin-top: 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .tarjeta-qr-pase h3 { margin: 0 0 10px 0; font-size: 16px; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px; }
+        .qr-canvas-box { display: flex; justify-content: center; margin: 12px auto; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 8px; width: fit-content; }
+        .datos-cita-resumen { text-align: left; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-size: 13px; line-height: 1.5; margin-top: 10px; color: #334155; }
+        .datos-cita-resumen strong { color: #0f172a; }
+
+        .badge-vigencia {
+            display: block;
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1.5px solid #b91c1c;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: bold;
+            padding: 6px 8px;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        #contenedorLectorCamara {
+            border: 2px dashed #0284c7;
+            border-radius: 10px;
+            padding: 10px;
+            background: #f0f9ff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
 
         /* Estilos de la Carátula / Modal */
         #modalCaratulaEntrega {
@@ -82,36 +124,15 @@
         }
 
         @media print {
-            body {
-                background: white !important;
-                padding: 0 !important;
-            }
-            body * {
-                visibility: hidden;
-            }
-            #modalCaratulaEntrega, #modalCaratulaEntrega * {
-                visibility: visible;
-            }
+            body { background: white !important; padding: 0 !important; }
+            body * { visibility: hidden; }
+            #modalCaratulaEntrega, #modalCaratulaEntrega * { visibility: visible; }
             #modalCaratulaEntrega {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100% !important;
-                height: auto !important;
-                background: white !important;
-                padding: 0 !important;
-                display: block !important;
+                position: absolute; left: 0; top: 0; width: 100% !important; height: auto !important;
+                background: white !important; padding: 0 !important; display: block !important;
             }
-            .caratula-contenedor {
-                max-width: 100% !important;
-                margin: 0 !important;
-                padding: 15px !important;
-                box-shadow: none !important;
-                border: none !important;
-            }
-            .no-print {
-                display: none !important;
-            }
+            .caratula-contenedor { max-width: 100% !important; margin: 0 !important; padding: 15px !important; box-shadow: none !important; border: none !important; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -123,22 +144,104 @@
         <h2 id="titulo">SISTEMA EGO PRO</h2>
     </div>
 
+    <!-- SECCIÓN DE LOGIN -->
     <div id="sec-pass">
         <label>Contraseña de Acceso:</label>
         <input type="text" id="passInput" placeholder="Escribe aquí..." style="-webkit-text-security: disc;">
         <button class="btn-principal" onclick="verificarPass()">INGRESAR</button>
     </div>
 
+    <!-- MENÚ PRINCIPAL -->
     <div id="sec-seleccion" class="hidden">
-        <label style="text-align: center; margin-bottom: 15px;">¿Qué movimiento reportará?</label>
-        <button class="btn-principal btn-modo" onclick="abrirFormulario('ENTRADA')">📥 ENTRADA</button>
-        <button class="btn-principal btn-modo" onclick="abrirFormulario('SALIDA')">📤 SALIDA</button>
+        <label style="text-align: center; margin-bottom: 15px;">Seleccione una función operativa:</label>
+        
+        <button class="btn-principal btn-modo" onclick="abrirFormulario('ENTRADA')">📥 ENTRADA DE UNIDAD</button>
+        <button class="btn-principal btn-modo" onclick="abrirFormulario('SALIDA')">📤 SALIDA DE UNIDAD</button>
+        
+        <button class="btn-principal btn-modo" style="border-color: #0284c7; color: #0284c7; background: #f0f9ff;" onclick="abrirGeneradorCitas()">🎟️ GENERAR CITA PREVIA (QR)</button>
+        
         <button class="btn-principal btn-modo" style="border-color: #34a853; color: #34a853;" onclick="window.location.href='mantenimiento.html'">🔧 HOJA DE MANTENIMIENTO</button>
         <button class="btn-principal btn-modo" style="border-color: #ff9800; color: #ff9800; margin-top: 5px;" onclick="window.open('https://desarollo-ego-movil.github.io/gestion-servicios-ego/', '_blank')">📋 PROGRAMAR HOJA DE SERVICIO</button>
         <button class="btn-principal btn-modo" style="border-color: #673ab7; color: #673ab7; margin-top: 5px;" onclick="abrirCaratulaModal()">📄 CARÁTULA DE ENTREGA (SALIDAS)</button>
     </div>
 
+    <!-- ================= MÓDULO GENERADOR DE CITA CON QR ================= -->
+    <div id="sec-generar-cita" class="hidden">
+        <div style="background: #f0f9ff; border: 2px dashed #0284c7; border-radius: 8px; padding: 12px; margin-bottom: 15px; text-align: center;">
+            <strong style="color: #0369a1; font-size: 14px;">PROGRAMACIÓN DE CITA Y PASE DIGITAL</strong>
+            <p style="margin: 4px 0 0 0; font-size: 12px; color: #475569;">El pase solo será válido el día programado. No se admiten unidades vencidas.</p>
+        </div>
+
+        <label>1. Número de Unidad:</label>
+        <input type="text" id="citaUnidad" placeholder="Ej: 3206" oninput="autocompletarRutaCita(this.value)">
+
+        <label>2. Ruta Asignada:</label>
+        <input type="text" id="citaRuta" placeholder="Se detecta automáticamente..." readonly style="background-color: #f8fafc; font-weight: bold; color: #1e293b;">
+
+        <label>3. Fecha Programada para la Cita:</label>
+        <input type="date" id="citaFechaProgramada">
+
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 8px;">
+            <div style="flex: 1;">
+                <label style="margin-top: 5px;">4. Folio de Cita:</label>
+                <input type="text" id="citaFolio" placeholder="Ej: CIT-3206-01" style="text-transform: uppercase; margin-bottom: 0;">
+            </div>
+            <button type="button" class="btn-principal" style="width: auto; padding: 13px 14px; margin-top: 0; font-size: 12px; background: #475569;" onclick="generarFolioAutomatico()">⚡ Auto</button>
+        </div>
+
+        <label>5. Tipo de Trabajo / Mantenimiento:</label>
+        <select id="citaTipoManto">
+            <option value="PREVENTIVO (M1)">PREVENTIVO (M1)</option>
+            <option value="PREVENTIVO (M2)">PREVENTIVO (M2)</option>
+            <option value="PREVENTIVO (M3)">PREVENTIVO (M3)</option>
+            <option value="PREVENTIVO (M4)">PREVENTIVO (M4)</option>
+            <option value="PREVENTIVO (M5)">PREVENTIVO (M5)</option>
+            <option value="PREVENTIVO (M6)">PREVENTIVO (M6)</option>
+            <option value="PREVENTIVO (M7)">PREVENTIVO (M7)</option>
+            <option value="CORRECTIVO">CORRECTIVO</option>
+        </select>
+
+        <label>6. Observaciones / Motivo de Cita:</label>
+        <textarea id="citaMotivo" style="height: 60px;" placeholder="Ej: Fuga de aire, cambio de balatas o servicio regular..."></textarea>
+
+        <button class="btn-principal" style="background-color: #0284c7;" onclick="procesarCreacionPaseQR()">📲 GENERAR CÓDIGO QR</button>
+
+        <div id="cajaResultadoPaseQR" class="tarjeta-qr-pase hidden">
+            <h3>PASE DE ENTRADA A PATIO</h3>
+            <div class="qr-canvas-box" id="contenedorQrCanvas"></div>
+            
+            <div class="datos-cita-resumen" id="textoResumenPase"></div>
+
+            <div class="badge-vigencia" id="badgeTextoVigencia">
+                ⚠️ VÁLIDO ÚNICAMENTE EL DÍA PROGRAMADO
+            </div>
+
+            <p style="font-size: 11px; color: #64748b; margin: 8px 0 12px 0;">Si la unidad no se presenta en su fecha, la cita queda cancelada automáticamente.</p>
+            
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button type="button" class="btn-principal" style="background-color: #0284c7; padding: 12px; font-size: 13px; margin-top: 0; flex: 1;" onclick="descargarPaseComoImagen()">📸 Guardar QR</button>
+                <button type="button" class="btn-principal" style="background-color: #25d366; padding: 12px; font-size: 13px; margin-top: 0; flex: 1;" onclick="compartirPaseWhatsApp()">💬 Enviar Texto</button>
+            </div>
+        </div>
+
+        <button class="btn-principal" style="background-color: #64748b; font-size: 14px; margin-top: 15px;" onclick="volverAlMenuPrincipal()">⬅️ VOLVER AL MENÚ</button>
+    </div>
+
+    <!-- FORMULARIO DE ENTRADA / SALIDA REGULAR -->
     <div id="sec-form" class="hidden">
+        
+        <!-- VISOR DEL ESCÁNER DE CÁMARA (EXCLUSIVO PARA ENTRADA) -->
+        <div id="contenedorLectorCamara" class="hidden">
+            <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #0369a1;">📷 Apunta la cámara al QR del operador:</p>
+            <div id="lectorQrCamara" style="width: 100%; border-radius: 8px; overflow: hidden; background: black;"></div>
+            <button type="button" class="btn-principal" style="background: #ef4444; font-size: 13px; padding: 10px; margin-top: 8px;" onclick="detenerEscaneoQR()">✕ Cancelar Escaneo</button>
+        </div>
+
+        <!-- BOTÓN DE ESCÁNER DE QR ENTRADA -->
+        <button id="btnActivarLectorQR" type="button" class="btn-principal" style="background-color: #0284c7; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="iniciarEscaneoQR()">
+            <span>📷</span> ESCANEAR QR DE CITA (AUTOLLENADO)
+        </button>
+
         <div id="div-fecha-salida" class="box-fecha-salida hidden">
             <label>📅 Fecha del Movimiento (Salida):</label>
             <input type="date" id="fechaSalidaPersonalizada" style="margin-bottom: 0;">
@@ -266,7 +369,7 @@
         <div id="statusMsg" class="status"></div>
 
         <button id="btnRegistrar" class="btn-principal" onclick="iniciarRegistro()">REGISTRAR DATOS</button>
-        <button id="btnAtras" class="btn-principal" style="background-color: #666; font-size: 14px;" onclick="location.reload()">ATRÁS</button>
+        <button id="btnAtras" class="btn-principal" style="background-color: #666; font-size: 14px;" onclick="cerrarFormulario()">ATRÁS</button>
     </div>
 </div>
 
@@ -274,7 +377,6 @@
 <div id="modalCaratulaEntrega">
     <div class="caratula-contenedor">
         
-        <!-- Controles no imprimibles -->
         <div class="no-print" style="margin-bottom: 20px; padding: 12px; background: #eef2f7; border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <label style="margin: 0; font-size: 14px; font-weight: bold;">Filtrar por Fecha:</label>
@@ -287,14 +389,12 @@
             </div>
         </div>
 
-        <!-- Encabezado Membretado Oficial con Logo Centrado -->
         <div style="border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="flex: 1.2;">
                 <h2 style="margin: 0; font-size: 15px; text-transform: uppercase; color: #111; letter-spacing: 0.5px; text-align: left;">EGO MÓVIL MTY — CONTROL DE FLOTA</h2>
                 <h3 style="margin: 3px 0 0 0; font-size: 12px; font-weight: 600; color: #444;">CARÁTULA DE ENTREGA Y RECEPCIÓN DE DOCUMENTACIÓN FÍSICA (SALIDAS)</h3>
             </div>
 
-            <!-- Logo al Centro -->
             <div style="text-align: center; flex: 0.8;">
                 <img src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg" alt="Logo e-go" style="max-height: 44px; width: auto; object-fit: contain;">
             </div>
@@ -305,14 +405,12 @@
             </div>
         </div>
 
-        <!-- Metadatos de la entrega -->
         <div style="background: #f7f9fa; border: 1px solid #ccc; padding: 7px 12px; border-radius: 4px; margin-bottom: 15px; font-size: 11.5px; display: flex; justify-content: space-between;">
             <span><strong>Lote:</strong> Salidas del Día</span>
             <span><strong>Total Unidades Liberadas:</strong> <strong id="caratulaTotalLiberadas">0</strong></span>
             <span><strong>Hojas Físicas Entregadas:</strong> <strong id="caratulaTotalFisicas">0</strong></span>
         </div>
 
-        <!-- Tabla de Unidades Salidas -->
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
             <thead>
                 <tr style="background: #e9ecef; border: 1px solid #888; text-align: left;">
@@ -326,12 +424,9 @@
                     <th class="no-print" style="padding: 6px; border: 1px solid #888; width: 45px; text-align: center;">Acción</th>
                 </tr>
             </thead>
-            <tbody id="cuerpoTablaCaratula">
-                <!-- Se inyecta con JavaScript -->
-            </tbody>
+            <tbody id="cuerpoTablaCaratula"></tbody>
         </table>
 
-        <!-- Espacio de Observaciones -->
         <div style="margin-bottom: 25px; font-size: 11px;">
             <p style="margin: 0 0 4px 0; font-weight: bold;">OBSERVACIONES GENERALES:</p>
             <div style="border-bottom: 1px solid #999; height: 18px;"></div>
@@ -342,7 +437,6 @@
             * Al firmar, las partes confirman la coincidencia exacta entre las unidades registradas en el sistema y los formatos físicos entregados en este acto.
         </p>
 
-        <!-- Bloque de 3 Firmas Limpias -->
         <div style="display: flex; justify-content: space-between; text-align: center; margin-top: 15px; font-size: 11px; font-weight: bold;">
             <div style="width: 29%;">
                 <div style="border-bottom: 1.5px solid #000; height: 40px; margin-bottom: 6px;"></div>
@@ -363,7 +457,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "8.5";
+    const VERSION_APP = "11.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -401,6 +495,8 @@
     const CLOUD_NAME = "dygb7qjgt";
     const UPLOAD_PRESET = "ego_fotos";
     let MODO_SELECCIONADO = "";
+    let qrcodeInstancia = null;
+    let html5QrCodeScanner = null;
 
     const unidadesData = { 
         "AEROPUERTO Y GRIEGA": ["6070", "6074", "6078", "6083", "6085", "6086", "6087", "6089", "6095", "6097"],
@@ -444,7 +540,248 @@
         return "SIN RUTA ASIGNADA";
     }
 
-    // Guardado local resistente a fallos de cuota
+    // ===== LÓGICA DE ESCANEO POR CÁMARA (CON BLOQUEO DE FECHA) =====
+    function iniciarEscaneoQR() {
+        const contenedor = document.getElementById('contenedorLectorCamara');
+        contenedor.classList.remove('hidden');
+
+        if (!html5QrCodeScanner) {
+            html5QrCodeScanner = new Html5Qrcode("lectorQrCamara");
+        }
+
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        html5QrCodeScanner.start({ facingMode: "environment" }, config, onQrCodeSuccess, onQrCodeError)
+            .catch(err => {
+                alert("⚠️ No se pudo acceder a la cámara. Permite los permisos en el navegador.");
+                contenedor.classList.add('hidden');
+            });
+    }
+
+    function detenerEscaneoQR() {
+        if (html5QrCodeScanner) {
+            html5QrCodeScanner.stop().then(() => {
+                document.getElementById('contenedorLectorCamara').classList.add('hidden');
+            }).catch(err => {
+                document.getElementById('contenedorLectorCamara').classList.add('hidden');
+            });
+        } else {
+            document.getElementById('contenedorLectorCamara').classList.add('hidden');
+        }
+    }
+
+    function onQrCodeError(errorMessage) {
+        // Silencioso mientras busca el encuadre
+    }
+
+    function onQrCodeSuccess(decodedText, decodedResult) {
+        detenerEscaneoQR();
+
+        try {
+            const data = JSON.parse(decodedText);
+            
+            if (data && data.tipo === "EGO_CITA") {
+                const hoyLocal = new Date().toLocaleDateString('en-CA'); // Formato YYYY-MM-DD
+                const fechaCita = data.fecha;
+
+                // CANDADO 1: CITA VENCIDA (Días anteriores)
+                if (fechaCita && fechaCita < hoyLocal) {
+                    alert(`⛔ ENTRADA DENEGADA: CITA VENCIDA\n\n` +
+                          `• Unidad: ${data.unidad}\n` +
+                          `• Folio: ${data.folio}\n` +
+                          `• Fecha Programada: ${fechaCita}\n` +
+                          `• Fecha Actual: ${hoyLocal}\n\n` +
+                          `⚠️ Esta unidad NO se presentó en su fecha asignada.\n` +
+                          `Por política de patio, debe ser re-agendada con Logística/Mantenimiento.`);
+                    return; // Detiene completamente el autollenado
+                }
+
+                // CANDADO 2: CITA FUTURA (Se adelantó de fecha)
+                if (fechaCita && fechaCita > hoyLocal) {
+                    const aceptarAdelantada = confirm(`⚠️ ATENCIÓN: CITA ADELANTADA\n\n` +
+                          `La cita de la unidad ${data.unidad} está programada para el día: ${fechaCita}.\n` +
+                          `Hoy es: ${hoyLocal}.\n\n` +
+                          `¿Cuentas con autorización expresa para recibirla anticipadamente?`);
+                    if (!aceptarAdelantada) {
+                        return; // Cancela si no está autorizada
+                    }
+                }
+
+                // Si la fecha es válida (HOY o autorizada): Autollenado
+                const rutaSelect = document.getElementById('ruta');
+                rutaSelect.value = data.ruta || obtenerRutaDeUnidad(data.unidad);
+                actualizarUnidades();
+
+                setTimeout(() => {
+                    document.getElementById('unidad').value = data.unidad;
+                }, 100);
+
+                document.getElementById('folioCita').value = data.folio;
+
+                const mantoSelect = document.getElementById('manto');
+                if (data.manto) {
+                    if (data.manto.includes("M1")) mantoSelect.value = "M1";
+                    else if (data.manto.includes("M2")) mantoSelect.value = "M2";
+                    else if (data.manto.includes("M3")) mantoSelect.value = "M3";
+                    else if (data.manto.includes("M4")) mantoSelect.value = "M4";
+                    else if (data.manto.includes("M5")) mantoSelect.value = "M5";
+                    else if (data.manto.includes("M6")) mantoSelect.value = "M6";
+                    else if (data.manto.includes("M7")) mantoSelect.value = "M7";
+                    else if (data.manto.includes("CORRECTIVO")) mantoSelect.value = "CORRECTIVO";
+                }
+
+                if (data.motivo && data.motivo !== "SERVICIO PROGRAMADO") {
+                    document.getElementById('comentarios').value = `[CITA: ${data.motivo}]`;
+                }
+
+                alert(`✅ CITA VÁLIDA CONFIRMADA:\n• Unidad: ${data.unidad}\n• Folio: ${data.folio}\n• Mantenimiento: ${data.manto}\n\nDatos cargados. Solo ingresa el Kilometraje y toma las fotos.`);
+                document.getElementById('km').focus();
+            } else {
+                alert("⚠️ El código QR escaneado no pertenece al sistema de citas EGO.");
+            }
+        } catch (e) {
+            alert("ℹ️ Código QR detectado: " + decodedText);
+        }
+    }
+
+    function cerrarFormulario() {
+        detenerEscaneoQR();
+        location.reload();
+    }
+
+    // ===== LÓGICA DEL MÓDULO GENERADOR DE CITAS CON QR =====
+    function abrirGeneradorCitas() {
+        document.getElementById('sec-seleccion').classList.add('hidden');
+        document.getElementById('sec-generar-cita').classList.remove('hidden');
+        document.getElementById('titulo').innerText = "GENERAR CITA PREVIA";
+        document.getElementById('cajaResultadoPaseQR').classList.add('hidden');
+        
+        // Pone por defecto la fecha de hoy
+        const hoyISO = new Date().toLocaleDateString('en-CA');
+        document.getElementById('citaFechaProgramada').value = hoyISO;
+    }
+
+    function volverAlMenuPrincipal() {
+        document.getElementById('sec-generar-cita').classList.add('hidden');
+        document.getElementById('sec-seleccion').classList.remove('hidden');
+        document.getElementById('titulo').innerText = "SISTEMA EGO PRO";
+    }
+
+    function autocompletarRutaCita(unidad) {
+        const u = unidad.trim();
+        const inputRuta = document.getElementById('citaRuta');
+        if (u.length >= 4) {
+            inputRuta.value = obtenerRutaDeUnidad(u);
+        } else {
+            inputRuta.value = "";
+        }
+    }
+
+    function generarFolioAutomatico() {
+        const u = document.getElementById('citaUnidad').value.trim() || "0000";
+        const fechaVal = document.getElementById('citaFechaProgramada').value || new Date().toLocaleDateString('en-CA');
+        const partes = fechaVal.split('-');
+        const mes = partes[1] || "01";
+        const dia = partes[2] || "01";
+        const aleat = Math.floor(10 + Math.random() * 90);
+        document.getElementById('citaFolio').value = `CIT-${u}-${mes}${dia}${aleat}`;
+    }
+
+    function procesarCreacionPaseQR() {
+        const unidad = document.getElementById('citaUnidad').value.trim();
+        const ruta = document.getElementById('citaRuta').value.trim() || obtenerRutaDeUnidad(unidad);
+        const fechaProgramada = document.getElementById('citaFechaProgramada').value || new Date().toLocaleDateString('en-CA');
+        const folio = document.getElementById('citaFolio').value.trim().toUpperCase();
+        const manto = document.getElementById('citaTipoManto').value;
+        const motivo = document.getElementById('citaMotivo').value.trim();
+
+        if (!unidad || !folio) {
+            return alert("⚠️ Es obligatorio ingresar la Unidad y el Folio de la Cita.");
+        }
+
+        const payloadCita = {
+            tipo: "EGO_CITA",
+            unidad: unidad,
+            ruta: ruta,
+            folio: folio,
+            manto: manto,
+            motivo: motivo || "SERVICIO PROGRAMADO",
+            fecha: fechaProgramada
+        };
+
+        const qrString = JSON.stringify(payloadCita);
+
+        const contenedorQR = document.getElementById('contenedorQrCanvas');
+        contenedorQR.innerHTML = "";
+
+        qrcodeInstancia = new QRCode(contenedorQR, {
+            text: qrString,
+            width: 180,
+            height: 180,
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+
+        const resumenHTML = `
+            <div><strong>Unidad:</strong> ${unidad} (${ruta})</div>
+            <div><strong>Folio:</strong> ${folio}</div>
+            <div><strong>Mantenimiento:</strong> ${manto}</div>
+            <div><strong>Observaciones:</strong> ${motivo || 'Ninguna'}</div>
+            <div style="font-size: 12px; margin-top: 5px; color: #0284c7;"><strong>Fecha Programada:</strong> ${fechaProgramada}</div>
+        `;
+        document.getElementById('textoResumenPase').innerHTML = resumenHTML;
+        document.getElementById('badgeTextoVigencia').innerText = `⚠️ VÁLIDO ÚNICAMENTE EL DÍA: ${fechaProgramada}`;
+        document.getElementById('cajaResultadoPaseQR').classList.remove('hidden');
+        document.getElementById('cajaResultadoPaseQR').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function descargarPaseComoImagen() {
+        const qrImg = document.querySelector('#contenedorQrCanvas img') || document.querySelector('#contenedorQrCanvas canvas');
+        if (!qrImg) {
+            return alert("Primero genera el código QR.");
+        }
+
+        const unidad = document.getElementById('citaUnidad').value.trim() || "UNIDAD";
+        const folio = document.getElementById('citaFolio').value.trim() || "CITA";
+
+        let dataUrl = "";
+        if (qrImg.tagName.toLowerCase() === 'img') {
+            dataUrl = qrImg.src;
+        } else {
+            dataUrl = qrImg.toDataURL("image/png");
+        }
+
+        const link = document.createElement('a');
+        link.download = `PASE_${unidad}_${folio}.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function compartirPaseWhatsApp() {
+        const unidad = document.getElementById('citaUnidad').value.trim();
+        const ruta = document.getElementById('citaRuta').value.trim();
+        const folio = document.getElementById('citaFolio').value.trim();
+        const manto = document.getElementById('citaTipoManto').value;
+        const motivo = document.getElementById('citaMotivo').value.trim();
+        const fechaProgramada = document.getElementById('citaFechaProgramada').value || new Date().toLocaleDateString('en-CA');
+
+        const textoWA = `*PASE DIGITAL DE TALLER - EGO MÓVIL*%0A` +
+                        `--------------------------------%0A` +
+                        `*Unidad:* ${unidad}%0A` +
+                        `*Ruta:* ${ruta}%0A` +
+                        `*Folio Cita:* ${folio}%0A` +
+                        `*Mantenimiento:* ${manto}%0A` +
+                        `*Fecha Programada:* ${fechaProgramada}%0A` +
+                        `*Motivo:* ${motivo || 'Cita de programación'}%0A%0A` +
+                        `*⚠️ IMPORTANTE:* VÁLIDO ÚNICAMENTE EL DÍA ${fechaProgramada}. Si no se presenta en fecha, el pase queda anulado y deberá re-agendarse.`;
+
+        window.open(`https://api.whatsapp.com/send?text=${textoWA}`, '_blank');
+    }
+
+    // ===== GUARDADO LOCAL Y FIRESTORE =====
     function guardarEnStorageLocal(registro) {
         try {
             let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
@@ -474,7 +811,7 @@
         const km = prompt(`Kilometraje de la unidad ${unidad}:`, "0");
         const tipoManto = prompt(`Tipo de mantenimiento (PREVENTIVO o CORRECTIVO):`, "PREVENTIVO");
         const comentarios = prompt(`Comentario o trabajo reportado:`, "Salida de unidad");
-        const fechaActual = document.getElementById('filtroFechaCaratula').value || new Date().toISOString().slice(0, 10);
+        const fechaActual = document.getElementById('filtroFechaCaratula').value || new Date().toLocaleDateString('en-CA');
         const ruta = obtenerRutaDeUnidad(unidad);
 
         const nuevoRegistro = {
@@ -513,7 +850,7 @@
     }
 
     function abrirCaratulaModal() {
-        const hoyISO = new Date().toISOString().slice(0, 10);
+        const hoyISO = new Date().toLocaleDateString('en-CA');
         document.getElementById('filtroFechaCaratula').value = hoyISO;
         renderizarCaratulaPorFecha(hoyISO);
         document.getElementById('modalCaratulaEntrega').style.display = 'block';
@@ -530,7 +867,6 @@
 
         let salidasFiltradas = [];
 
-        // 1. Intento leer desde Firestore
         if (db) {
             try {
                 const snapshot = await db.collection("salidas_flota").where("fecha", "==", fechaFiltro).get();
@@ -540,7 +876,6 @@
             }
         }
 
-        // 2. Si Firebase falló o no trajo registros, recurro al historial local
         if (salidasFiltradas.length === 0) {
             try {
                 const historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
@@ -608,7 +943,7 @@
         document.getElementById('sec-form').classList.remove('hidden');
         document.getElementById('titulo').innerText = "SISTEMA EGO: " + modo;
 
-        const hoyISO = new Date().toISOString().slice(0, 10);
+        const hoyISO = new Date().toLocaleDateString('en-CA');
 
         if(modo === "SALIDA") {
             document.getElementById('fotos-entrada').classList.add('hidden');
@@ -616,6 +951,7 @@
             document.getElementById('aviso-salida').classList.remove('hidden');
             document.getElementById('div-folio').classList.add('hidden');
             document.getElementById('div-manto-salida').classList.remove('hidden');
+            document.getElementById('btnActivarLectorQR').classList.add('hidden');
             
             const boxFecha = document.getElementById('div-fecha-salida');
             boxFecha.classList.remove('hidden');
@@ -627,6 +963,7 @@
             document.getElementById('div-fecha-salida').classList.add('hidden');
             document.getElementById('div-folio').classList.remove('hidden');
             document.getElementById('div-manto-salida').classList.add('hidden');
+            document.getElementById('btnActivarLectorQR').classList.remove('hidden');
         }
     }
 
@@ -753,7 +1090,7 @@
             if (!fOdo || !fFro) return alert("📸 FALTAN FOTOS. En Entrada, Odómetro y Frontal son obligatorias.");
         }
 
-        let fechaMovimiento = new Date().toISOString().slice(0, 10);
+        let fechaMovimiento = new Date().toLocaleDateString('en-CA');
         if (MODO_SELECCIONADO === "SALIDA") {
             const fechaInput = document.getElementById('fechaSalidaPersonalizada').value;
             if (fechaInput) fechaMovimiento = fechaInput;
@@ -848,7 +1185,6 @@
                 throw new Error("Google Sheets no confirmó el guardado de la fila.");
             }
 
-            // Sincronización en tiempo real y fallback local si fue salida
             if (MODO_SELECCIONADO === "SALIDA") {
                 status.innerText = "Guardando copia de respaldo...";
                 await guardarSalidaEnFirestore({
