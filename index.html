@@ -49,7 +49,6 @@
         .box-fecha-salida { background: #f8fafc; border: 2px dashed #1a73e8; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
         .box-fecha-salida label { margin-top: 0; color: #1a73e8; font-size: 14px; }
 
-        /* Estilos del Lector y Módulo QR */
         .tarjeta-qr-pase {
             background: #ffffff;
             border: 2px solid #0f172a;
@@ -86,7 +85,6 @@
             text-align: center;
         }
 
-        /* Estilos de Modales (Carátula y Estadía) */
         .modal-fullscreen {
             display: none;
             position: fixed;
@@ -103,7 +101,7 @@
 
         .modal-contenedor-ancho {
             background: #ffffff;
-            max-width: 950px;
+            max-width: 980px;
             margin: 15px auto;
             padding: 25px;
             border-radius: 8px;
@@ -133,6 +131,26 @@
         .estadia-verde { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
         .estadia-amarillo { background-color: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
         .estadia-rojo { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+        .barra-busqueda-patio {
+            background: #ffffff;
+            border: 2px solid #0284c7;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .barra-busqueda-patio input {
+            border: none;
+            padding: 6px;
+            margin: 0;
+            font-size: 14px;
+            font-weight: bold;
+            outline: none;
+            width: 100%;
+        }
 
         @media print {
             body { background: white !important; padding: 0 !important; }
@@ -169,11 +187,10 @@
         <button class="btn-principal btn-modo" onclick="abrirFormulario('ENTRADA')">📥 ENTRADA DE UNIDAD</button>
         <button class="btn-principal btn-modo" onclick="abrirFormulario('SALIDA')">📤 SALIDA DE UNIDAD</button>
         
-        <!-- MÓDULO ESTADÍA PATIO -->
+        <button class="btn-principal btn-modo" style="border-color: #475569; color: #334155; background: #f8fafc;" onclick="consultarEstadoUnidadRapido()">🔍 CONSULTAR ESTADO DE UNIDAD</button>
+        <button class="btn-principal btn-modo" style="border-color: #1e3a8a; color: #1e3a8a; background: #eff6ff;" onclick="abrirModalRegistroEntradas()">📋 REGISTRO DE ENTRADAS (HISTORIAL)</button>
         <button class="btn-principal btn-modo" style="border-color: #0d9488; color: #0d9488; background: #f0fdfa;" onclick="abrirModalEstadia()">⏱️ ÍNDICE DE ESTADÍA (EN PATIO)</button>
-
         <button class="btn-principal btn-modo" style="border-color: #0284c7; color: #0284c7; background: #f0f9ff;" onclick="abrirGeneradorCitas()">🎟️ GENERAR CITA PREVIA (QR)</button>
-        <button class="btn-principal btn-modo" style="border-color: #34a853; color: #34a853;" onclick="window.location.href='mantenimiento.html'">🔧 HOJA DE MANTENIMIENTO</button>
         <button class="btn-principal btn-modo" style="border-color: #ff9800; color: #ff9800; margin-top: 5px;" onclick="window.open('https://desarollo-ego-movil.github.io/gestion-servicios-ego/', '_blank')">📋 PROGRAMAR HOJA DE SERVICIO</button>
         <button class="btn-principal btn-modo" style="border-color: #673ab7; color: #673ab7; margin-top: 5px;" onclick="abrirCaratulaModal()">📄 CARÁTULA DE ENTREGA (SALIDAS)</button>
     </div>
@@ -259,12 +276,10 @@
             </div>
         </div>
 
-        <!-- BOTÓN DE ESCÁNER DE QR ENTRADA -->
         <button id="btnActivarLectorQR" type="button" class="btn-principal" style="background-color: #0284c7; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="iniciarEscaneoQR()">
             <span>📷</span> ESCANEAR QR DE CITA (AUTOLLENADO)
         </button>
 
-        <!-- FECHA DEL MOVIMIENTO (ENTRADA O SALIDA) -->
         <div id="div-fecha-movimiento" class="box-fecha-salida">
             <label id="lblFechaMovimiento">📅 Fecha del Movimiento:</label>
             <input type="date" id="fechaMovimientoPersonalizada" style="margin-bottom: 0;">
@@ -312,13 +327,11 @@
         <label>3. Kilometraje Actual:</label>
         <input type="number" id="km" placeholder="Ej: 150000" inputmode="numeric">
 
-        <!-- Folio Cita (ENTRADA) -->
         <div id="div-folio" class="hidden">
             <label>3.1. Folio de Cita Previa:</label>
             <input type="text" id="folioCita" placeholder="Ej: CIT-1045 o Folio asignado" style="text-transform: uppercase;">
         </div>
 
-        <!-- Manto (SALIDA) -->
         <div id="div-manto-salida" class="hidden">
             <label style="color: #c2410c;">3.2. Tipo de Mantenimiento Liberado:</label>
             <select id="mantoSalida" style="border-color: #f97316; font-weight: bold;">
@@ -396,14 +409,66 @@
     </div>
 </div>
 
+<!-- ================= MODAL DE REGISTRO HISTÓRICO DE ENTRADAS ================= -->
+<div id="modalRegistroEntradas" class="modal-fullscreen">
+    <div class="modal-contenedor-ancho">
+        <div class="no-print" style="margin-bottom: 15px; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="margin: 0; font-size: 13px; font-weight: bold; color: #1e3a8a;">Fecha:</label>
+                <input type="date" id="filtroFechaEntradas" style="width: auto; padding: 6px 10px; margin: 0; font-size: 13px;" onchange="cargarEntradasPorFecha(this.value)">
+            </div>
+            
+            <div style="display: flex; gap: 6px;">
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #0284c7;" onclick="exportarEntradasExcelCSV()">📥 Bajar Excel (.CSV)</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #198754;" onclick="window.print()">🖨 Imprimir</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #666;" onclick="cerrarModalRegistroEntradas()">Cerrar</button>
+            </div>
+        </div>
+
+        <div class="barra-busqueda-patio no-print">
+            <span style="font-size: 16px;">🔍</span>
+            <input type="text" id="buscadorEntradaInput" placeholder="Escribe el número de unidad para ver si entró (Ej: 3206)..." oninput="filtrarEntradasPorBuscador(this.value)">
+            <button type="button" style="border:none; background:#e2e8f0; border-radius:4px; padding:4px 8px; cursor:pointer;" onclick="document.getElementById('buscadorEntradaInput').value=''; filtrarEntradasPorBuscador('');">✕</button>
+        </div>
+
+        <div style="border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="flex: 1.2;">
+                <h2 style="margin: 0; font-size: 15px; text-transform: uppercase; color: #111; letter-spacing: 0.5px; text-align: left;">EGO MÓVIL MTY — CONTROL DE ACCESO</h2>
+                <h3 style="margin: 3px 0 0 0; font-size: 12px; font-weight: 600; color: #444;">HISTORIAL Y BITÁCORA DE ENTRADAS A PATIO</h3>
+            </div>
+            <div style="text-align: center; flex: 0.8;">
+                <img src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg" alt="Logo e-go" style="max-height: 44px; width: auto; object-fit: contain;">
+            </div>
+            <div style="text-align: right; font-size: 11px; color: #333; flex: 1; min-width: 140px;">
+                <p style="margin: 0;"><strong>Fecha de Consulta:</strong> <span id="entradasFechaTexto">--</span></p>
+                <p style="margin: 2px 0 0 0;"><strong>Total Visibles:</strong> <span id="entradasTotalTexto">0</span></p>
+            </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
+            <thead>
+                <tr style="background: #e2e8f0; border: 1px solid #64748b; text-align: left;">
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 28px; text-align: center;">#</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 60px; text-align: center;">Unidad</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 110px;">Ruta</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 70px; text-align: right;">Km</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Folio Cita</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 75px; text-align: center;">Mtto.</th>
+                    <th style="padding: 6px; border: 1px solid #64748b;">Reporte Mecánico / Estético</th>
+                    <th class="no-print" style="padding: 6px; border: 1px solid #64748b; width: 60px; text-align: center;">Evidencia</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTablaEntradas"></tbody>
+        </table>
+    </div>
+</div>
+
 <!-- ================= MODAL DE ÍNDICE DE ESTADÍA Y CONTROL DE PATIO ================= -->
 <div id="modalEstadiaPatio" class="modal-fullscreen">
     <div class="modal-contenedor-ancho">
-        
-        <!-- Barra de herramientas no imprimible -->
-        <div class="no-print" style="margin-bottom: 20px; padding: 12px; background: #f0fdfa; border: 1px solid #ccfbf1; border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+        <div class="no-print" style="margin-bottom: 15px; padding: 12px; background: #f0fdfa; border: 1px solid #ccfbf1; border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <label style="margin: 0; font-size: 13px; font-weight: bold; color: #0f766e;">Ordenar por:</label>
+                <label style="margin: 0; font-size: 13px; font-weight: bold; color: #0f766e;">Ordenar:</label>
                 <select id="ordenEstadiaSelect" style="width: auto; padding: 6px 10px; margin: 0; font-size: 13px; border-color: #0d9488;" onchange="renderizarTablaEstadia()">
                     <option value="dias_desc">⏳ Más días a menos días (Mayor estadía)</option>
                     <option value="dias_asc">⏱️ Menos días a más días (Recientes)</option>
@@ -420,7 +485,12 @@
             </div>
         </div>
 
-        <!-- Encabezado Oficial -->
+        <div class="barra-busqueda-patio no-print" style="border-color: #0d9488;">
+            <span style="font-size: 16px;">🔎</span>
+            <input type="text" id="buscadorEstadiaInput" placeholder="Escribe el número de unidad para ver si sigue en patio (Ej: 7000)..." oninput="filtrarEstadiaPorBuscador(this.value)">
+            <button type="button" style="border:none; background:#e2e8f0; border-radius:4px; padding:4px 8px; cursor:pointer;" onclick="document.getElementById('buscadorEstadiaInput').value=''; filtrarEstadiaPorBuscador('');">✕</button>
+        </div>
+
         <div style="border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="flex: 1.2;">
                 <h2 style="margin: 0; font-size: 15px; text-transform: uppercase; color: #111; letter-spacing: 0.5px; text-align: left;">EGO MÓVIL MTY — GESTIÓN DE TALLER</h2>
@@ -435,14 +505,12 @@
             </div>
         </div>
 
-        <!-- Resumen de Contadores -->
         <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <span><strong>Unidades Físicas en Patio:</strong> <strong id="totalUnidadesEnPatio" style="color: #0369a1; font-size: 13px;">0</strong></span>
+            <span><strong>Unidades Visibles:</strong> <strong id="totalUnidadesEnPatio" style="color: #0369a1; font-size: 13px;">0</strong></span>
             <span><strong>Rezago Crítico (>48h):</strong> <strong id="totalUnidadesCriticas" style="color: #b91c1c; font-size: 13px;">0</strong></span>
             <span><strong>Promedio de Estadía:</strong> <strong id="promedioEstadiaTexto" style="color: #0f766e;">0 días</strong></span>
         </div>
 
-        <!-- Tabla de Estadía -->
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
             <thead>
                 <tr style="background: #e2e8f0; border: 1px solid #64748b; text-align: left;">
@@ -459,7 +527,6 @@
             <tbody id="cuerpoTablaEstadia"></tbody>
         </table>
 
-        <!-- Firmas al Imprimir -->
         <div style="display: flex; justify-content: space-between; text-align: center; margin-top: 30px; font-size: 11px; font-weight: bold;">
             <div style="width: 30%;">
                 <div style="border-bottom: 1.5px solid #000; height: 35px; margin-bottom: 6px;"></div>
@@ -474,17 +541,15 @@
                 LOGÍSTICA Y PROYECCIÓN
             </div>
         </div>
-
     </div>
 </div>
 
-<!-- ================= MODAL / CARÁTULA DE ENTREGA (IMPRIMIBLE SALIDAS) ================= -->
+<!-- ================= MODAL / CARÁTULA DE SALIDAS (CON FECHA DE ENTRADA Y ESTADÍA) ================= -->
 <div id="modalCaratulaEntrega" class="modal-fullscreen">
     <div class="modal-contenedor-ancho">
-        
-        <div class="no-print" style="margin-bottom: 20px; padding: 12px; background: #eef2f7; border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+        <div class="no-print" style="margin-bottom: 15px; padding: 12px; background: #eef2f7; border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <label style="margin: 0; font-size: 14px; font-weight: bold;">Filtrar por Fecha:</label>
+                <label style="margin: 0; font-size: 14px; font-weight: bold;">Fecha Salida:</label>
                 <input type="date" id="filtroFechaCaratula" style="width: auto; padding: 6px 10px; margin: 0; font-size: 14px;" onchange="renderizarCaratulaPorFecha(this.value)">
             </div>
             <div style="display: flex; gap: 6px;">
@@ -494,18 +559,22 @@
             </div>
         </div>
 
+        <div class="barra-busqueda-patio no-print" style="border-color: #673ab7;">
+            <span style="font-size: 16px;">🔎</span>
+            <input type="text" id="buscadorSalidaInput" placeholder="Escribe el número de unidad para comprobar si ya salió hoy (Ej: 6017)..." oninput="filtrarSalidasPorBuscador(this.value)">
+            <button type="button" style="border:none; background:#e2e8f0; border-radius:4px; padding:4px 8px; cursor:pointer;" onclick="document.getElementById('buscadorSalidaInput').value=''; filtrarSalidasPorBuscador('');">✕</button>
+        </div>
+
         <div style="border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="flex: 1.2;">
                 <h2 style="margin: 0; font-size: 15px; text-transform: uppercase; color: #111; letter-spacing: 0.5px; text-align: left;">EGO MÓVIL MTY — CONTROL DE FLOTA</h2>
                 <h3 style="margin: 3px 0 0 0; font-size: 12px; font-weight: 600; color: #444;">CARÁTULA DE ENTREGA Y RECEPCIÓN DE DOCUMENTACIÓN FÍSICA (SALIDAS)</h3>
             </div>
-
             <div style="text-align: center; flex: 0.8;">
                 <img src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg" alt="Logo e-go" style="max-height: 44px; width: auto; object-fit: contain;">
             </div>
-
             <div style="text-align: right; font-size: 11px; color: #333; flex: 1; min-width: 140px;">
-                <p style="margin: 0;"><strong>Fecha:</strong> <span id="caratulaFechaTexto">--</span></p>
+                <p style="margin: 0;"><strong>Fecha Salida:</strong> <span id="caratulaFechaTexto">--</span></p>
                 <p style="margin: 2px 0 0 0;"><strong>Generado:</strong> <span id="caratulaHoraTexto">--</span></p>
             </div>
         </div>
@@ -519,14 +588,16 @@
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
             <thead>
                 <tr style="background: #e9ecef; border: 1px solid #888; text-align: left;">
-                    <th style="padding: 6px; border: 1px solid #888; width: 26px; text-align: center;">#</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 60px; text-align: center;">Unidad</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 120px;">Ruta</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 80px; text-align: right;">Km Salida</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 90px; text-align: center;">Tipo Mtto.</th>
-                    <th style="padding: 6px; border: 1px solid #888;">Comentario / Trabajo Reportado</th>
-                    <th style="padding: 6px; border: 1px solid #888; width: 50px; text-align: center;">Físico</th>
-                    <th class="no-print" style="padding: 6px; border: 1px solid #888; width: 45px; text-align: center;">Acción</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 24px; text-align: center;">#</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 55px; text-align: center;">Unidad</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 105px;">Ruta</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 70px; text-align: right;">Km Salida</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 75px; text-align: center;">F. Entrada</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 60px; text-align: center;">Estadía</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 85px; text-align: center;">Tipo Mtto.</th>
+                    <th style="padding: 6px; border: 1px solid #888;">Comentario / Trabajo Liberado</th>
+                    <th style="padding: 6px; border: 1px solid #888; width: 45px; text-align: center;">Físico</th>
+                    <th class="no-print" style="padding: 6px; border: 1px solid #888; width: 40px; text-align: center;">Acción</th>
                 </tr>
             </thead>
             <tbody id="cuerpoTablaCaratula"></tbody>
@@ -546,13 +617,11 @@
                 RECEPCIÓN DE HOJAS
             </div>
         </div>
-
     </div>
 </div>
 
 <script>
-    // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "14.0";
+    const VERSION_APP = "17.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -565,7 +634,6 @@
         }
     })();
 
-    // ===== FIREBASE CONFIGURACIÓN =====
     const firebaseConfig = {
         apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
         authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -594,6 +662,8 @@
     let videoStream = null;
     let animacionFrameId = null;
     let cacheUnidadesEnPatio = [];
+    let cacheEntradasConsulta = [];
+    let cacheSalidasConsulta = [];
 
     const unidadesData = { 
         "AEROPUERTO Y GRIEGA": ["6070", "6074", "6078", "6083", "6085", "6086", "6087", "6089", "6095", "6097"],
@@ -637,9 +707,8 @@
         return "SIN RUTA ASIGNADA";
     }
 
-    // ===== GESTIÓN DE ESTADÍA Y PATIO (FIRESTORE) =====
     function calcularDiasTranscurridos(fechaIngresoStr) {
-        if (!fechaIngresoStr) return 0;
+        if (!fechaIngresoStr || fechaIngresoStr === "---") return 0;
         const [y, m, d] = fechaIngresoStr.split("-").map(Number);
         const fIngreso = new Date(y, m - 1, d);
         
@@ -651,7 +720,155 @@
         return Math.max(0, dias);
     }
 
+    async function consultarEstadoUnidadRapido() {
+        const unidadBuscada = prompt("🔍 Ingresa el número de unidad a verificar (ej. 3206 o 7000):");
+        if (!unidadBuscada) return;
+        const uLimpia = unidadBuscada.trim();
+
+        let encontrado = null;
+
+        if (db) {
+            try {
+                const doc = await db.collection("estadia_patio").doc(uLimpia).get();
+                if (doc.exists && doc.data().estatus === "EN_TALLER") {
+                    encontrado = doc.data();
+                }
+            } catch (e) {}
+        }
+
+        if (!encontrado) {
+            try {
+                const local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
+                encontrado = local.find(item => item.unidad === uLimpia && item.estatus === "EN_TALLER");
+            } catch (e) {}
+        }
+
+        if (encontrado) {
+            const dias = calcularDiasTranscurridos(encontrado.fechaEntrada);
+            alert(`🟢 UNIDAD EN PATIO (ACTIVA)\n\n` +
+                  `• Unidad: ${encontrado.unidad}\n` +
+                  `• Ruta: ${encontrado.ruta || obtenerRutaDeUnidad(encontrado.unidad)}\n` +
+                  `• Fecha Ingreso: ${encontrado.fechaEntrada}\n` +
+                  `• Estadía Actual: ${dias === 0 ? 'Ingresó Hoy' : dias + ' días'}\n` +
+                  `• Mantenimiento: ${encontrado.manto || 'N/A'}\n` +
+                  `• Folio Cita: ${encontrado.folioCita || 'Sin folio'}\n` +
+                  `• Reporte Mecánico: ${encontrado.comentarios || 'Sin observaciones'}`);
+        } else {
+            alert(`⚪ LA UNIDAD ${uLimpia} NO ESTÁ EN PATIO\n\nNo tiene registro activo en el índice de estadía actual.`);
+        }
+    }
+
+    function abrirModalRegistroEntradas() {
+        const hoy = new Date().toLocaleDateString('en-CA');
+        document.getElementById('filtroFechaEntradas').value = hoy;
+        document.getElementById('buscadorEntradaInput').value = "";
+        document.getElementById('modalRegistroEntradas').style.display = 'block';
+        cargarEntradasPorFecha(hoy);
+    }
+
+    function cerrarModalRegistroEntradas() {
+        document.getElementById('modalRegistroEntradas').style.display = 'none';
+    }
+
+    async function cargarEntradasPorFecha(fechaFiltro) {
+        document.getElementById('entradasFechaTexto').textContent = fechaFiltro;
+        cacheEntradasConsulta = [];
+
+        if (db) {
+            try {
+                const snapshot = await db.collection("entradas_flota").where("fecha", "==", fechaFiltro).get();
+                snapshot.forEach(doc => cacheEntradasConsulta.push(doc.data()));
+            } catch (err) {}
+        }
+
+        if (cacheEntradasConsulta.length === 0) {
+            try {
+                const local = JSON.parse(localStorage.getItem("ego_entradas_historial") || "[]");
+                cacheEntradasConsulta = local.filter(item => item.fecha === fechaFiltro);
+            } catch (e) {}
+        }
+
+        filtrarEntradasPorBuscador(document.getElementById('buscadorEntradaInput').value);
+    }
+
+    function filtrarEntradasPorBuscador(texto) {
+        const query = (texto || "").trim().toLowerCase();
+        let lista = cacheEntradasConsulta;
+
+        if (query) {
+            lista = cacheEntradasConsulta.filter(item => 
+                String(item.unidad || "").toLowerCase().includes(query) ||
+                String(item.ruta || "").toLowerCase().includes(query) ||
+                String(item.folioCita || "").toLowerCase().includes(query)
+            );
+        }
+        renderizarTablaEntradas(lista, query);
+    }
+
+    function renderizarTablaEntradas(lista, query) {
+        const tbody = document.getElementById('cuerpoTablaEntradas');
+        tbody.innerHTML = '';
+        const total = lista.length;
+        document.getElementById('entradasTotalTexto').textContent = total;
+
+        if (total === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 20px; color: #b91c1c; font-weight: bold; border: 1px solid #cbd5e1;">
+                        ${query ? `❌ No se encontró la unidad "${query}" en los registros de esta fecha.` : 'No hay entradas registradas para esta fecha.'}
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        lista.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            const kmTexto = item.km ? Number(item.km).toLocaleString('es-MX') : '---';
+            const botonFoto = item.fotoOdo ? `<button type="button" style="background:#0284c7; color:white; border:none; border-radius:4px; padding:3px 6px; font-size:10px; cursor:pointer;" onclick="window.open('${item.fotoOdo}', '_blank')">📷 Ver</button>` : '---';
+            const reporteCompleto = `<b>Mec:</b> ${item.comentarios || 'Sin observaciones'}<br><small style="color:#64748b;"><b>Est:</b> ${item.obsEsteticas || 'Sin daños'}</small>`;
+
+            tr.innerHTML = `
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">${index + 1}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold; font-size: 12px; background:#f0f9ff;">${item.unidad}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8;">${item.ruta || obtenerRutaDeUnidad(item.unidad)}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: right;">${kmTexto}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold; color: #0284c7;">${item.folioCita || '---'}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold;">${item.manto || 'N/A'}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; font-size: 10.5px;">${reporteCompleto}</td>
+                <td class="no-print" style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">${botonFoto}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function exportarEntradasExcelCSV() {
+        if (!cacheEntradasConsulta || cacheEntradasConsulta.length === 0) {
+            return alert("No hay datos de entrada para exportar.");
+        }
+
+        let csv = "\uFEFF";
+        csv += "No.,Unidad,Ruta,Kilometraje,Folio Cita,Tipo Mantenimiento,Reporte Mecanico,Observaciones Esteticas,Fecha\n";
+
+        cacheEntradasConsulta.forEach((item, index) => {
+            const mec = (item.comentarios || "").replace(/"/g, '""').replace(/\n/g, ' ');
+            const est = (item.obsEsteticas || "").replace(/"/g, '""').replace(/\n/g, ' ');
+            csv += `"${index + 1}","${item.unidad}","${item.ruta || ''}","${item.km || ''}","${item.folioCita || ''}","${item.manto || ''}","${mec}","${est}","${item.fecha || ''}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const fFiltro = document.getElementById('filtroFechaEntradas').value || "ENTRADAS";
+        link.setAttribute("href", url);
+        link.setAttribute("download", `ENTRADAS_PATIO_EGO_${fFiltro}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     async function abrirModalEstadia() {
+        document.getElementById('buscadorEstadiaInput').value = "";
         document.getElementById('modalEstadiaPatio').style.display = 'block';
         await recargarDatosEstadia();
     }
@@ -667,17 +884,13 @@
 
         cacheUnidadesEnPatio = [];
 
-        // 1. Cargar desde Firestore
         if (db) {
             try {
                 const snapshot = await db.collection("estadia_patio").where("estatus", "==", "EN_TALLER").get();
                 snapshot.forEach(doc => cacheUnidadesEnPatio.push(doc.data()));
-            } catch (err) {
-                console.warn("Fallo lectura Firestore, usando localStorage:", err);
-            }
+            } catch (err) {}
         }
 
-        // 2. Respaldo local si no hay conexión
         if (cacheUnidadesEnPatio.length === 0) {
             try {
                 const local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
@@ -685,36 +898,48 @@
             } catch (e) {}
         }
 
-        renderizarTablaEstadia();
+        filtrarEstadiaPorBuscador(document.getElementById('buscadorEstadiaInput').value);
     }
 
-    function renderizarTablaEstadia() {
+    function filtrarEstadiaPorBuscador(texto) {
+        const query = (texto || "").trim().toLowerCase();
+        let lista = cacheUnidadesEnPatio;
+
+        if (query) {
+            lista = cacheUnidadesEnPatio.filter(item => 
+                String(item.unidad || "").toLowerCase().includes(query) ||
+                String(item.ruta || "").toLowerCase().includes(query)
+            );
+        }
+        renderizarTablaEstadia(lista, query);
+    }
+
+    function renderizarTablaEstadia(listaPersonalizada, query) {
         const criterio = document.getElementById('ordenEstadiaSelect').value;
         const tbody = document.getElementById('cuerpoTablaEstadia');
         tbody.innerHTML = '';
 
-        // Agregar cálculo de días actualizados
-        cacheUnidadesEnPatio.forEach(item => {
+        let lista = listaPersonalizada || cacheUnidadesEnPatio;
+
+        lista.forEach(item => {
             item.diasCalculados = calcularDiasTranscurridos(item.fechaEntrada);
         });
 
-        // Ordenamiento dinámico
         if (criterio === "dias_desc") {
-            cacheUnidadesEnPatio.sort((a, b) => b.diasCalculados - a.diasCalculados);
+            lista.sort((a, b) => b.diasCalculados - a.diasCalculados);
         } else if (criterio === "dias_asc") {
-            cacheUnidadesEnPatio.sort((a, b) => a.diasCalculados - b.diasCalculados);
+            lista.sort((a, b) => a.diasCalculados - b.diasCalculados);
         } else if (criterio === "unidad_asc") {
-            cacheUnidadesEnPatio.sort((a, b) => Number(a.unidad) - Number(b.unidad));
+            lista.sort((a, b) => Number(a.unidad) - Number(b.unidad));
         } else if (criterio === "ruta_asc") {
-            cacheUnidadesEnPatio.sort((a, b) => (a.ruta || "").localeCompare(b.ruta || ""));
+            lista.sort((a, b) => (a.ruta || "").localeCompare(b.ruta || ""));
         }
 
-        // Totales y Estadísticas
-        const total = cacheUnidadesEnPatio.length;
+        const total = lista.length;
         let criticos = 0;
         let sumaDias = 0;
 
-        cacheUnidadesEnPatio.forEach(item => {
+        lista.forEach(item => {
             if (item.diasCalculados >= 2) criticos++;
             sumaDias += item.diasCalculados;
         });
@@ -727,18 +952,15 @@
         if (total === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" style="text-align: center; padding: 25px; color: #64748b; border: 1px solid #cbd5e1;">
-                        No hay unidades activas en patio.<br>
-                        <small style="color: #0d9488; cursor: pointer; text-decoration: underline; font-weight: bold;" onclick="abrirModalCargaManualEstadia()">
-                            👉 Haz clic aquí para dar de alta camiones que ya están en taller desde Excel.
-                        </small>
+                    <td colspan="8" style="text-align: center; padding: 25px; color: #b91c1c; font-weight: bold; border: 1px solid #cbd5e1;">
+                        ${query ? `❌ La unidad "${query}" NO se encuentra en patio.` : 'No hay unidades activas en patio.'}
                     </td>
                 </tr>
             `;
             return;
         }
 
-        cacheUnidadesEnPatio.forEach((item, index) => {
+        lista.forEach((item, index) => {
             const dias = item.diasCalculados;
             let tagClase = "estadia-verde";
             let textoDias = `${dias} d`;
@@ -757,7 +979,7 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">${index + 1}</td>
-                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold; font-size: 12px;">${item.unidad}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold; font-size: 12px; background: #f0fdfa;">${item.unidad}</td>
                 <td style="padding: 6px; border: 1px solid #94a3b8;">${item.ruta || obtenerRutaDeUnidad(item.unidad)}</td>
                 <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">${item.fechaEntrada}</td>
                 <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">
@@ -776,7 +998,6 @@
         });
     }
 
-    // MÉTODO 1: Carga manual rápida de unidades que ya estaban en el Excel
     async function abrirModalCargaManualEstadia() {
         const u = prompt("1. Número de Unidad que ya está en taller (ej. 3206):");
         if (!u) return;
@@ -804,9 +1025,7 @@
         if (db) {
             try {
                 await db.collection("estadia_patio").doc(registro.unidad).set(registro, { merge: true });
-            } catch (e) {
-                console.warn("Fallo guardado Firestore:", e);
-            }
+            } catch (e) {}
         }
 
         alert(`✅ Unidad ${u} agregada al control de estadía sin modificar tu Excel.`);
@@ -849,13 +1068,12 @@
         }, 150);
     }
 
-    // Exportación limpia a Excel (.CSV compatible con acentos UTF-8)
     function exportarEstadiaExcelCSV() {
         if (!cacheUnidadesEnPatio || cacheUnidadesEnPatio.length === 0) {
             return alert("No hay unidades activas en patio para exportar.");
         }
 
-        let csv = "\uFEFF"; // BOM para abrir con tildes y caracteres en Excel
+        let csv = "\uFEFF";
         csv += "No.,Unidad,Ruta,Fecha Ingreso,Dias Estadia,Tipo Mantenimiento,Reporte Mecanico (Kevin)\n";
 
         cacheUnidadesEnPatio.forEach((item, index) => {
@@ -872,6 +1090,161 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    // ===== BÚSQUEDA Y CARÁTULA DE SALIDAS =====
+    function abrirCaratulaModal() {
+        const hoyISO = new Date().toLocaleDateString('en-CA');
+        document.getElementById('filtroFechaCaratula').value = hoyISO;
+        document.getElementById('buscadorSalidaInput').value = "";
+        renderizarCaratulaPorFecha(hoyISO);
+        document.getElementById('modalCaratulaEntrega').style.display = 'block';
+    }
+
+    function cerrarCaratulaModal() {
+        document.getElementById('modalCaratulaEntrega').style.display = 'none';
+    }
+
+    async function renderizarCaratulaPorFecha(fechaFiltro) {
+        const ahora = new Date();
+        document.getElementById('caratulaFechaTexto').textContent = fechaFiltro;
+        document.getElementById('caratulaHoraTexto').textContent = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+        cacheSalidasConsulta = [];
+
+        if (db) {
+            try {
+                const snapshot = await db.collection("salidas_flota").where("fecha", "==", fechaFiltro).get();
+                snapshot.forEach(doc => cacheSalidasConsulta.push(doc.data()));
+            } catch (err) {}
+        }
+
+        if (cacheSalidasConsulta.length === 0) {
+            try {
+                const historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
+                cacheSalidasConsulta = historial.filter(item => item.fecha === fechaFiltro);
+            } catch (e) { cacheSalidasConsulta = []; }
+        }
+
+        filtrarSalidasPorBuscador(document.getElementById('buscadorSalidaInput').value);
+    }
+
+    function filtrarSalidasPorBuscador(texto) {
+        const query = (texto || "").trim().toLowerCase();
+        let lista = cacheSalidasConsulta;
+
+        if (query) {
+            lista = cacheSalidasConsulta.filter(item => 
+                String(item.unidad || "").toLowerCase().includes(query) ||
+                String(item.ruta || "").toLowerCase().includes(query)
+            );
+        }
+
+        const tbody = document.getElementById('cuerpoTablaCaratula');
+        tbody.innerHTML = '';
+        const total = lista.length;
+        document.getElementById('caratulaTotalLiberadas').textContent = total;
+        document.getElementById('caratulaTotalFisicas').textContent = total;
+
+        if (total === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 18px; color: #b91c1c; font-weight: bold; border: 1px solid #888;">
+                        ${query ? `❌ La unidad "${query}" NO aparece como salida en esta fecha.` : 'No hay salidas registradas para esta fecha.'}
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        lista.forEach((item, index) => {
+            const ruta = item.ruta || obtenerRutaDeUnidad(item.unidad);
+            const kmTexto = item.km ? Number(item.km).toLocaleString('es-MX') + ' Km' : '---';
+            const fEntradaTexto = item.fechaEntrada || '---';
+            const diasEstadiaTexto = (item.diasEstadia !== undefined && item.diasEstadia !== null) ? `${item.diasEstadia} d` : '---';
+            const tipoMantoTexto = item.tipoManto || 'PREVENTIVO';
+            const comentarioTexto = item.comentarios || 'Sin observaciones registradas';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 6px; border: 1px solid #888; text-align: center;">${index + 1}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold; background:#faf5ff;">${item.unidad}</td>
+                <td style="padding: 6px; border: 1px solid #888;">${ruta}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: right;">${kmTexto}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: center; color: #0369a1; font-weight: bold;">${fEntradaTexto}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold; color: #0d9488;">${diasEstadiaTexto}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">${tipoMantoTexto}</td>
+                <td style="padding: 6px; border: 1px solid #888;">${comentarioTexto}</td>
+                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">[ &nbsp; ]</td>
+                <td class="no-print" style="padding: 6px; border: 1px solid #888; text-align: center;">
+                    <button type="button" class="btn-quitar-fila" onclick="eliminarUnidadDeCaratula('${item.unidad}', '${item.fecha}')">✕</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function agregarUnidadManualModal() {
+        const unidad = prompt("Introduce el número de unidad (ej. 3503):");
+        if (!unidad) return;
+
+        const km = prompt(`Kilometraje de la unidad ${unidad}:`, "0");
+        const fEntradaManual = prompt(`Fecha en la que entró al taller (YYYY-MM-DD):`, new Date().toLocaleDateString('en-CA'));
+        const tipoManto = prompt(`Tipo de mantenimiento (PREVENTIVO o CORRECTIVO):`, "PREVENTIVO");
+        const comentarios = prompt(`Comentario o trabajo reportado:`, "Salida de unidad");
+        const fechaActual = document.getElementById('filtroFechaCaratula').value || new Date().toLocaleDateString('en-CA');
+        const ruta = obtenerRutaDeUnidad(unidad);
+        const diasEstadiaManual = calcularDiasTranscurridos(fEntradaManual);
+
+        const nuevoRegistro = {
+            unidad: unidad.trim(),
+            ruta: ruta,
+            km: km ? km.trim() : "0",
+            fechaEntrada: fEntradaManual ? fEntradaManual.trim() : "---",
+            diasEstadia: diasEstadiaManual,
+            tipoManto: tipoManto ? tipoManto.trim().toUpperCase() : "PREVENTIVO",
+            comentarios: comentarios ? comentarios.trim() : "Sin observaciones",
+            fecha: fechaActual
+        };
+
+        await guardarSalidaEnFirestore(nuevoRegistro);
+        renderizarCaratulaPorFecha(fechaActual);
+    }
+
+    async function eliminarUnidadDeCaratula(unidadAEliminar, fechaFiltro) {
+        if (!confirm(`¿Deseas quitar la unidad ${unidadAEliminar} de la lista de entrega?`)) return;
+
+        try {
+            let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
+            historial = historial.filter(item => !(item.fecha === fechaFiltro && item.unidad === unidadAEliminar));
+            localStorage.setItem("ego_salidas_historial", JSON.stringify(historial));
+        } catch (e) {}
+
+        if (db) {
+            try {
+                const docId = `${fechaFiltro}_${unidadAEliminar}`;
+                await db.collection("salidas_flota").doc(docId).delete();
+            } catch (e) {}
+        }
+        renderizarCaratulaPorFecha(fechaFiltro);
+    }
+
+    function guardarEnStorageLocal(registro) {
+        try {
+            let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
+            historial = historial.filter(item => !(item.fecha === registro.fecha && item.unidad === registro.unidad));
+            historial.push(registro);
+            localStorage.setItem("ego_salidas_historial", JSON.stringify(historial));
+        } catch (e) {}
+    }
+
+    async function guardarSalidaEnFirestore(registro) {
+        guardarEnStorageLocal(registro);
+        if (!db) return;
+        try {
+            const docId = `${registro.fecha}_${registro.unidad}`;
+            await db.collection("salidas_flota").doc(docId).set(registro, { merge: true });
+        } catch (e) {}
     }
 
     // ===== LÓGICA DE ESCANEO DIRECTO CON JSQR =====
@@ -1143,138 +1516,6 @@
         window.open(`https://api.whatsapp.com/send?text=${textoWA}`, '_blank');
     }
 
-    // ===== CARÁTULA DE SALIDAS =====
-    function guardarEnStorageLocal(registro) {
-        try {
-            let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
-            historial = historial.filter(item => !(item.fecha === registro.fecha && item.unidad === registro.unidad));
-            historial.push(registro);
-            localStorage.setItem("ego_salidas_historial", JSON.stringify(historial));
-        } catch (e) {}
-    }
-
-    async function guardarSalidaEnFirestore(registro) {
-        guardarEnStorageLocal(registro);
-        if (!db) return;
-        try {
-            const docId = `${registro.fecha}_${registro.unidad}`;
-            await db.collection("salidas_flota").doc(docId).set(registro, { merge: true });
-        } catch (e) {}
-    }
-
-    async function agregarUnidadManualModal() {
-        const unidad = prompt("Introduce el número de unidad (ej. 3503):");
-        if (!unidad) return;
-
-        const km = prompt(`Kilometraje de la unidad ${unidad}:`, "0");
-        const tipoManto = prompt(`Tipo de mantenimiento (PREVENTIVO o CORRECTIVO):`, "PREVENTIVO");
-        const comentarios = prompt(`Comentario o trabajo reportado:`, "Salida de unidad");
-        const fechaActual = document.getElementById('filtroFechaCaratula').value || new Date().toLocaleDateString('en-CA');
-        const ruta = obtenerRutaDeUnidad(unidad);
-
-        const nuevoRegistro = {
-            unidad: unidad.trim(),
-            ruta: ruta,
-            km: km ? km.trim() : "0",
-            tipoManto: tipoManto ? tipoManto.trim().toUpperCase() : "PREVENTIVO",
-            comentarios: comentarios ? comentarios.trim() : "Sin observaciones",
-            fecha: fechaActual
-        };
-
-        await guardarSalidaEnFirestore(nuevoRegistro);
-        renderizarCaratulaPorFecha(fechaActual);
-    }
-
-    async function eliminarUnidadDeCaratula(unidadAEliminar, fechaFiltro) {
-        if (!confirm(`¿Deseas quitar la unidad ${unidadAEliminar} de la lista de entrega?`)) return;
-
-        try {
-            let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
-            historial = historial.filter(item => !(item.fecha === fechaFiltro && item.unidad === unidadAEliminar));
-            localStorage.setItem("ego_salidas_historial", JSON.stringify(historial));
-        } catch (e) {}
-
-        if (db) {
-            try {
-                const docId = `${fechaFiltro}_${unidadAEliminar}`;
-                await db.collection("salidas_flota").doc(docId).delete();
-            } catch (e) {}
-        }
-        renderizarCaratulaPorFecha(fechaFiltro);
-    }
-
-    function abrirCaratulaModal() {
-        const hoyISO = new Date().toLocaleDateString('en-CA');
-        document.getElementById('filtroFechaCaratula').value = hoyISO;
-        renderizarCaratulaPorFecha(hoyISO);
-        document.getElementById('modalCaratulaEntrega').style.display = 'block';
-    }
-
-    function cerrarCaratulaModal() {
-        document.getElementById('modalCaratulaEntrega').style.display = 'none';
-    }
-
-    async function renderizarCaratulaPorFecha(fechaFiltro) {
-        const ahora = new Date();
-        document.getElementById('caratulaFechaTexto').textContent = fechaFiltro;
-        document.getElementById('caratulaHoraTexto').textContent = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-
-        let salidasFiltradas = [];
-
-        if (db) {
-            try {
-                const snapshot = await db.collection("salidas_flota").where("fecha", "==", fechaFiltro).get();
-                snapshot.forEach(doc => salidasFiltradas.push(doc.data()));
-            } catch (err) {}
-        }
-
-        if (salidasFiltradas.length === 0) {
-            try {
-                const historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
-                salidasFiltradas = historial.filter(item => item.fecha === fechaFiltro);
-            } catch (e) { salidasFiltradas = []; }
-        }
-
-        const tbody = document.getElementById('cuerpoTablaCaratula');
-        tbody.innerHTML = '';
-        const total = salidasFiltradas.length;
-        document.getElementById('caratulaTotalLiberadas').textContent = total;
-        document.getElementById('caratulaTotalFisicas').textContent = total;
-
-        if (total === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" style="text-align: center; padding: 18px; color: #777; border: 1px solid #888;">
-                        No hay salidas visibles para el ${fechaFiltro}.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        salidasFiltradas.forEach((item, index) => {
-            const ruta = item.ruta || obtenerRutaDeUnidad(item.unidad);
-            const kmTexto = item.km ? Number(item.km).toLocaleString('es-MX') + ' Km' : '---';
-            const tipoMantoTexto = item.tipoManto || 'PREVENTIVO';
-            const comentarioTexto = item.comentarios || 'Sin observaciones registradas';
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="padding: 6px; border: 1px solid #888; text-align: center;">${index + 1}</td>
-                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">${item.unidad}</td>
-                <td style="padding: 6px; border: 1px solid #888;">${ruta}</td>
-                <td style="padding: 6px; border: 1px solid #888; text-align: right;">${kmTexto}</td>
-                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">${tipoMantoTexto}</td>
-                <td style="padding: 6px; border: 1px solid #888;">${comentarioTexto}</td>
-                <td style="padding: 6px; border: 1px solid #888; text-align: center; font-weight: bold;">[ &nbsp; ]</td>
-                <td class="no-print" style="padding: 6px; border: 1px solid #888; text-align: center;">
-                    <button type="button" class="btn-quitar-fila" onclick="eliminarUnidadDeCaratula('${item.unidad}', '${fechaFiltro}')">✕</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
     function verificarPass() {
         const input = document.getElementById('passInput');
         if(input.value.toUpperCase() === CLAVE_ACCESO) {
@@ -1432,6 +1673,34 @@
 
         const fechaMovimiento = document.getElementById('fechaMovimientoPersonalizada').value || new Date().toLocaleDateString('en-CA');
 
+        // BÚSQUEDA Y VINCULACIÓN DE ESTADÍA SI ES SALIDA
+        let fechaEntradaOriginal = "---";
+        let diasEstadiaCalculados = 0;
+
+        if (MODO_SELECCIONADO === "SALIDA") {
+            // 1. Buscar en Firebase estadia_patio
+            if (db) {
+                try {
+                    const docEstadia = await db.collection("estadia_patio").doc(u).get();
+                    if (docEstadia.exists) {
+                        fechaEntradaOriginal = docEstadia.data().fechaEntrada || "---";
+                    }
+                } catch (e) {}
+            }
+            // 2. Respaldo local si no se encontró en Firestore
+            if (fechaEntradaOriginal === "---") {
+                try {
+                    const localEst = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
+                    const itemEst = localEst.find(i => i.unidad === u);
+                    if (itemEst && itemEst.fechaEntrada) fechaEntradaOriginal = itemEst.fechaEntrada;
+                } catch (e) {}
+            }
+
+            if (fechaEntradaOriginal !== "---") {
+                diasEstadiaCalculados = calcularDiasTranscurridos(fechaEntradaOriginal);
+            }
+        }
+
         btn.disabled = true;
         progressCont.style.display = 'block'; 
         
@@ -1465,26 +1734,43 @@
                 urlsFotosCache = { urlOdo, urlFro, urlLic, urlVin, urlTra, urlDer, urlIzq };
             }
 
-            // ===== SINCRONIZACIÓN AUTOMÁTICA CON LA ESTADÍA =====
+            // ===== GUARDAR ENTRADA HISTÓRICA Y PATIO =====
             if (MODO_SELECCIONADO === "ENTRADA") {
-                status.innerText = "Registrando entrada en Estadía de Patio...";
-                const regEntradaPatio = {
+                status.innerText = "Registrando entrada en base de datos...";
+                const regEntradaCompleto = {
                     unidad: u,
                     ruta: r,
                     km: k,
                     folioCita: folio,
                     manto: m,
+                    fecha: fechaMovimiento,
                     fechaEntrada: fechaMovimiento,
                     comentarios: c,
                     obsEsteticas: obsEst,
+                    fotoOdo: urlsFotosCache.urlOdo,
+                    fotoFrontal: urlsFotosCache.urlFro,
                     estatus: "EN_TALLER",
                     timestamp: Date.now()
                 };
-                guardarEnStorageEstadiaLocal(regEntradaPatio);
+
                 if (db) {
                     try {
-                        await db.collection("estadia_patio").doc(u).set(regEntradaPatio, { merge: true });
-                    } catch (errEst) { console.warn("Error guardando en estadía Firebase:", errEst); }
+                        const idEntrada = `${fechaMovimiento}_${u}_${Date.now()}`;
+                        await db.collection("entradas_flota").doc(idEntrada).set(regEntradaCompleto);
+                    } catch (eEnt) {}
+                }
+
+                try {
+                    let localEnt = JSON.parse(localStorage.getItem("ego_entradas_historial") || "[]");
+                    localEnt.push(regEntradaCompleto);
+                    localStorage.setItem("ego_entradas_historial", JSON.stringify(localEnt));
+                } catch (e) {}
+
+                guardarEnStorageEstadiaLocal(regEntradaCompleto);
+                if (db) {
+                    try {
+                        await db.collection("estadia_patio").doc(u).set(regEntradaCompleto, { merge: true });
+                    } catch (errEst) {}
                 }
             } else if (MODO_SELECCIONADO === "SALIDA") {
                 status.innerText = "Cerrando ciclo de Estadía de Patio...";
@@ -1493,12 +1779,13 @@
                         await db.collection("estadia_patio").doc(u).update({
                             estatus: "LIBERADO",
                             fechaSalida: fechaMovimiento,
+                            fechaEntrada: fechaEntradaOriginal,
+                            diasEstadia: diasEstadiaCalculados,
                             tipoSalidaManto: tipoSalidaManto,
                             comentariosSalida: c
                         });
                     } catch (e) {}
                 }
-                // Limpiar del storage local
                 try {
                     let local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
                     local = local.filter(item => item.unidad !== u);
@@ -1519,6 +1806,8 @@
                 movimiento: MODO_SELECCIONADO,
                 comentarios: c,
                 fechaPersonalizada: fechaMovimiento,
+                fechaEntrada: fechaEntradaOriginal,
+                diasEstadia: diasEstadiaCalculados,
                 fotoOdo: urlsFotosCache.urlOdo, 
                 fotoFrontal: urlsFotosCache.urlFro, 
                 fotoLicencia: urlsFotosCache.urlLic,
@@ -1564,7 +1853,9 @@
                     km: k,
                     tipoManto: tipoSalidaManto,
                     comentarios: c,
-                    fecha: fechaMovimiento
+                    fecha: fechaMovimiento,
+                    fechaEntrada: fechaEntradaOriginal,
+                    diasEstadia: diasEstadiaCalculados
                 });
             }
 
@@ -1590,11 +1881,11 @@
                 btnVolver.className = "btn-principal";
                 btnVolver.style.backgroundColor = "#666";
                 btnVolver.style.fontSize = "14px";
-                btnVolver.innerText = "TERMINAR SIN HOJA";
+                btnVolver.innerText = "TERMINAR";
                 btnVolver.onclick = () => location.reload();
                 status.parentNode.insertBefore(btnVolver, btnHoja.nextSibling);
 
-                alert("✅ ENTRADA REGISTRADA EN EXCEL Y EN PATIO. Puedes generar la Hoja de Servicio.");
+                alert("✅ ENTRADA REGISTRADA EN EXCEL Y EN PATIO.");
             
             } else {
                 btn.style.display = 'none';
@@ -1614,11 +1905,11 @@
                 btnVolver.className = "btn-principal";
                 btnVolver.style.backgroundColor = "#666";
                 btnVolver.style.fontSize = "14px";
-                btnVolver.innerText = "TERMINAR SIN FORMATO";
+                btnVolver.innerText = "TERMINAR";
                 btnVolver.onclick = () => location.reload();
                 status.parentNode.insertBefore(btnVolver, btnHojaSalida.nextSibling);
 
-                alert("✅ SALIDA REGISTRADA CON ÉXITO (" + tipoSalidaManto + "). Se liberó del índice de estadía.");
+                alert(`✅ SALIDA REGISTRADA CON ÉXITO.\n• F. Entrada: ${fechaEntradaOriginal}\n• F. Salida: ${fechaMovimiento}\n• Estadía Total: ${diasEstadiaCalculados} días.`);
             }
 
         } catch (e) {
@@ -1626,7 +1917,7 @@
             btn.disabled = false;
             btn.style.backgroundColor = "#d97706";
             btn.innerText = "⚠️ REINTENTAR GUARDAR EN EXCEL";
-            alert("⚠️ No se pudo confirmar la fila en Google Sheets. Las fotos y el control de patio YA están guardados. Solo presiona 'REINTENTAR GUARDAR EN EXCEL'.");
+            alert("⚠️ No se pudo confirmar la fila en Google Sheets. Las fotos y el control de patio YA están guardados. Presiona 'REINTENTAR GUARDAR EN EXCEL'.");
         }
     }
 </script>
