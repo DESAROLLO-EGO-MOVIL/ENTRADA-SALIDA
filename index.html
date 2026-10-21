@@ -18,7 +18,7 @@
 
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
-        .container { max-width: 420px; width: 100%; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); box-sizing: border-box; }
+        .container { max-width: 440px; width: 100%; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); box-sizing: border-box; }
         
         .header-logo { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; }
         .logo-img { max-width: 180px; height: auto; margin-bottom: 10px; }
@@ -86,26 +86,26 @@
             text-align: center;
         }
 
-        /* Estilos de la Carátula / Modal */
-        #modalCaratulaEntrega {
+        /* Estilos de Modales (Carátula y Estadía) */
+        .modal-fullscreen {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             z-index: 99999;
             overflow-y: auto;
             padding: 15px;
             box-sizing: border-box;
         }
 
-        .caratula-contenedor {
+        .modal-contenedor-ancho {
             background: #ffffff;
-            max-width: 860px;
-            margin: 20px auto;
-            padding: 30px;
+            max-width: 950px;
+            margin: 15px auto;
+            padding: 25px;
             border-radius: 8px;
             box-shadow: 0 5px 25px rgba(0,0,0,0.3);
             color: #111;
@@ -117,21 +117,32 @@
             color: white;
             border: none;
             border-radius: 4px;
-            padding: 2px 7px;
+            padding: 3px 8px;
             font-size: 11px;
             cursor: pointer;
             font-weight: bold;
         }
 
+        .tag-estadia {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .estadia-verde { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .estadia-amarillo { background-color: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .estadia-rojo { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
         @media print {
             body { background: white !important; padding: 0 !important; }
             body * { visibility: hidden; }
-            #modalCaratulaEntrega, #modalCaratulaEntrega * { visibility: visible; }
-            #modalCaratulaEntrega {
+            .modal-fullscreen, .modal-fullscreen * { visibility: visible; }
+            .modal-fullscreen {
                 position: absolute; left: 0; top: 0; width: 100% !important; height: auto !important;
                 background: white !important; padding: 0 !important; display: block !important;
             }
-            .caratula-contenedor { max-width: 100% !important; margin: 0 !important; padding: 15px !important; box-shadow: none !important; border: none !important; }
+            .modal-contenedor-ancho { max-width: 100% !important; margin: 0 !important; padding: 15px !important; box-shadow: none !important; border: none !important; }
             .no-print { display: none !important; }
         }
     </style>
@@ -144,7 +155,7 @@
         <h2 id="titulo">SISTEMA EGO PRO</h2>
     </div>
 
-    <!-- SECCIÓN DE LOGIN -->
+    <!-- LOGIN -->
     <div id="sec-pass">
         <label>Contraseña de Acceso:</label>
         <input type="text" id="passInput" placeholder="Escribe aquí..." style="-webkit-text-security: disc;">
@@ -158,14 +169,16 @@
         <button class="btn-principal btn-modo" onclick="abrirFormulario('ENTRADA')">📥 ENTRADA DE UNIDAD</button>
         <button class="btn-principal btn-modo" onclick="abrirFormulario('SALIDA')">📤 SALIDA DE UNIDAD</button>
         
+        <!-- MÓDULO ESTADÍA PATIO -->
+        <button class="btn-principal btn-modo" style="border-color: #0d9488; color: #0d9488; background: #f0fdfa;" onclick="abrirModalEstadia()">⏱️ ÍNDICE DE ESTADÍA (EN PATIO)</button>
+
         <button class="btn-principal btn-modo" style="border-color: #0284c7; color: #0284c7; background: #f0f9ff;" onclick="abrirGeneradorCitas()">🎟️ GENERAR CITA PREVIA (QR)</button>
-        
         <button class="btn-principal btn-modo" style="border-color: #34a853; color: #34a853;" onclick="window.location.href='mantenimiento.html'">🔧 HOJA DE MANTENIMIENTO</button>
         <button class="btn-principal btn-modo" style="border-color: #ff9800; color: #ff9800; margin-top: 5px;" onclick="window.open('https://desarollo-ego-movil.github.io/gestion-servicios-ego/', '_blank')">📋 PROGRAMAR HOJA DE SERVICIO</button>
         <button class="btn-principal btn-modo" style="border-color: #673ab7; color: #673ab7; margin-top: 5px;" onclick="abrirCaratulaModal()">📄 CARÁTULA DE ENTREGA (SALIDAS)</button>
     </div>
 
-    <!-- ================= MÓDULO GENERADOR DE CITA CON QR ================= -->
+    <!-- GENERADOR DE CITA CON QR -->
     <div id="sec-generar-cita" class="hidden">
         <div style="background: #f0f9ff; border: 2px dashed #0284c7; border-radius: 8px; padding: 12px; margin-bottom: 15px; text-align: center;">
             <strong style="color: #0369a1; font-size: 14px;">PROGRAMACIÓN DE CITA Y PASE DIGITAL</strong>
@@ -230,7 +243,7 @@
     <!-- FORMULARIO DE ENTRADA / SALIDA REGULAR -->
     <div id="sec-form" class="hidden">
         
-        <!-- VISOR DEL ESCÁNER DE CÁMARA NATIVO CON JSQR (EXCLUSIVO PARA ENTRADA) -->
+        <!-- VISOR CÁMARA JSQR -->
         <div id="contenedorLectorCamara" class="hidden">
             <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #0369a1;">📷 Apunta la cámara al QR del operador:</p>
             <div style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; background: black;">
@@ -251,9 +264,10 @@
             <span>📷</span> ESCANEAR QR DE CITA (AUTOLLENADO)
         </button>
 
-        <div id="div-fecha-salida" class="box-fecha-salida hidden">
-            <label>📅 Fecha del Movimiento (Salida):</label>
-            <input type="date" id="fechaSalidaPersonalizada" style="margin-bottom: 0;">
+        <!-- FECHA DEL MOVIMIENTO (ENTRADA O SALIDA) -->
+        <div id="div-fecha-movimiento" class="box-fecha-salida">
+            <label id="lblFechaMovimiento">📅 Fecha del Movimiento:</label>
+            <input type="date" id="fechaMovimientoPersonalizada" style="margin-bottom: 0;">
         </div>
 
         <label>1. Seleccione la Ruta:</label>
@@ -298,13 +312,13 @@
         <label>3. Kilometraje Actual:</label>
         <input type="number" id="km" placeholder="Ej: 150000" inputmode="numeric">
 
-        <!-- Campo para Folio de Cita Previa (Exclusivo para ENTRADA) -->
+        <!-- Folio Cita (ENTRADA) -->
         <div id="div-folio" class="hidden">
             <label>3.1. Folio de Cita Previa:</label>
             <input type="text" id="folioCita" placeholder="Ej: CIT-1045 o Folio asignado" style="text-transform: uppercase;">
         </div>
 
-        <!-- Campo Tipo de Mantenimiento (Exclusivo para SALIDA) -->
+        <!-- Manto (SALIDA) -->
         <div id="div-manto-salida" class="hidden">
             <label style="color: #c2410c;">3.2. Tipo de Mantenimiento Liberado:</label>
             <select id="mantoSalida" style="border-color: #f97316; font-weight: bold;">
@@ -367,7 +381,7 @@
         </div>
 
         <label>7. Comentarios / Reporte (Mecánico):</label>
-        <textarea id="comentarios" style="width:100%; height:60px;" placeholder="Detalles si los hay..."></textarea>
+        <textarea id="comentarios" style="width:100%; height:60px;" placeholder="Detalles mecánicos observados..."></textarea>
 
         <label>8. Observaciones Estéticas (Recepción):</label>
         <textarea id="obsEsteticas" style="width:100%; height:60px;" placeholder="Golpes, rayones, focos rotos..."></textarea>
@@ -382,9 +396,91 @@
     </div>
 </div>
 
-<!-- ================= MODAL / CARÁTULA DE ENTREGA (IMPRIMIBLE) ================= -->
-<div id="modalCaratulaEntrega">
-    <div class="caratula-contenedor">
+<!-- ================= MODAL DE ÍNDICE DE ESTADÍA Y CONTROL DE PATIO ================= -->
+<div id="modalEstadiaPatio" class="modal-fullscreen">
+    <div class="modal-contenedor-ancho">
+        
+        <!-- Barra de herramientas no imprimible -->
+        <div class="no-print" style="margin-bottom: 20px; padding: 12px; background: #f0fdfa; border: 1px solid #ccfbf1; border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label style="margin: 0; font-size: 13px; font-weight: bold; color: #0f766e;">Ordenar por:</label>
+                <select id="ordenEstadiaSelect" style="width: auto; padding: 6px 10px; margin: 0; font-size: 13px; border-color: #0d9488;" onchange="renderizarTablaEstadia()">
+                    <option value="dias_desc">⏳ Más días a menos días (Mayor estadía)</option>
+                    <option value="dias_asc">⏱️ Menos días a más días (Recientes)</option>
+                    <option value="unidad_asc">🔢 Número de Unidad (Menor a Mayor)</option>
+                    <option value="ruta_asc">🚍 Ruta</option>
+                </select>
+            </div>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #0d9488;" onclick="abrirModalCargaManualEstadia()">➕ Cargar Activo de Excel</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #0284c7;" onclick="exportarEstadiaExcelCSV()">📥 Bajar Excel (.CSV)</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #198754;" onclick="window.print()">🖨 Imprimir</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #666;" onclick="cerrarModalEstadia()">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- Encabezado Oficial -->
+        <div style="border-bottom: 2px solid #222; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="flex: 1.2;">
+                <h2 style="margin: 0; font-size: 15px; text-transform: uppercase; color: #111; letter-spacing: 0.5px; text-align: left;">EGO MÓVIL MTY — GESTIÓN DE TALLER</h2>
+                <h3 style="margin: 3px 0 0 0; font-size: 12px; font-weight: 600; color: #444;">REPORTE EN TIEMPO REAL: ÍNDICE DE ESTADÍA DE UNIDADES EN PATIO</h3>
+            </div>
+            <div style="text-align: center; flex: 0.8;">
+                <img src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1776721918/WhatsApp_Image_2026-04-20_at_11.10.30_AM_bipr97.jpg" alt="Logo e-go" style="max-height: 44px; width: auto; object-fit: contain;">
+            </div>
+            <div style="text-align: right; font-size: 11px; color: #333; flex: 1; min-width: 140px;">
+                <p style="margin: 0;"><strong>Fecha Corte:</strong> <span id="estadiaFechaTexto">--</span></p>
+                <p style="margin: 2px 0 0 0;"><strong>Hora:</strong> <span id="estadiaHoraTexto">--</span></p>
+            </div>
+        </div>
+
+        <!-- Resumen de Contadores -->
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 6px; margin-bottom: 15px; font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <span><strong>Unidades Físicas en Patio:</strong> <strong id="totalUnidadesEnPatio" style="color: #0369a1; font-size: 13px;">0</strong></span>
+            <span><strong>Rezago Crítico (>48h):</strong> <strong id="totalUnidadesCriticas" style="color: #b91c1c; font-size: 13px;">0</strong></span>
+            <span><strong>Promedio de Estadía:</strong> <strong id="promedioEstadiaTexto" style="color: #0f766e;">0 días</strong></span>
+        </div>
+
+        <!-- Tabla de Estadía -->
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 15px;">
+            <thead>
+                <tr style="background: #e2e8f0; border: 1px solid #64748b; text-align: left;">
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 28px; text-align: center;">#</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 60px; text-align: center;">Unidad</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 120px;">Ruta</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 80px; text-align: center;">Ingreso</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Estadía</th>
+                    <th style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Mtto.</th>
+                    <th style="padding: 6px; border: 1px solid #64748b;">Reporte Mecánico (Kevin)</th>
+                    <th class="no-print" style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Acción</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTablaEstadia"></tbody>
+        </table>
+
+        <!-- Firmas al Imprimir -->
+        <div style="display: flex; justify-content: space-between; text-align: center; margin-top: 30px; font-size: 11px; font-weight: bold;">
+            <div style="width: 30%;">
+                <div style="border-bottom: 1.5px solid #000; height: 35px; margin-bottom: 6px;"></div>
+                SUPERVISOR DE PATIO
+            </div>
+            <div style="width: 30%;">
+                <div style="border-bottom: 1.5px solid #000; height: 35px; margin-bottom: 6px;"></div>
+                COORDINADOR DE MANTENIMIENTO
+            </div>
+            <div style="width: 30%;">
+                <div style="border-bottom: 1.5px solid #000; height: 35px; margin-bottom: 6px;"></div>
+                LOGÍSTICA Y PROYECCIÓN
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= MODAL / CARÁTULA DE ENTREGA (IMPRIMIBLE SALIDAS) ================= -->
+<div id="modalCaratulaEntrega" class="modal-fullscreen">
+    <div class="modal-contenedor-ancho">
         
         <div class="no-print" style="margin-bottom: 20px; padding: 12px; background: #eef2f7; border-radius: 6px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -436,16 +532,6 @@
             <tbody id="cuerpoTablaCaratula"></tbody>
         </table>
 
-        <div style="margin-bottom: 25px; font-size: 11px;">
-            <p style="margin: 0 0 4px 0; font-weight: bold;">OBSERVACIONES GENERALES:</p>
-            <div style="border-bottom: 1px solid #999; height: 18px;"></div>
-            <div style="border-bottom: 1px solid #999; height: 18px;"></div>
-        </div>
-
-        <p style="font-size: 9.5px; color: #555; margin-bottom: 40px; text-align: justify; line-height: 1.3;">
-            * Al firmar, las partes confirman la coincidencia exacta entre las unidades registradas en el sistema y los formatos físicos entregados en este acto.
-        </p>
-
         <div style="display: flex; justify-content: space-between; text-align: center; margin-top: 15px; font-size: 11px; font-weight: bold;">
             <div style="width: 29%;">
                 <div style="border-bottom: 1.5px solid #000; height: 40px; margin-bottom: 6px;"></div>
@@ -466,7 +552,7 @@
 
 <script>
     // ===== SISTEMA ANTI-CACHÉ =====
-    const VERSION_APP = "13.0";
+    const VERSION_APP = "14.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -479,7 +565,7 @@
         }
     })();
 
-    // ===== CONFIGURACIÓN FIREBASE FIRESTORE CON FALLBACK =====
+    // ===== FIREBASE CONFIGURACIÓN =====
     const firebaseConfig = {
         apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
         authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -507,6 +593,7 @@
     let qrcodeInstancia = null;
     let videoStream = null;
     let animacionFrameId = null;
+    let cacheUnidadesEnPatio = [];
 
     const unidadesData = { 
         "AEROPUERTO Y GRIEGA": ["6070", "6074", "6078", "6083", "6085", "6086", "6087", "6089", "6095", "6097"],
@@ -550,7 +637,244 @@
         return "SIN RUTA ASIGNADA";
     }
 
-    // ===== LÓGICA DE ESCANEO DIRECTO CON JSQR (IOS & ANDROID) =====
+    // ===== GESTIÓN DE ESTADÍA Y PATIO (FIRESTORE) =====
+    function calcularDiasTranscurridos(fechaIngresoStr) {
+        if (!fechaIngresoStr) return 0;
+        const [y, m, d] = fechaIngresoStr.split("-").map(Number);
+        const fIngreso = new Date(y, m - 1, d);
+        
+        const hoy = new Date();
+        const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+        
+        const difMs = hoySinHora - fIngreso;
+        const dias = Math.floor(difMs / (1000 * 60 * 60 * 24));
+        return Math.max(0, dias);
+    }
+
+    async function abrirModalEstadia() {
+        document.getElementById('modalEstadiaPatio').style.display = 'block';
+        await recargarDatosEstadia();
+    }
+
+    function cerrarModalEstadia() {
+        document.getElementById('modalEstadiaPatio').style.display = 'none';
+    }
+
+    async function recargarDatosEstadia() {
+        const ahora = new Date();
+        document.getElementById('estadiaFechaTexto').textContent = ahora.toLocaleDateString('es-MX');
+        document.getElementById('estadiaHoraTexto').textContent = ahora.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+        cacheUnidadesEnPatio = [];
+
+        // 1. Cargar desde Firestore
+        if (db) {
+            try {
+                const snapshot = await db.collection("estadia_patio").where("estatus", "==", "EN_TALLER").get();
+                snapshot.forEach(doc => cacheUnidadesEnPatio.push(doc.data()));
+            } catch (err) {
+                console.warn("Fallo lectura Firestore, usando localStorage:", err);
+            }
+        }
+
+        // 2. Respaldo local si no hay conexión
+        if (cacheUnidadesEnPatio.length === 0) {
+            try {
+                const local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
+                cacheUnidadesEnPatio = local.filter(item => item.estatus === "EN_TALLER");
+            } catch (e) {}
+        }
+
+        renderizarTablaEstadia();
+    }
+
+    function renderizarTablaEstadia() {
+        const criterio = document.getElementById('ordenEstadiaSelect').value;
+        const tbody = document.getElementById('cuerpoTablaEstadia');
+        tbody.innerHTML = '';
+
+        // Agregar cálculo de días actualizados
+        cacheUnidadesEnPatio.forEach(item => {
+            item.diasCalculados = calcularDiasTranscurridos(item.fechaEntrada);
+        });
+
+        // Ordenamiento dinámico
+        if (criterio === "dias_desc") {
+            cacheUnidadesEnPatio.sort((a, b) => b.diasCalculados - a.diasCalculados);
+        } else if (criterio === "dias_asc") {
+            cacheUnidadesEnPatio.sort((a, b) => a.diasCalculados - b.diasCalculados);
+        } else if (criterio === "unidad_asc") {
+            cacheUnidadesEnPatio.sort((a, b) => Number(a.unidad) - Number(b.unidad));
+        } else if (criterio === "ruta_asc") {
+            cacheUnidadesEnPatio.sort((a, b) => (a.ruta || "").localeCompare(b.ruta || ""));
+        }
+
+        // Totales y Estadísticas
+        const total = cacheUnidadesEnPatio.length;
+        let criticos = 0;
+        let sumaDias = 0;
+
+        cacheUnidadesEnPatio.forEach(item => {
+            if (item.diasCalculados >= 2) criticos++;
+            sumaDias += item.diasCalculados;
+        });
+
+        const promedio = total > 0 ? (sumaDias / total).toFixed(1) : "0.0";
+        document.getElementById('totalUnidadesEnPatio').textContent = total;
+        document.getElementById('totalUnidadesCriticas').textContent = criticos;
+        document.getElementById('promedioEstadiaTexto').textContent = `${promedio} días`;
+
+        if (total === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 25px; color: #64748b; border: 1px solid #cbd5e1;">
+                        No hay unidades activas en patio.<br>
+                        <small style="color: #0d9488; cursor: pointer; text-decoration: underline; font-weight: bold;" onclick="abrirModalCargaManualEstadia()">
+                            👉 Haz clic aquí para dar de alta camiones que ya están en taller desde Excel.
+                        </small>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        cacheUnidadesEnPatio.forEach((item, index) => {
+            const dias = item.diasCalculados;
+            let tagClase = "estadia-verde";
+            let textoDias = `${dias} d`;
+
+            if (dias === 0) {
+                tagClase = "estadia-verde";
+                textoDias = "Hoy (Día 1)";
+            } else if (dias === 1) {
+                tagClase = "estadia-amarillo";
+                textoDias = "1 día";
+            } else {
+                tagClase = "estadia-rojo";
+                textoDias = `⚠️ ${dias} días`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">${index + 1}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold; font-size: 12px;">${item.unidad}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8;">${item.ruta || obtenerRutaDeUnidad(item.unidad)}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">${item.fechaEntrada}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">
+                    <span class="tag-estadia ${tagClase}">${textoDias}</span>
+                </td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold;">${item.manto || 'N/A'}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; font-size: 10.5px; color: #1e293b;">
+                    ${item.comentarios || 'Sin observaciones mecánicas'}
+                </td>
+                <td class="no-print" style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">
+                    <button type="button" style="background: #e11d48; color: white; border: none; border-radius: 4px; padding: 4px 7px; font-size: 10.5px; font-weight: bold; cursor: pointer;" onclick="darSalidaDirectaDesdeEstadia('${item.unidad}', '${item.ruta}')">📤 Salida</button>
+                    <button type="button" class="btn-quitar-fila" style="margin-left: 2px;" onclick="eliminarUnidadDeEstadia('${item.unidad}')">✕</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // MÉTODO 1: Carga manual rápida de unidades que ya estaban en el Excel
+    async function abrirModalCargaManualEstadia() {
+        const u = prompt("1. Número de Unidad que ya está en taller (ej. 3206):");
+        if (!u) return;
+
+        const fechaIngreso = prompt("2. Fecha REAL en que ingresó al taller (YYYY-MM-DD):", new Date().toISOString().slice(0, 10));
+        if (!fechaIngreso) return;
+
+        const manto = prompt("3. Tipo de Mantenimiento (M1, M2, M3, CORRECTIVO, etc.):", "CORRECTIVO");
+        const comentarios = prompt("4. Comentarios o reporte de la falla:", "Cargado previo de Excel");
+        const ruta = obtenerRutaDeUnidad(u);
+
+        const registro = {
+            unidad: u.trim(),
+            ruta: ruta,
+            fechaEntrada: fechaIngreso.trim(),
+            manto: manto ? manto.trim().toUpperCase() : "CORRECTIVO",
+            comentarios: comentarios ? comentarios.trim() : "Sin observaciones",
+            estatus: "EN_TALLER",
+            origen: "MIGRACION_EXCEL",
+            timestamp: Date.now()
+        };
+
+        guardarEnStorageEstadiaLocal(registro);
+
+        if (db) {
+            try {
+                await db.collection("estadia_patio").doc(registro.unidad).set(registro, { merge: true });
+            } catch (e) {
+                console.warn("Fallo guardado Firestore:", e);
+            }
+        }
+
+        alert(`✅ Unidad ${u} agregada al control de estadía sin modificar tu Excel.`);
+        await recargarDatosEstadia();
+    }
+
+    function guardarEnStorageEstadiaLocal(registro) {
+        try {
+            let local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
+            local = local.filter(item => item.unidad !== registro.unidad);
+            local.push(registro);
+            localStorage.setItem("ego_estadia_local", JSON.stringify(local));
+        } catch (e) {}
+    }
+
+    async function eliminarUnidadDeEstadia(unidad) {
+        if (!confirm(`¿Deseas quitar la unidad ${unidad} de la lista de patio?`)) return;
+
+        try {
+            let local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
+            local = local.filter(item => item.unidad !== unidad);
+            localStorage.setItem("ego_estadia_local", JSON.stringify(local));
+        } catch (e) {}
+
+        if (db) {
+            try {
+                await db.collection("estadia_patio").doc(unidad).delete();
+            } catch (e) {}
+        }
+        await recargarDatosEstadia();
+    }
+
+    function darSalidaDirectaDesdeEstadia(unidad, ruta) {
+        cerrarModalEstadia();
+        abrirFormulario('SALIDA');
+        document.getElementById('ruta').value = ruta;
+        actualizarUnidades();
+        setTimeout(() => {
+            document.getElementById('unidad').value = unidad;
+        }, 150);
+    }
+
+    // Exportación limpia a Excel (.CSV compatible con acentos UTF-8)
+    function exportarEstadiaExcelCSV() {
+        if (!cacheUnidadesEnPatio || cacheUnidadesEnPatio.length === 0) {
+            return alert("No hay unidades activas en patio para exportar.");
+        }
+
+        let csv = "\uFEFF"; // BOM para abrir con tildes y caracteres en Excel
+        csv += "No.,Unidad,Ruta,Fecha Ingreso,Dias Estadia,Tipo Mantenimiento,Reporte Mecanico (Kevin)\n";
+
+        cacheUnidadesEnPatio.forEach((item, index) => {
+            const comLimpio = (item.comentarios || "").replace(/"/g, '""').replace(/\n/g, ' ');
+            csv += `"${index + 1}","${item.unidad}","${item.ruta || ''}","${item.fechaEntrada}","${item.diasCalculados}","${item.manto || ''}","${comLimpio}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const hoy = new Date().toISOString().slice(0, 10);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `ESTADIA_PATIO_EGO_${hoy}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // ===== LÓGICA DE ESCANEO DIRECTO CON JSQR =====
     async function iniciarEscaneoQR() {
         const contenedor = document.getElementById('contenedorLectorCamara');
         contenedor.classList.remove('hidden');
@@ -567,7 +891,7 @@
             animacionFrameId = requestAnimationFrame(escanearCuadroVideo);
         } catch (err) {
             console.error("Error al acceder a la cámara:", err);
-            alert("⚠️ No se pudo abrir la cámara. Revisa los permisos de cámara en el navegador.");
+            alert("⚠️ No se pudo abrir la cámara. Revisa permisos.");
             contenedor.classList.add('hidden');
         }
     }
@@ -645,30 +969,16 @@
                 const hoyLocal = new Date().toLocaleDateString('en-CA');
                 const fechaCita = data.fecha;
 
-                // CANDADO 1: CITA VENCIDA
                 if (fechaCita && fechaCita < hoyLocal) {
-                    alert(`⛔ ENTRADA DENEGADA: CITA VENCIDA\n\n` +
-                          `• Unidad: ${data.unidad}\n` +
-                          `• Folio: ${data.folio}\n` +
-                          `• Fecha Programada: ${fechaCita}\n` +
-                          `• Fecha Actual: ${hoyLocal}\n\n` +
-                          `⚠️ Esta unidad NO se presentó en su fecha asignada.\n` +
-                          `Por política de patio, debe ser re-agendada con Logística/Mantenimiento.`);
+                    alert(`⛔ ENTRADA DENEGADA: CITA VENCIDA\n\n• Unidad: ${data.unidad}\n• Fecha Programada: ${fechaCita}\n• Fecha Actual: ${hoyLocal}\n\nDebe ser re-agendada.`);
                     return;
                 }
 
-                // CANDADO 2: CITA ADELANTADA
                 if (fechaCita && fechaCita > hoyLocal) {
-                    const aceptarAdelantada = confirm(`⚠️ ATENCIÓN: CITA ADELANTADA\n\n` +
-                          `La cita de la unidad ${data.unidad} está programada para el día: ${fechaCita}.\n` +
-                          `Hoy es: ${hoyLocal}.\n\n` +
-                          `¿Cuentas con autorización expresa para recibirla anticipadamente?`);
-                    if (!aceptarAdelantada) {
-                        return;
-                    }
+                    const aceptarAdelantada = confirm(`⚠️ CITA ADELANTADA\n\nProgramada para: ${fechaCita}\nHoy es: ${hoyLocal}\n\n¿Autorizas la recepción anticipada?`);
+                    if (!aceptarAdelantada) return;
                 }
 
-                // Autollenado
                 const rutaSelect = document.getElementById('ruta');
                 rutaSelect.value = data.ruta || obtenerRutaDeUnidad(data.unidad);
                 actualizarUnidades();
@@ -695,10 +1005,10 @@
                     document.getElementById('comentarios').value = `[CITA: ${data.motivo}]`;
                 }
 
-                alert(`✅ CITA VÁLIDA CONFIRMADA:\n• Unidad: ${data.unidad}\n• Folio: ${data.folio}\n• Mantenimiento: ${data.manto}\n\nDatos cargados. Solo ingresa el Kilometraje y toma las fotos.`);
+                alert(`✅ CITA DETECTADA:\n• Unidad: ${data.unidad}\n• Folio: ${data.folio}\n\nDatos cargados.`);
                 document.getElementById('km').focus();
             } else {
-                alert("⚠️ El código QR escaneado no pertenece al sistema de citas EGO.");
+                alert("⚠️ Código QR no válido para citas EGO.");
             }
         } catch (e) {
             alert("ℹ️ Código QR detectado: " + decodedText);
@@ -710,7 +1020,7 @@
         location.reload();
     }
 
-    // ===== LÓGICA DEL MÓDULO GENERADOR DE CITAS CON QR =====
+    // ===== LÓGICA DE CITAS CON QR =====
     function abrirGeneradorCitas() {
         document.getElementById('sec-seleccion').classList.add('hidden');
         document.getElementById('sec-generar-cita').classList.remove('hidden');
@@ -770,7 +1080,6 @@
         };
 
         const qrString = JSON.stringify(payloadCita);
-
         const contenedorQR = document.getElementById('contenedorQrCanvas');
         contenedorQR.innerHTML = "";
 
@@ -798,19 +1107,12 @@
 
     function descargarPaseComoImagen() {
         const qrImg = document.querySelector('#contenedorQrCanvas img') || document.querySelector('#contenedorQrCanvas canvas');
-        if (!qrImg) {
-            return alert("Primero genera el código QR.");
-        }
+        if (!qrImg) return alert("Primero genera el código QR.");
 
         const unidad = document.getElementById('citaUnidad').value.trim() || "UNIDAD";
         const folio = document.getElementById('citaFolio').value.trim() || "CITA";
 
-        let dataUrl = "";
-        if (qrImg.tagName.toLowerCase() === 'img') {
-            dataUrl = qrImg.src;
-        } else {
-            dataUrl = qrImg.toDataURL("image/png");
-        }
+        let dataUrl = (qrImg.tagName.toLowerCase() === 'img') ? qrImg.src : qrImg.toDataURL("image/png");
 
         const link = document.createElement('a');
         link.download = `PASE_${unidad}_${folio}.png`;
@@ -836,21 +1138,19 @@
                         `*Mantenimiento:* ${manto}%0A` +
                         `*Fecha Programada:* ${fechaProgramada}%0A` +
                         `*Motivo:* ${motivo || 'Cita de programación'}%0A%0A` +
-                        `*⚠️ IMPORTANTE:* VÁLIDO ÚNICAMENTE EL DÍA ${fechaProgramada}. Si no se presenta en fecha, el pase queda anulado y deberá re-agendarse.`;
+                        `*⚠️ IMPORTANTE:* VÁLIDO ÚNICAMENTE EL DÍA ${fechaProgramada}.`;
 
         window.open(`https://api.whatsapp.com/send?text=${textoWA}`, '_blank');
     }
 
-    // ===== GUARDADO LOCAL Y FIRESTORE =====
+    // ===== CARÁTULA DE SALIDAS =====
     function guardarEnStorageLocal(registro) {
         try {
             let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
             historial = historial.filter(item => !(item.fecha === registro.fecha && item.unidad === registro.unidad));
             historial.push(registro);
             localStorage.setItem("ego_salidas_historial", JSON.stringify(historial));
-        } catch (e) {
-            console.warn("Error en storage local:", e);
-        }
+        } catch (e) {}
     }
 
     async function guardarSalidaEnFirestore(registro) {
@@ -859,9 +1159,7 @@
         try {
             const docId = `${registro.fecha}_${registro.unidad}`;
             await db.collection("salidas_flota").doc(docId).set(registro, { merge: true });
-        } catch (e) {
-            console.warn("Firestore bloqueado/cuota agotada. Guardado en memoria local activo.", e);
-        }
+        } catch (e) {}
     }
 
     async function agregarUnidadManualModal() {
@@ -888,9 +1186,7 @@
     }
 
     async function eliminarUnidadDeCaratula(unidadAEliminar, fechaFiltro) {
-        if (!confirm(`¿Deseas quitar la unidad ${unidadAEliminar} de la lista de entrega?`)) {
-            return;
-        }
+        if (!confirm(`¿Deseas quitar la unidad ${unidadAEliminar} de la lista de entrega?`)) return;
 
         try {
             let historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
@@ -902,9 +1198,7 @@
             try {
                 const docId = `${fechaFiltro}_${unidadAEliminar}`;
                 await db.collection("salidas_flota").doc(docId).delete();
-            } catch (e) {
-                console.warn("No se pudo borrar de Firestore (posible cuota excedida)", e);
-            }
+            } catch (e) {}
         }
         renderizarCaratulaPorFecha(fechaFiltro);
     }
@@ -931,18 +1225,14 @@
             try {
                 const snapshot = await db.collection("salidas_flota").where("fecha", "==", fechaFiltro).get();
                 snapshot.forEach(doc => salidasFiltradas.push(doc.data()));
-            } catch (err) {
-                console.warn("Firestore bloqueado por cuota o red. Usando respaldo local.", err);
-            }
+            } catch (err) {}
         }
 
         if (salidasFiltradas.length === 0) {
             try {
                 const historial = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
                 salidasFiltradas = historial.filter(item => item.fecha === fechaFiltro);
-            } catch (e) {
-                salidasFiltradas = [];
-            }
+            } catch (e) { salidasFiltradas = []; }
         }
 
         const tbody = document.getElementById('cuerpoTablaCaratula');
@@ -955,8 +1245,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" style="text-align: center; padding: 18px; color: #777; border: 1px solid #888;">
-                        No hay salidas visibles para el ${fechaFiltro}.<br>
-                        <small style="color: #0d6efd; cursor: pointer; text-decoration: underline;" onclick="agregarUnidadManualModal()">👉 Haz clic aquí para añadir unidades manualmente.</small>
+                        No hay salidas visibles para el ${fechaFiltro}.
                     </td>
                 </tr>
             `;
@@ -1004,6 +1293,7 @@
         document.getElementById('titulo').innerText = "SISTEMA EGO: " + modo;
 
         const hoyISO = new Date().toLocaleDateString('en-CA');
+        document.getElementById('fechaMovimientoPersonalizada').value = hoyISO;
 
         if(modo === "SALIDA") {
             document.getElementById('fotos-entrada').classList.add('hidden');
@@ -1012,18 +1302,15 @@
             document.getElementById('div-folio').classList.add('hidden');
             document.getElementById('div-manto-salida').classList.remove('hidden');
             document.getElementById('btnActivarLectorQR').classList.add('hidden');
-            
-            const boxFecha = document.getElementById('div-fecha-salida');
-            boxFecha.classList.remove('hidden');
-            document.getElementById('fechaSalidaPersonalizada').value = hoyISO;
+            document.getElementById('lblFechaMovimiento').innerText = "📅 Fecha del Movimiento (Salida):";
         } else {
             document.getElementById('fotos-entrada').classList.remove('hidden');
             document.getElementById('div-manto').classList.remove('hidden');
             document.getElementById('aviso-salida').classList.add('hidden');
-            document.getElementById('div-fecha-salida').classList.add('hidden');
             document.getElementById('div-folio').classList.remove('hidden');
             document.getElementById('div-manto-salida').classList.add('hidden');
             document.getElementById('btnActivarLectorQR').classList.remove('hidden');
+            document.getElementById('lblFechaMovimiento').innerText = "📅 Fecha del Movimiento (Entrada):";
         }
     }
 
@@ -1064,22 +1351,17 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    
                     const MAX_WIDTH = 1600; 
                     if (width > MAX_WIDTH) {
                         height *= MAX_WIDTH / width;
                         width = MAX_WIDTH;
                     }
-                    
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    
                     ctx.fillStyle = "white";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
                     ctx.drawImage(img, 0, 0, width, height);
-                    
                     canvas.toBlob((blob) => {
                         const newFile = new File([blob], "foto_nitida.jpg", { type: 'image/jpeg' });
                         resolve(newFile);
@@ -1102,9 +1384,7 @@
             });
             const data = await resp.json();
             return data.secure_url || "";
-        } catch (e) {
-            return "";
-        }
+        } catch (e) { return ""; }
     }
 
     function actualizarBarra(porcentaje) {
@@ -1133,7 +1413,7 @@
         let folio = "N/A";
         if (MODO_SELECCIONADO === "ENTRADA") {
             folio = document.getElementById('folioCita').value.trim().toUpperCase();
-            if (!folio) return alert("⚠️ Es obligatorio ingresar el Número de Folio / Cita Previa.");
+            if (!folio) return alert("⚠️ Es obligatorio ingresar el Folio de Cita Previa.");
         }
 
         let tipoSalidaManto = "N/A";
@@ -1150,11 +1430,7 @@
             if (!fOdo || !fFro) return alert("📸 FALTAN FOTOS. En Entrada, Odómetro y Frontal son obligatorias.");
         }
 
-        let fechaMovimiento = new Date().toLocaleDateString('en-CA');
-        if (MODO_SELECCIONADO === "SALIDA") {
-            const fechaInput = document.getElementById('fechaSalidaPersonalizada').value;
-            if (fechaInput) fechaMovimiento = fechaInput;
-        }
+        const fechaMovimiento = document.getElementById('fechaMovimientoPersonalizada').value || new Date().toLocaleDateString('en-CA');
 
         btn.disabled = true;
         progressCont.style.display = 'block'; 
@@ -1189,6 +1465,47 @@
                 urlsFotosCache = { urlOdo, urlFro, urlLic, urlVin, urlTra, urlDer, urlIzq };
             }
 
+            // ===== SINCRONIZACIÓN AUTOMÁTICA CON LA ESTADÍA =====
+            if (MODO_SELECCIONADO === "ENTRADA") {
+                status.innerText = "Registrando entrada en Estadía de Patio...";
+                const regEntradaPatio = {
+                    unidad: u,
+                    ruta: r,
+                    km: k,
+                    folioCita: folio,
+                    manto: m,
+                    fechaEntrada: fechaMovimiento,
+                    comentarios: c,
+                    obsEsteticas: obsEst,
+                    estatus: "EN_TALLER",
+                    timestamp: Date.now()
+                };
+                guardarEnStorageEstadiaLocal(regEntradaPatio);
+                if (db) {
+                    try {
+                        await db.collection("estadia_patio").doc(u).set(regEntradaPatio, { merge: true });
+                    } catch (errEst) { console.warn("Error guardando en estadía Firebase:", errEst); }
+                }
+            } else if (MODO_SELECCIONADO === "SALIDA") {
+                status.innerText = "Cerrando ciclo de Estadía de Patio...";
+                if (db) {
+                    try {
+                        await db.collection("estadia_patio").doc(u).update({
+                            estatus: "LIBERADO",
+                            fechaSalida: fechaMovimiento,
+                            tipoSalidaManto: tipoSalidaManto,
+                            comentariosSalida: c
+                        });
+                    } catch (e) {}
+                }
+                // Limpiar del storage local
+                try {
+                    let local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
+                    local = local.filter(item => item.unidad !== u);
+                    localStorage.setItem("ego_estadia_local", JSON.stringify(local));
+                } catch (e) {}
+            }
+
             btn.innerText = "REGISTRANDO EN EXCEL...";
             status.innerText = "Conectando con Google Sheets...";
 
@@ -1219,12 +1536,10 @@
             for (let intento = 1; intento <= maxIntentos; intento++) {
                 try {
                     status.innerText = `Guardando en Excel (Intento ${intento} de ${maxIntentos})...`;
-                    
                     const respuesta = await fetch(URL_WEBAPP, {
                         method: "POST",
                         body: JSON.stringify(payload)
                     });
-
                     const resultado = await respuesta.json();
 
                     if (resultado && resultado.row) {
@@ -1234,10 +1549,7 @@
                         break;
                     }
                 } catch (errIntento) {
-                    console.warn(`Intento ${intento} fallido:`, errIntento);
-                    if (intento < maxIntentos) {
-                        await new Promise(res => setTimeout(res, 2000));
-                    }
+                    if (intento < maxIntentos) await new Promise(res => setTimeout(res, 2000));
                 }
             }
 
@@ -1246,7 +1558,6 @@
             }
 
             if (MODO_SELECCIONADO === "SALIDA") {
-                status.innerText = "Guardando copia de respaldo...";
                 await guardarSalidaEnFirestore({
                     unidad: u,
                     ruta: r,
@@ -1283,7 +1594,7 @@
                 btnVolver.onclick = () => location.reload();
                 status.parentNode.insertBefore(btnVolver, btnHoja.nextSibling);
 
-                alert("✅ ENTRADA REGISTRADA EN EXCEL. Haz clic en el botón NARANJA para generar la Hoja de Servicio.");
+                alert("✅ ENTRADA REGISTRADA EN EXCEL Y EN PATIO. Puedes generar la Hoja de Servicio.");
             
             } else {
                 btn.style.display = 'none';
@@ -1307,15 +1618,15 @@
                 btnVolver.onclick = () => location.reload();
                 status.parentNode.insertBefore(btnVolver, btnHojaSalida.nextSibling);
 
-                alert("✅ SALIDA REGISTRADA CON ÉXITO (" + tipoSalidaManto + "). Haz clic en el botón ROSA para generar el Formato de Entrega.");
+                alert("✅ SALIDA REGISTRADA CON ÉXITO (" + tipoSalidaManto + "). Se liberó del índice de estadía.");
             }
 
         } catch (e) {
-            status.innerText = "⚠️ La conexión con Excel falló. Las fotos ya están a salvo.";
+            status.innerText = "⚠️ La conexión con Excel falló. Las fotos y la estadía ya están a salvo.";
             btn.disabled = false;
             btn.style.backgroundColor = "#d97706";
             btn.innerText = "⚠️ REINTENTAR GUARDAR EN EXCEL";
-            alert("⚠️ No se pudo confirmar la fila en Google Sheets. Las fotos YA están guardadas en la nube. Solo presiona 'REINTENTAR GUARDAR EN EXCEL'.");
+            alert("⚠️ No se pudo confirmar la fila en Google Sheets. Las fotos y el control de patio YA están guardados. Solo presiona 'REINTENTAR GUARDAR EN EXCEL'.");
         }
     }
 </script>
