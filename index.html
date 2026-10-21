@@ -623,7 +623,7 @@
 </div>
 
 <script>
-    const VERSION_APP = "18.0";
+    const VERSION_APP = "19.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -709,34 +709,37 @@
         return "SIN RUTA ASIGNADA";
     }
 
-    // ===== CÁLCULO PRECISO DE TIEMPO Y SEMÁFORO DE DÍAS =====
-    // Verde: Primeras horas hasta 6 días
-    // Naranja: Más de 6 días hasta 15 días
-    // Rojo: Más de 15 días
+    // ===== CÁLCULO PRECISO BASADO EN CALENDARIO (SIN DISCREPANCIA POR TIMESTAMP) =====
     function calcularTiempoEstadiaDetallado(fechaIngresoStr, timestampIngreso, horaIngresoStr) {
         if (!fechaIngresoStr || fechaIngresoStr === "---") {
             return { texto: "---", minutosTotales: 0, diasEnteros: 0, tagClase: "estadia-verde" };
         }
 
-        let fechaInicio;
-        if (timestampIngreso) {
-            fechaInicio = new Date(timestampIngreso);
-        } else {
-            const [y, m, d] = fechaIngresoStr.split("-").map(Number);
-            let hora = 8, min = 0;
-            if (horaIngresoStr && horaIngresoStr.includes(":")) {
-                const limpioH = horaIngresoStr.toLowerCase().replace(/a\.?\s?m\.?|p\.?\s?m\.?/, '').trim();
-                const partesH = limpioH.split(":");
-                hora = parseInt(partesH[0]) || 8;
-                min = parseInt(partesH[1]) || 0;
-                if (horaIngresoStr.toLowerCase().includes("p") && hora < 12) hora += 12;
-                if (horaIngresoStr.toLowerCase().includes("a") && hora === 12) hora = 0;
-            }
-            fechaInicio = new Date(y, m - 1, d, hora, min, 0);
+        // 1. Extraer año, mes y día soportando formatos como 2026-10-9 o 2026-10-09
+        const partesF = fechaIngresoStr.split("-").map(Number);
+        const y = partesF[0];
+        const m = partesF[1];
+        const d = partesF[2];
+
+        // 2. Extraer hora y minuto
+        let hora = 8, min = 0;
+        if (horaIngresoStr && horaIngresoStr.includes(":")) {
+            const esPM = horaIngresoStr.toLowerCase().includes("p");
+            const esAM = horaIngresoStr.toLowerCase().includes("a");
+            const limpioH = horaIngresoStr.toLowerCase().replace(/[^0-9:]/g, '').trim();
+            const partesH = limpioH.split(":");
+            hora = parseInt(partesH[0]) || 8;
+            min = parseInt(partesH[1]) || 0;
+            
+            if (esPM && hora < 12) hora += 12;
+            if (esAM && hora === 12) hora = 0;
         }
 
+        // 3. Crear el punto exacto de partida en el calendario
+        const fechaInicio = new Date(y, m - 1, d, hora, min, 0);
         const ahora = new Date();
         const difMs = ahora - fechaInicio;
+
         if (difMs <= 0) {
             return { texto: "Recién ingresado", minutosTotales: 0, diasEnteros: 0, tagClase: "estadia-verde" };
         }
@@ -792,7 +795,7 @@
         }
 
         if (encontrado) {
-            const calc = calcularTiempoEstadiaDetallado(encontrado.fechaEntrada, encontrado.timestamp, encontrado.horaEntrada);
+            const calc = calcularTiempoEstadiaDetallado(encontrado.fechaEntrada, null, encontrado.horaEntrada);
             alert(`🟢 UNIDAD EN PATIO (ACTIVA)\n\n` +
                   `• Unidad: ${encontrado.unidad}\n` +
                   `• Ruta: ${encontrado.ruta || obtenerRutaDeUnidad(encontrado.unidad)}\n` +
@@ -971,7 +974,7 @@
         let lista = listaPersonalizada || cacheUnidadesEnPatio;
 
         lista.forEach(item => {
-            const calc = calcularTiempoEstadiaDetallado(item.fechaEntrada, item.timestamp, item.horaEntrada);
+            const calc = calcularTiempoEstadiaDetallado(item.fechaEntrada, null, item.horaEntrada);
             item.estadiaTexto = calc.texto;
             item.minutosTotales = calc.minutosTotales;
             item.diasEnteros = calc.diasEnteros;
@@ -1047,7 +1050,7 @@
         const fechaIngreso = prompt("2. Fecha REAL en que ingresó al taller (YYYY-MM-DD):", new Date().toISOString().slice(0, 10));
         if (!fechaIngreso) return;
 
-        const horaIngreso = prompt("3. Hora aproximada en que llegó (HH:MM o deja vacío):", new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }));
+        const horaIngreso = prompt("3. Hora aproximada en que llegó (HH:MM o deja vacío):", "08:00 a. m.");
         const manto = prompt("4. Tipo de Mantenimiento (M1, M2, M3, CORRECTIVO, etc.):", "CORRECTIVO");
         const comentarios = prompt("5. Comentarios o reporte de la falla:", "Cargado previo de Excel");
         const ruta = obtenerRutaDeUnidad(u);
@@ -1056,12 +1059,11 @@
             unidad: u.trim(),
             ruta: ruta,
             fechaEntrada: fechaIngreso.trim(),
-            horaEntrada: horaIngreso ? horaIngreso.trim() : "",
+            horaEntrada: horaIngreso ? horaIngreso.trim() : "08:00 a. m.",
             manto: manto ? manto.trim().toUpperCase() : "CORRECTIVO",
             comentarios: comentarios ? comentarios.trim() : "Sin observaciones",
             estatus: "EN_TALLER",
-            origen: "MIGRACION_EXCEL",
-            timestamp: Date.now()
+            origen: "MIGRACION_EXCEL"
         };
 
         guardarEnStorageEstadiaLocal(registro);
@@ -1072,7 +1074,7 @@
             } catch (e) {}
         }
 
-        alert(`✅ Unidad ${u} agregada al control de estadía con hora registrada.`);
+        alert(`✅ Unidad ${u} agregada al control de estadía con fecha y hora correctamente sincronizadas.`);
         await recargarDatosEstadia();
     }
 
@@ -1722,7 +1724,6 @@
         // BÚSQUEDA Y VINCULACIÓN DE ESTADÍA SI ES SALIDA
         let fechaEntradaOriginal = "---";
         let horaEntradaOriginal = "";
-        let timestampEntradaOriginal = null;
         let detalleEstadiaCalculado = "";
         let diasEstadiaCalculados = 0;
 
@@ -1734,7 +1735,6 @@
                         const d = docEstadia.data();
                         fechaEntradaOriginal = d.fechaEntrada || "---";
                         horaEntradaOriginal = d.horaEntrada || "";
-                        timestampEntradaOriginal = d.timestamp || null;
                     }
                 } catch (e) {}
             }
@@ -1745,13 +1745,12 @@
                     if (itemEst && itemEst.fechaEntrada) {
                         fechaEntradaOriginal = itemEst.fechaEntrada;
                         horaEntradaOriginal = itemEst.horaEntrada || "";
-                        timestampEntradaOriginal = itemEst.timestamp || null;
                     }
                 } catch (e) {}
             }
 
             if (fechaEntradaOriginal !== "---") {
-                const calc = calcularTiempoEstadiaDetallado(fechaEntradaOriginal, timestampEntradaOriginal, horaEntradaOriginal);
+                const calc = calcularTiempoEstadiaDetallado(fechaEntradaOriginal, null, horaEntradaOriginal);
                 detalleEstadiaCalculado = calc.texto;
                 diasEstadiaCalculados = calc.diasEnteros;
             }
