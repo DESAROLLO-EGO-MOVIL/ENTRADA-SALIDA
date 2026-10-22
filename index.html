@@ -115,10 +115,11 @@
             color: white;
             border: none;
             border-radius: 4px;
-            padding: 3px 8px;
-            font-size: 11px;
+            padding: 4px 6px;
+            font-size: 10px;
             cursor: pointer;
             font-weight: bold;
+            width: 100%;
         }
 
         /* Estilos del Semáforo de Estadía */
@@ -154,16 +155,53 @@
             width: 100%;
         }
 
+        /* REGLAS ESTRICTAS DE IMPRESIÓN LIMPIA */
         @media print {
-            body { background: white !important; padding: 0 !important; }
-            body * { visibility: hidden; }
-            .modal-fullscreen, .modal-fullscreen * { visibility: visible; }
-            .modal-fullscreen {
-                position: absolute; left: 0; top: 0; width: 100% !important; height: auto !important;
-                background: white !important; padding: 0 !important; display: block !important;
+            body { 
+                background: white !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
             }
-            .modal-contenedor-ancho { max-width: 100% !important; margin: 0 !important; padding: 15px !important; box-shadow: none !important; border: none !important; }
-            .no-print { display: none !important; }
+            body * { 
+                visibility: hidden !important; 
+            }
+            
+            .modal-fullscreen:not([style*="display: block"]) {
+                display: none !important;
+            }
+
+            .modal-fullscreen[style*="display: block"] {
+                display: block !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                visibility: visible !important;
+            }
+
+            .modal-fullscreen[style*="display: block"] * {
+                visibility: visible !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+            }
+
+            .modal-contenedor-ancho { 
+                max-width: 100% !important; 
+                margin: 0 !important; 
+                padding: 10px !important; 
+                box-shadow: none !important; 
+                border: none !important; 
+            }
+            
+            .no-print { 
+                display: none !important; 
+            }
         }
     </style>
 </head>
@@ -263,7 +301,6 @@
     <!-- FORMULARIO DE ENTRADA / SALIDA REGULAR -->
     <div id="sec-form" class="hidden">
         
-        <!-- VISOR CÁMARA JSQR -->
         <div id="contenedorLectorCamara" class="hidden">
             <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #0369a1;">📷 Apunta la cámara al QR del operador:</p>
             <div style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; background: black;">
@@ -526,7 +563,7 @@
                     <th style="padding: 6px; border: 1px solid #64748b; width: 95px; text-align: center;">Estadía</th>
                     <th style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Mtto.</th>
                     <th style="padding: 6px; border: 1px solid #64748b;">Reporte Mecánico (Kevin)</th>
-                    <th class="no-print" style="padding: 6px; border: 1px solid #64748b; width: 105px; text-align: center;">Acción</th>
+                    <th class="no-print" style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Acción</th>
                 </tr>
             </thead>
             <tbody id="cuerpoTablaEstadia"></tbody>
@@ -545,6 +582,38 @@
                 <div style="border-bottom: 1.5px solid #000; height: 35px; margin-bottom: 6px;"></div>
                 LOGÍSTICA Y PROYECCIÓN
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL DE EDICIÓN RÁPIDA DE UNIDAD ================= -->
+<div id="modalEdicionEstadia" class="modal-fullscreen" style="z-index: 100000;">
+    <div style="background: white; max-width: 420px; margin: 60px auto; padding: 22px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: Arial, sans-serif;">
+        <h3 style="margin: 0 0 12px 0; color: #0284c7; text-align: center; text-transform: uppercase; font-size: 16px;">
+            ✏️ Modificar Unidad en Patio: <span id="lblEditarUnidad" style="color: #0f172a;">--</span>
+        </h3>
+        
+        <input type="hidden" id="editUnidadHidden">
+
+        <label style="margin-top: 5px;">Tipo de Mantenimiento:</label>
+        <select id="editMantoSelect" style="border-color: #0284c7; font-weight: bold;">
+            <option value="CORRECTIVO">CORRECTIVO</option>
+            <option value="PREVENTIVO (M1)">PREVENTIVO (M1)</option>
+            <option value="PREVENTIVO (M2)">PREVENTIVO (M2)</option>
+            <option value="PREVENTIVO (M3)">PREVENTIVO (M3)</option>
+            <option value="PREVENTIVO (M4)">PREVENTIVO (M4)</option>
+            <option value="PREVENTIVO (M5)">PREVENTIVO (M5)</option>
+            <option value="PREVENTIVO (M6)">PREVENTIVO (M6)</option>
+            <option value="PREVENTIVO (M7)">PREVENTIVO (M7)</option>
+            <option value="PREVENTIVO Y CORRECTIVO">PREVENTIVO Y CORRECTIVO</option>
+        </select>
+
+        <label>Reporte Mecánico (Kevin) / Observaciones Nuevas:</label>
+        <textarea id="editComentariosText" style="height: 100px; border-color: #0284c7;" placeholder="Escribe aquí las fallas encontradas o trabajos extra a realizar..."></textarea>
+
+        <div style="display: flex; gap: 8px; margin-top: 15px;">
+            <button type="button" class="btn-principal" style="background: #0284c7; margin-top: 0; padding: 12px; font-size: 14px; flex: 1;" onclick="guardarCambiosEdicionEstadia()">💾 Guardar</button>
+            <button type="button" class="btn-principal" style="background: #64748b; margin-top: 0; padding: 12px; font-size: 14px; flex: 1;" onclick="cerrarModalEdicionEstadia()">Cancelar</button>
         </div>
     </div>
 </div>
@@ -626,7 +695,8 @@
 </div>
 
 <script>
-    const VERSION_APP = "20.0";
+    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 22.0) =====
+    const VERSION_APP = "22.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -1034,8 +1104,8 @@
                     ${item.comentarios || 'Sin observaciones mecánicas'}
                 </td>
                 <td class="no-print" style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">
-                    <button type="button" style="background: #0284c7; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 2px;" onclick="editarInformacionEstadia('${item.unidad}')">✏️ Editar</button>
-                    <button type="button" style="background: #e11d48; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 2px;" onclick="darSalidaDirectaDesdeEstadia('${item.unidad}', '${item.ruta}')">📤 Salida</button>
+                    <button type="button" style="background: #0284c7; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 3px; width: 100%;" onclick="abrirModalEdicionEstadia('${item.unidad}')">✏️ Editar</button>
+                    <button type="button" style="background: #e11d48; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 3px; width: 100%;" onclick="darSalidaDirectaDesdeEstadia('${item.unidad}', '${item.ruta}')">📤 Salida</button>
                     <button type="button" class="btn-quitar-fila" onclick="eliminarUnidadDeEstadia('${item.unidad}')">✕</button>
                 </td>
             `;
@@ -1043,51 +1113,60 @@
         });
     }
 
-    // ===== FUNCIÓN PARA EDITAR TIPO DE MTTO Y COMENTARIOS EN ESTADÍA =====
-    async function editarInformacionEstadia(unidad) {
+    // ===== MODAL VISUAL PARA MODIFICAR MTTO Y COMENTARIOS =====
+    function abrirModalEdicionEstadia(unidad) {
         const item = cacheUnidadesEnPatio.find(u => u.unidad === unidad);
         if (!item) return alert("Unidad no encontrada en patio.");
 
-        const mantoActual = item.manto || "CORRECTIVO";
-        const nuevoManto = prompt(`1. Tipo de mantenimiento para Unidad ${unidad}:\n(Ejemplos: CORRECTIVO, M1, M2, PREVENTIVO Y CORRECTIVO)`, mantoActual);
-        if (nuevoManto === null) return;
+        document.getElementById('lblEditarUnidad').textContent = unidad;
+        document.getElementById('editUnidadHidden').value = unidad;
+        document.getElementById('editMantoSelect').value = item.manto || "CORRECTIVO";
+        document.getElementById('editComentariosText').value = item.comentarios || "";
+        document.getElementById('modalEdicionEstadia').style.display = 'block';
+    }
 
-        const comentarioActual = item.comentarios || "";
-        const nuevoComentario = prompt(`2. Reporte mecánico / observaciones para Unidad ${unidad}:`, comentarioActual);
-        if (nuevoComentario === null) return;
+    function cerrarModalEdicionEstadia() {
+        document.getElementById('modalEdicionEstadia').style.display = 'none';
+    }
 
-        const mantoFinal = nuevoManto.trim().toUpperCase() || mantoActual;
-        const comentarioFinal = nuevoComentario.trim() || comentarioActual;
+    async function guardarCambiosEdicionEstadia() {
+        const unidad = document.getElementById('editUnidadHidden').value;
+        const nuevoManto = document.getElementById('editMantoSelect').value;
+        const nuevoComentario = document.getElementById('editComentariosText').value.trim();
 
-        // 1. Actualizar en Firebase
+        const item = cacheUnidadesEnPatio.find(u => u.unidad === unidad);
+        if (!item) return;
+
+        // 1. Guardar en Firestore
         if (db) {
             try {
                 await db.collection("estadia_patio").doc(unidad).update({
-                    manto: mantoFinal,
-                    comentarios: comentarioFinal
+                    manto: nuevoManto,
+                    comentarios: nuevoComentario || "Sin observaciones mecánicas"
                 });
             } catch (e) {
-                console.warn("Error actualizando estadía en Firebase:", e);
+                console.warn("Fallo guardado Firestore:", e);
             }
         }
 
-        // 2. Actualizar almacenamiento local
+        // 2. Guardar en Storage Local
         try {
             let local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
             const index = local.findIndex(i => i.unidad === unidad);
             if (index !== -1) {
-                local[index].manto = mantoFinal;
-                local[index].comentarios = comentarioFinal;
+                local[index].manto = nuevoManto;
+                local[index].comentarios = nuevoComentario || "Sin observaciones mecánicas";
                 localStorage.setItem("ego_estadia_local", JSON.stringify(local));
             }
         } catch (e) {}
 
         // 3. Actualizar memoria en pantalla
-        item.manto = mantoFinal;
-        item.comentarios = comentarioFinal;
+        item.manto = nuevoManto;
+        item.comentarios = nuevoComentario || "Sin observaciones mecánicas";
         renderizarTablaEstadia();
+        cerrarModalEdicionEstadia();
 
-        alert(`✅ Datos actualizados con éxito para la Unidad ${unidad}.`);
+        alert(`✅ Unidad ${unidad} actualizada con éxito.`);
     }
 
     async function abrirModalCargaManualEstadia() {
