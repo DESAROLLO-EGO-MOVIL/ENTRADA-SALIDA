@@ -231,6 +231,7 @@
             <option value="PREVENTIVO (M6)">PREVENTIVO (M6)</option>
             <option value="PREVENTIVO (M7)">PREVENTIVO (M7)</option>
             <option value="CORRECTIVO">CORRECTIVO</option>
+            <option value="PREVENTIVO Y CORRECTIVO">PREVENTIVO Y CORRECTIVO</option>
         </select>
 
         <label>6. Observaciones / Motivo de Cita:</label>
@@ -340,6 +341,7 @@
                 <option value="">-- Seleccionar Tipo --</option>
                 <option value="PREVENTIVO">PREVENTIVO</option>
                 <option value="CORRECTIVO">CORRECTIVO</option>
+                <option value="PREVENTIVO Y CORRECTIVO">PREVENTIVO Y CORRECTIVO</option>
             </select>
         </div>
 
@@ -392,6 +394,7 @@
                 <option value="M6">M6</option>
                 <option value="M7">M7</option>
                 <option value="CORRECTIVO">CORRECTIVO</option>
+                <option value="PREVENTIVO Y CORRECTIVO">PREVENTIVO Y CORRECTIVO</option>
             </select>
         </div>
 
@@ -523,7 +526,7 @@
                     <th style="padding: 6px; border: 1px solid #64748b; width: 95px; text-align: center;">Estadía</th>
                     <th style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Mtto.</th>
                     <th style="padding: 6px; border: 1px solid #64748b;">Reporte Mecánico (Kevin)</th>
-                    <th class="no-print" style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Acción</th>
+                    <th class="no-print" style="padding: 6px; border: 1px solid #64748b; width: 105px; text-align: center;">Acción</th>
                 </tr>
             </thead>
             <tbody id="cuerpoTablaEstadia"></tbody>
@@ -623,7 +626,7 @@
 </div>
 
 <script>
-    const VERSION_APP = "19.0";
+    const VERSION_APP = "20.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -709,19 +712,17 @@
         return "SIN RUTA ASIGNADA";
     }
 
-    // ===== CÁLCULO PRECISO BASADO EN CALENDARIO (SIN DISCREPANCIA POR TIMESTAMP) =====
+    // ===== CÁLCULO PRECISO BASADO EN CALENDARIO =====
     function calcularTiempoEstadiaDetallado(fechaIngresoStr, timestampIngreso, horaIngresoStr) {
         if (!fechaIngresoStr || fechaIngresoStr === "---") {
             return { texto: "---", minutosTotales: 0, diasEnteros: 0, tagClase: "estadia-verde" };
         }
 
-        // 1. Extraer año, mes y día soportando formatos como 2026-10-9 o 2026-10-09
         const partesF = fechaIngresoStr.split("-").map(Number);
         const y = partesF[0];
         const m = partesF[1];
         const d = partesF[2];
 
-        // 2. Extraer hora y minuto
         let hora = 8, min = 0;
         if (horaIngresoStr && horaIngresoStr.includes(":")) {
             const esPM = horaIngresoStr.toLowerCase().includes("p");
@@ -735,7 +736,6 @@
             if (esAM && hora === 12) hora = 0;
         }
 
-        // 3. Crear el punto exacto de partida en el calendario
         const fechaInicio = new Date(y, m - 1, d, hora, min, 0);
         const ahora = new Date();
         const difMs = ahora - fechaInicio;
@@ -758,14 +758,13 @@
             texto = `${minutos} min`;
         }
 
-        // Semáforo dinámico solicitado
         let tagClase = "estadia-verde";
         if (dias > 15) {
-            tagClase = "estadia-rojo"; // Más de 15 días
+            tagClase = "estadia-rojo"; 
         } else if (dias > 6) {
-            tagClase = "estadia-naranja"; // Más de 6 días hasta 15 días
+            tagClase = "estadia-naranja"; 
         } else {
-            tagClase = "estadia-verde"; // Primeras horas hasta 6 días
+            tagClase = "estadia-verde"; 
         }
 
         return { texto, minutosTotales: totalMinutos, diasEnteros: dias, tagClase };
@@ -1030,17 +1029,65 @@
                 <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">
                     <span class="tag-estadia ${item.tagClase}">${item.estadiaTexto}</span>
                 </td>
-                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold;">${item.manto || 'N/A'}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold; color: #0f172a;">${item.manto || 'N/A'}</td>
                 <td style="padding: 6px; border: 1px solid #94a3b8; font-size: 10.5px; color: #1e293b;">
                     ${item.comentarios || 'Sin observaciones mecánicas'}
                 </td>
                 <td class="no-print" style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">
-                    <button type="button" style="background: #e11d48; color: white; border: none; border-radius: 4px; padding: 4px 7px; font-size: 10.5px; font-weight: bold; cursor: pointer;" onclick="darSalidaDirectaDesdeEstadia('${item.unidad}', '${item.ruta}')">📤 Salida</button>
-                    <button type="button" class="btn-quitar-fila" style="margin-left: 2px;" onclick="eliminarUnidadDeEstadia('${item.unidad}')">✕</button>
+                    <button type="button" style="background: #0284c7; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 2px;" onclick="editarInformacionEstadia('${item.unidad}')">✏️ Editar</button>
+                    <button type="button" style="background: #e11d48; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 2px;" onclick="darSalidaDirectaDesdeEstadia('${item.unidad}', '${item.ruta}')">📤 Salida</button>
+                    <button type="button" class="btn-quitar-fila" onclick="eliminarUnidadDeEstadia('${item.unidad}')">✕</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    // ===== FUNCIÓN PARA EDITAR TIPO DE MTTO Y COMENTARIOS EN ESTADÍA =====
+    async function editarInformacionEstadia(unidad) {
+        const item = cacheUnidadesEnPatio.find(u => u.unidad === unidad);
+        if (!item) return alert("Unidad no encontrada en patio.");
+
+        const mantoActual = item.manto || "CORRECTIVO";
+        const nuevoManto = prompt(`1. Tipo de mantenimiento para Unidad ${unidad}:\n(Ejemplos: CORRECTIVO, M1, M2, PREVENTIVO Y CORRECTIVO)`, mantoActual);
+        if (nuevoManto === null) return;
+
+        const comentarioActual = item.comentarios || "";
+        const nuevoComentario = prompt(`2. Reporte mecánico / observaciones para Unidad ${unidad}:`, comentarioActual);
+        if (nuevoComentario === null) return;
+
+        const mantoFinal = nuevoManto.trim().toUpperCase() || mantoActual;
+        const comentarioFinal = nuevoComentario.trim() || comentarioActual;
+
+        // 1. Actualizar en Firebase
+        if (db) {
+            try {
+                await db.collection("estadia_patio").doc(unidad).update({
+                    manto: mantoFinal,
+                    comentarios: comentarioFinal
+                });
+            } catch (e) {
+                console.warn("Error actualizando estadía en Firebase:", e);
+            }
+        }
+
+        // 2. Actualizar almacenamiento local
+        try {
+            let local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
+            const index = local.findIndex(i => i.unidad === unidad);
+            if (index !== -1) {
+                local[index].manto = mantoFinal;
+                local[index].comentarios = comentarioFinal;
+                localStorage.setItem("ego_estadia_local", JSON.stringify(local));
+            }
+        } catch (e) {}
+
+        // 3. Actualizar memoria en pantalla
+        item.manto = mantoFinal;
+        item.comentarios = comentarioFinal;
+        renderizarTablaEstadia();
+
+        alert(`✅ Datos actualizados con éxito para la Unidad ${unidad}.`);
     }
 
     async function abrirModalCargaManualEstadia() {
@@ -1051,7 +1098,7 @@
         if (!fechaIngreso) return;
 
         const horaIngreso = prompt("3. Hora aproximada en que llegó (HH:MM o deja vacío):", "08:00 a. m.");
-        const manto = prompt("4. Tipo de Mantenimiento (M1, M2, M3, CORRECTIVO, etc.):", "CORRECTIVO");
+        const manto = prompt("4. Tipo de Mantenimiento (M1, M2, CORRECTIVO, PREVENTIVO Y CORRECTIVO, etc.):", "CORRECTIVO");
         const comentarios = prompt("5. Comentarios o reporte de la falla:", "Cargado previo de Excel");
         const ruta = obtenerRutaDeUnidad(u);
 
@@ -1236,7 +1283,7 @@
 
         const km = prompt(`Kilometraje de la unidad ${unidad}:`, "0");
         const fEntradaManual = prompt(`Fecha en la que entró al taller (YYYY-MM-DD):`, new Date().toLocaleDateString('en-CA'));
-        const tipoManto = prompt(`Tipo de mantenimiento (PREVENTIVO o CORRECTIVO):`, "PREVENTIVO");
+        const tipoManto = prompt(`Tipo de mantenimiento (PREVENTIVO, CORRECTIVO o PREVENTIVO Y CORRECTIVO):`, "PREVENTIVO");
         const comentarios = prompt(`Comentario o trabajo reportado:`, "Salida de unidad");
         const fechaActual = document.getElementById('filtroFechaCaratula').value || new Date().toLocaleDateString('en-CA');
         const ruta = obtenerRutaDeUnidad(unidad);
@@ -1418,6 +1465,7 @@
                     else if (data.manto.includes("M5")) mantoSelect.value = "M5";
                     else if (data.manto.includes("M6")) mantoSelect.value = "M6";
                     else if (data.manto.includes("M7")) mantoSelect.value = "M7";
+                    else if (data.manto.includes("CORRECTIVO") && data.manto.includes("PREVENTIVO")) mantoSelect.value = "PREVENTIVO Y CORRECTIVO";
                     else if (data.manto.includes("CORRECTIVO")) mantoSelect.value = "CORRECTIVO";
                 }
 
@@ -1707,7 +1755,7 @@
         let tipoSalidaManto = "N/A";
         if (MODO_SELECCIONADO === "SALIDA") {
             tipoSalidaManto = document.getElementById('mantoSalida').value;
-            if (!tipoSalidaManto) return alert("⚠️ Selecciona si el camión sale de mantenimiento PREVENTIVO o CORRECTIVO.");
+            if (!tipoSalidaManto) return alert("⚠️ Selecciona si el camión sale de mantenimiento PREVENTIVO, CORRECTIVO o AMBOS.");
         }
 
         if (!urlsFotosCache && !fLic) return alert("⚠️ La foto de la Licencia es obligatoria.");
