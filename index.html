@@ -155,22 +155,22 @@
             width: 100%;
         }
 
-        /* REGLAS ESTRICTAS DE IMPRESIÓN LIMPIA */
+        /* ================= REGLAS DE IMPRESIÓN LIMPIAS ================= */
         @media print {
             body { 
                 background: white !important; 
                 margin: 0 !important; 
                 padding: 0 !important; 
             }
+            
             body * { 
                 visibility: hidden !important; 
             }
-            
-            .modal-fullscreen:not([style*="display: block"]) {
+            .modal-fullscreen {
                 display: none !important;
             }
 
-            .modal-fullscreen[style*="display: block"] {
+            .modal-fullscreen.imprimiendo-este-modal {
                 display: block !important;
                 position: absolute !important;
                 left: 0 !important;
@@ -183,7 +183,7 @@
                 visibility: visible !important;
             }
 
-            .modal-fullscreen[style*="display: block"] * {
+            .modal-fullscreen.imprimiendo-este-modal * {
                 visibility: visible !important;
             }
 
@@ -194,7 +194,7 @@
             .modal-contenedor-ancho { 
                 max-width: 100% !important; 
                 margin: 0 !important; 
-                padding: 10px !important; 
+                padding: 5px !important; 
                 box-shadow: none !important; 
                 border: none !important; 
             }
@@ -462,7 +462,7 @@
             
             <div style="display: flex; gap: 6px;">
                 <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #0284c7;" onclick="exportarEntradasExcelCSV()">📥 Bajar Excel (.CSV)</button>
-                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #198754;" onclick="window.print()">🖨 Imprimir</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #198754;" onclick="imprimirModalEspecifico('modalRegistroEntradas')">🖨 Imprimir</button>
                 <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #666;" onclick="cerrarModalRegistroEntradas()">Cerrar</button>
             </div>
         </div>
@@ -522,7 +522,7 @@
             <div style="display: flex; flex-wrap: wrap; gap: 6px;">
                 <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #0d9488;" onclick="abrirModalCargaManualEstadia()">➕ Cargar Activo de Excel</button>
                 <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #0284c7;" onclick="exportarEstadiaExcelCSV()">📥 Bajar Excel (.CSV)</button>
-                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #198754;" onclick="window.print()">🖨 Imprimir</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #198754;" onclick="imprimirModalEspecifico('modalEstadiaPatio')">🖨 Imprimir</button>
                 <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #666;" onclick="cerrarModalEstadia()">Cerrar</button>
             </div>
         </div>
@@ -628,7 +628,7 @@
             </div>
             <div style="display: flex; gap: 6px;">
                 <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 13px; background: #0d6efd;" onclick="agregarUnidadManualModal()">➕ Añadir Unidad</button>
-                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 13px; background: #198754;" onclick="window.print()">🖨 Imprimir</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 13px; background: #198754;" onclick="imprimirModalEspecifico('modalCaratulaEntrega')">🖨 Imprimir</button>
                 <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 13px; background: #666;" onclick="cerrarCaratulaModal()">Cerrar</button>
             </div>
         </div>
@@ -695,8 +695,8 @@
 </div>
 
 <script>
-    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 22.0) =====
-    const VERSION_APP = "22.0";
+    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 24.0) =====
+    const VERSION_APP = "24.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -739,6 +739,19 @@
     let cacheUnidadesEnPatio = [];
     let cacheEntradasConsulta = [];
     let cacheSalidasConsulta = [];
+
+    // ===== CONTROL DE IMPRESIÓN LIMPIA DE MODALES =====
+    function imprimirModalEspecifico(idModal) {
+        document.querySelectorAll('.modal-fullscreen').forEach(m => m.classList.remove('imprimiendo-este-modal'));
+        const modalTarget = document.getElementById(idModal);
+        if (modalTarget) {
+            modalTarget.classList.add('imprimiendo-este-modal');
+        }
+        window.print();
+        setTimeout(() => {
+            if (modalTarget) modalTarget.classList.remove('imprimiendo-este-modal');
+        }, 1000);
+    }
 
     const unidadesData = { 
         "AEROPUERTO Y GRIEGA": ["6070", "6074", "6078", "6083", "6085", "6086", "6087", "6089", "6095", "6097"],
@@ -840,29 +853,49 @@
         return { texto, minutosTotales: totalMinutos, diasEnteros: dias, tagClase };
     }
 
+    // ===== CONSULTA RÁPIDA CORREGIDA: REPORTA SI ESTÁ EN PATIO O SI YA SALIÓ =====
     async function consultarEstadoUnidadRapido() {
         const unidadBuscada = prompt("🔍 Ingresa el número de unidad a verificar (ej. 3206 o 7000):");
         if (!unidadBuscada) return;
         const uLimpia = unidadBuscada.trim();
 
         let encontrado = null;
+        let revisadoEnFirestore = false;
 
+        // 1. Consultar directamente en Firestore
         if (db) {
             try {
                 const doc = await db.collection("estadia_patio").doc(uLimpia).get();
-                if (doc.exists && doc.data().estatus === "EN_TALLER") {
-                    encontrado = doc.data();
+                revisadoEnFirestore = true;
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.estatus === "EN_TALLER") {
+                        encontrado = data;
+                    } else if (data.estatus === "LIBERADO") {
+                        const fechaSal = data.fechaSalida || "Reciente";
+                        const horaSal = data.horaSalida ? `(${data.horaSalida})` : "";
+                        alert(`⚪ LA UNIDAD ${uLimpia} YA SALIÓ DE PATIO\n\n` +
+                              `• Estatus: LIBERADO\n` +
+                              `• Fecha Salida: ${fechaSal} ${horaSal}\n` +
+                              `• Mantenimiento: ${data.tipoSalidaManto || data.manto || 'N/A'}\n` +
+                              `• Comentarios de salida: ${data.comentariosSalida || 'Sin observaciones'}`);
+                        return;
+                    }
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn("Fallo lectura en Firestore, usando respaldo local:", e);
+            }
         }
 
-        if (!encontrado) {
+        // 2. Si no hay conexión con Firestore, recurrir al respaldo local
+        if (!revisadoEnFirestore && !encontrado) {
             try {
                 const local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
                 encontrado = local.find(item => item.unidad === uLimpia && item.estatus === "EN_TALLER");
             } catch (e) {}
         }
 
+        // 3. Resultado final
         if (encontrado) {
             const calc = calcularTiempoEstadiaDetallado(encontrado.fechaEntrada, null, encontrado.horaEntrada);
             alert(`🟢 UNIDAD EN PATIO (ACTIVA)\n\n` +
@@ -1137,7 +1170,6 @@
         const item = cacheUnidadesEnPatio.find(u => u.unidad === unidad);
         if (!item) return;
 
-        // 1. Guardar en Firestore
         if (db) {
             try {
                 await db.collection("estadia_patio").doc(unidad).update({
@@ -1149,7 +1181,6 @@
             }
         }
 
-        // 2. Guardar en Storage Local
         try {
             let local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
             const index = local.findIndex(i => i.unidad === unidad);
@@ -1160,7 +1191,6 @@
             }
         } catch (e) {}
 
-        // 3. Actualizar memoria en pantalla
         item.manto = nuevoManto;
         item.comentarios = nuevoComentario || "Sin observaciones mecánicas";
         renderizarTablaEstadia();
@@ -1848,7 +1878,6 @@
         const fechaMovimiento = document.getElementById('fechaMovimientoPersonalizada').value || new Date().toLocaleDateString('en-CA');
         const horaActualTexto = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 
-        // BÚSQUEDA Y VINCULACIÓN DE ESTADÍA SI ES SALIDA
         let fechaEntradaOriginal = "---";
         let horaEntradaOriginal = "";
         let detalleEstadiaCalculado = "";
