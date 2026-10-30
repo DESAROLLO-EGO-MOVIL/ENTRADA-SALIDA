@@ -696,8 +696,8 @@
 </div>
 
 <script>
-    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 26.0) =====
-    const VERSION_APP = "26.0";
+    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 27.0) =====
+    const VERSION_APP = "27.0";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -761,10 +761,11 @@
         window.open(urlServicio, '_blank');
     }
 
-    // ===== FUNCIÓN PARA ABRIR FORMATO DE ENTREGA (SALIDA) DIRECTAMENTE =====
-    function abrirHojaSalidaGenerada(u, r, km, fecha, manto, comentarios) {
+    // ===== FUNCIÓN PARA ABRIR FORMATO DE ENTREGA (SALIDA) DIRECTAMENTE CON FOTO LICENCIA =====
+    function abrirHojaSalidaGenerada(u, r, km, fecha, manto, comentarios, fotoLicencia) {
         const rutaLimpia = r || obtenerRutaDeUnidad(u);
-        const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${encodeURIComponent(u)}&ruta=${encodeURIComponent(rutaLimpia)}&km=${encodeURIComponent(km || '0')}&fecha=${encodeURIComponent(fecha || '')}&comentarios=${encodeURIComponent(comentarios || '')}&movimiento=SALIDA&manto=${encodeURIComponent(manto || 'PREVENTIVO')}`;
+        const fLic = fotoLicencia || '';
+        const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${encodeURIComponent(u)}&ruta=${encodeURIComponent(rutaLimpia)}&km=${encodeURIComponent(km || '0')}&fecha=${encodeURIComponent(fecha || '')}&comentarios=${encodeURIComponent(comentarios || '')}&movimiento=SALIDA&manto=${encodeURIComponent(manto || 'PREVENTIVO')}&f_licencia=${encodeURIComponent(fLic)}`;
         window.open(urlServicio, '_blank');
     }
 
@@ -1419,8 +1420,9 @@
             const fSafe = (item.fecha || '').replace(/'/g, "\\'");
             const mSafe = (tipoMantoTexto || '').replace(/'/g, "\\'");
             const cSafe = (comentarioTexto || '').replace(/'/g, "\\'").replace(/\n/g, ' ');
+            const flSafe = (item.fotoLicencia || '').replace(/'/g, "\\'");
 
-            const btnVerHojaSalida = `<button type="button" style="background:#e91e63; color:white; border:none; border-radius:4px; padding:4px 6px; font-size:10px; font-weight:bold; cursor:pointer; width:100%;" onclick="abrirHojaSalidaGenerada('${uSafe}', '${rSafe}', '${kmSafe}', '${fSafe}', '${mSafe}', '${cSafe}')">📋 Hoja Salida</button>`;
+            const btnVerHojaSalida = `<button type="button" style="background:#e91e63; color:white; border:none; border-radius:4px; padding:4px 6px; font-size:10px; font-weight:bold; cursor:pointer; width:100%;" onclick="abrirHojaSalidaGenerada('${uSafe}', '${rSafe}', '${kmSafe}', '${fSafe}', '${mSafe}', '${cSafe}', '${flSafe}')">📋 Hoja Salida</button>`;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -1465,6 +1467,7 @@
             tiempoEstadiaDetalle: calc.texto,
             tipoManto: tipoManto ? tipoManto.trim().toUpperCase() : "PREVENTIVO",
             comentarios: comentarios ? comentarios.trim() : "Sin observaciones",
+            fotoLicencia: "",
             fecha: fechaActual
         };
 
@@ -2019,6 +2022,7 @@
                     obsEsteticas: obsEst,
                     fotoOdo: urlsFotosCache.urlOdo,
                     fotoFrontal: urlsFotosCache.urlFro,
+                    fotoLicencia: urlsFotosCache.urlLic,
                     estatus: "EN_TALLER",
                     timestamp: Date.now()
                 };
@@ -2054,7 +2058,8 @@
                             diasEstadia: diasEstadiaCalculados,
                             tiempoEstadiaDetalle: detalleEstadiaCalculado,
                             tipoSalidaManto: tipoSalidaManto,
-                            comentariosSalida: c
+                            comentariosSalida: c,
+                            fotoLicenciaSalida: urlsFotosCache.urlLic
                         });
                     } catch (e) {}
                 }
@@ -2131,12 +2136,14 @@
                     horaSalida: horaActualTexto,
                     fechaEntrada: fechaEntradaOriginal,
                     diasEstadia: diasEstadiaCalculados,
-                    tiempoEstadiaDetalle: detalleEstadiaCalculado
+                    tiempoEstadiaDetalle: detalleEstadiaCalculado,
+                    fotoLicencia: urlsFotosCache.urlLic
                 });
             }
 
             actualizarBarra(100);
             status.innerText = "¡Datos guardados con éxito!";
+            const urlLicenciaFinal = urlsFotosCache.urlLic;
             urlsFotosCache = null;
 
             if (MODO_SELECCIONADO === "ENTRADA") {
@@ -2171,7 +2178,7 @@
                 btnHojaSalida.style.backgroundColor = "#e91e63";
                 btnHojaSalida.innerText = "📋 GENERAR FORMATO ENTREGA";
                 btnHojaSalida.onclick = () => {
-                    abrirHojaSalidaGenerada(u, r, k, fechaMovimiento, tipoSalidaManto, c);
+                    abrirHojaSalidaGenerada(u, r, k, fechaMovimiento, tipoSalidaManto, c, urlLicenciaFinal);
                 };
                 status.parentNode.insertBefore(btnHojaSalida, status.nextSibling);
 
