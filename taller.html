@@ -24,8 +24,11 @@ h1{font-size:21px;color:#22c55e;margin:0 0 18px}
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:8px
 }
+.mantenimiento{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px
+}
 label{display:block;font-size:11px;font-weight:bold}
-input{
+input,select{
   width:100%;margin:6px 0 12px;padding:10px 5px;
   border:1px solid #38bdf8;border-radius:6px;
   background:#0f172a;color:white;font:inherit
@@ -33,6 +36,10 @@ input{
 h2{
   font-size:13px;background:#0f172a;
   padding:9px;color:#38bdf8
+}
+.resumen{
+  padding:12px;background:#0f172a;border-radius:8px;
+  font-size:11px;line-height:1.5;white-space:pre-line
 }
 .fotos{
   display:grid;
@@ -97,6 +104,36 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
       </label>
     </div>
 
+    <h2>Tipo y número de mantenimiento</h2>
+
+    <div class="mantenimiento">
+      <label>Tipo de mantenimiento
+        <select id="tipoMantenimiento" required>
+          <option value="">Selecciona...</option>
+          <option value="M1">M1</option>
+          <option value="M2">M2</option>
+          <option value="M3">M3</option>
+          <option value="M4">M4</option>
+          <option value="M5">M5</option>
+          <option value="M6" disabled>M6 · Pendiente de referencia</option>
+          <option value="M7">M7</option>
+        </select>
+      </label>
+
+      <label>N.º de mantenimiento preventivo
+        <input id="numeroMantenimiento" type="number"
+          min="1" step="1" placeholder="Ej. 15" required>
+      </label>
+    </div>
+
+    <div id="resumenManto" class="resumen" aria-live="polite">
+      Selecciona el tipo para consultar sus trabajos y casillas.
+    </div>
+
+    <p class="nota">
+      M6 está pendiente de recibir su descripción y casillas.
+    </p>
+
     <h2>1. Tablero y frontal de unidad</h2>
     <div id="identificacion" class="fotos doble"></div>
 
@@ -112,6 +149,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
     <p class="nota">
       Puedes subir una o varias fotos. Las posiciones que no
       selecciones conservarán sus enlaces anteriores.
+      El tipo y el número se guardarán junto con las evidencias.
     </p>
 
     <button id="btnSubmit" type="submit">
@@ -127,7 +165,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
 <script>
 "use strict";
 
-// CONFIGURACIÓN FIREBASE
+// FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
   authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -137,13 +175,117 @@ const firebaseConfig = {
   appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
 };
 
-// CLOUDINARY: CORREGIDO SEGÚN TU PÁGINA PRINCIPAL
+// CLOUDINARY CORREGIDO
 const CLOUD_NAME = "dygb7qjgt";
 const UPLOAD_PRESET = "ego_fotos";
 
 const $ = id => document.getElementById(id);
 let db = null;
 let ocupado = false;
+
+// TRABAJOS COMPARTIDOS
+const BASE = [
+  "CAMBIO DE 24 LITROS DE ACEITE MOTOR",
+  "CAMBIO DE 2 FILTROS DE ACEITE MOTOR",
+  "CAMBIO DE 1 KIT FILTRO DE AIRE",
+  "ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA"
+];
+
+const REVISION_BALATAS =
+  "REVISION DE BALATAS DELANTERAS DE DISCO Y TRASERAS DE TAMBOR";
+
+const CAMBIO_BALATAS =
+  "CAMBIO DE BALATAS DELANTERAS DE DISCO Y TRASERAS DE TAMBOR";
+
+const CLIMA =
+  "REVISION FUNCIONAMIENTO EN SISTEMA DE ENFRIAMIENTO DE CLIMA";
+
+const FILTROS_TRANSMISION =
+  "CAMBIO DE 2 FILTROS DE ACEITE DE TRANSMISION CORRESPONDIENTES AL PERIODO";
+
+const FILTROS_GAS = [
+  "CAMBIO DE 1 FILTRO DE GAS DE ALTA",
+  "CAMBIO DE 1 FILTRO DE GAS DE BAJA"
+];
+
+function ficha(trabajos, transmision = false, diferencial = false) {
+  return {
+    trabajos,
+    sistemas: {
+      motor: true,
+      transmision,
+      diferencial
+    }
+  };
+}
+
+// DESCRIPCIONES Y CASILLAS SEGÚN LAS REFERENCIAS
+const MANTENIMIENTOS = {
+  M1: ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    CLIMA
+  ]),
+
+  M2: ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    CLIMA,
+    "REVISION Y CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "CAMBIO DE 1 FILTRO SECADOR",
+    "REVISION NIVEL DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    ...FILTROS_GAS
+  ], true),
+
+  M3: ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    "REVISION Y AJUSTE EN TERMINALES DE DIRECCION",
+    "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
+    "REVISION DE BOBINAS Y ARNES DE BOBINAS"
+  ], false, true),
+
+  M4: ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    "REVISION EN SISTEMA DE ENFRIAMIENTO",
+    "CAMBIO DE 35 LITROS DE ANTICONGELANTE"
+  ]),
+
+  M5: ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    CLIMA,
+    "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    "CAMBIO DE SECADOR COMPLETO",
+    "REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO",
+    "CAMBIO DE CABLES Y BUJIAS",
+    "REVISION DE PERIFERICOS",
+    ...FILTROS_GAS
+  ], true),
+
+  // Falta la referencia de M6; no se asignan trabajos por suposición.
+  M6: null,
+
+  M7: ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    CLIMA,
+    "CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "CAMBIO DE SECADOR COMPLETO",
+    ...FILTROS_GAS,
+    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    "REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO",
+    "REVISION DE PERIFERICOS",
+    "CAMBIO DE CABLES Y BUJIAS"
+  ], true, true)
+};
 
 const posiciones = [
   ["identificacion", "odo", "Odómetro"],
@@ -161,6 +303,27 @@ function mensaje(texto, error = false) {
   $("estado").textContent = texto;
   $("estado").style.color = error ? "#fca5a5" : "#cbd5e1";
 }
+
+// VISTA PREVIA DEL MANTENIMIENTO
+$("tipoMantenimiento").addEventListener("change", () => {
+  const tipo = $("tipoMantenimiento").value;
+  const mantenimiento = MANTENIMIENTOS[tipo];
+
+  if (!mantenimiento) {
+    $("resumenManto").textContent =
+      "Selecciona el tipo para consultar sus trabajos y casillas.";
+    return;
+  }
+
+  const sistemas = mantenimiento.sistemas;
+
+  $("resumenManto").textContent =
+    `${tipo}\n` +
+    `MOTOR (${sistemas.motor ? "✓" : " "}) · ` +
+    `TRANSMISIÓN (${sistemas.transmision ? "✓" : " "}) · ` +
+    `DIFERENCIAL (${sistemas.diferencial ? "✓" : " "})\n\n` +
+    mantenimiento.trabajos.join("\n");
+});
 
 // INICIAR FIREBASE
 try {
@@ -224,7 +387,6 @@ for (const [grupo, clave, titulo] of posiciones) {
       return;
     }
 
-    // Una imagen independiente evita mezclar eventos de selecciones rápidas.
     const vista = new Image();
     const url = URL.createObjectURL(archivo);
 
@@ -235,7 +397,6 @@ for (const [grupo, clave, titulo] of posiciones) {
         texto.hidden = true;
         tarjeta.style.borderColor = "#22c55e";
 
-        // Mantener la URL mientras la miniatura esté en pantalla.
         const anterior = tarjeta.dataset.preview;
         tarjeta.dataset.preview = url;
         if (anterior) URL.revokeObjectURL(anterior);
@@ -251,6 +412,7 @@ for (const [grupo, clave, titulo] of posiciones) {
       input.value = "";
       imagen.hidden = true;
       texto.hidden = false;
+
       mensaje(
         "No se pudo abrir " + titulo +
         ". Intenta con una imagen JPG o PNG.",
@@ -374,7 +536,7 @@ async function uploadCloudinary(blob) {
   }
 }
 
-// SUBIR FOTOS Y GUARDAR ENLACES
+// SUBIR Y GUARDAR EVIDENCIAS CON TIPO Y NÚMERO
 $("formulario").addEventListener("submit", async evento => {
   evento.preventDefault();
   if (ocupado) return;
@@ -391,6 +553,11 @@ $("formulario").addEventListener("submit", async evento => {
   const kilometrajeTexto = $("kmNum").value.trim();
   const km = Number(kilometrajeTexto);
   const fecha = $("fechaManual").value;
+
+  const tipoMantenimiento = $("tipoMantenimiento").value;
+  const numeroTexto = $("numeroMantenimiento").value.trim();
+  const numeroMantenimiento = Number(numeroTexto);
+  const mantenimiento = MANTENIMIENTOS[tipoMantenimiento];
 
   if (!/^\d+$/.test(unidad)) {
     mensaje("Ingresa un número de unidad válido.", true);
@@ -411,6 +578,26 @@ $("formulario").addEventListener("submit", async evento => {
     return;
   }
 
+  if (!mantenimiento) {
+    mensaje(
+      "Selecciona un tipo de mantenimiento disponible. M6 está pendiente.",
+      true
+    );
+    return;
+  }
+
+  if (
+    numeroTexto === "" ||
+    !Number.isSafeInteger(numeroMantenimiento) ||
+    numeroMantenimiento < 1
+  ) {
+    mensaje(
+      "Ingresa un número de mantenimiento entero mayor que cero.",
+      true
+    );
+    return;
+  }
+
   const seleccionadas = posiciones.flatMap(([, clave, titulo]) => {
     const archivo = $("foto-" + clave).files[0];
     return archivo ? [{ clave, titulo, archivo }] : [];
@@ -424,7 +611,7 @@ $("formulario").addEventListener("submit", async evento => {
   ocupado = true;
 
   const controles = [
-    ...$("formulario").querySelectorAll("input,button")
+    ...$("formulario").querySelectorAll("input,select,button")
   ];
 
   controles.forEach(control => control.disabled = true);
@@ -462,17 +649,22 @@ $("formulario").addEventListener("submit", async evento => {
 
     etapa = "Firestore";
     fotoActual = "";
-    mensaje("Guardando enlaces en Firestore...");
+    mensaje("Guardando mantenimiento y fotografías en Firestore...");
     $("progreso").value = 95;
 
-    // Solo se envían las fotos seleccionadas.
-    // merge:true conserva los demás campos y fotos anteriores.
     await db.collection("evidencias_mantenimiento")
       .doc("EV_" + unidad)
       .set({
         unidad,
         km,
         fecha,
+
+        // Datos que recupera formato-manto.html.
+        tipoMantenimiento,
+        numeroMantenimiento,
+        trabajosMantenimiento: [...mantenimiento.trabajos],
+        sistemasMantenimiento: { ...mantenimiento.sistemas },
+
         timestamp: Date.now(),
         fotos
       }, { merge: true });
@@ -482,6 +674,8 @@ $("formulario").addEventListener("submit", async evento => {
     mensaje(
       `✅ Guardado confirmado.\n` +
       `Unidad: ${unidad}\n` +
+      `Tipo: ${tipoMantenimiento}\n` +
+      `Número de mantenimiento: ${numeroMantenimiento}\n` +
       `Fotografías guardadas: ${seleccionadas.length}`
     );
 
@@ -489,7 +683,6 @@ $("formulario").addEventListener("submit", async evento => {
       "formato-manto.html?unidad=" + encodeURIComponent(unidad);
     $("verFormato").hidden = false;
 
-    // Evitar subir nuevamente las mismas selecciones por accidente.
     seleccionadas.forEach(item => {
       $("foto-" + item.clave).value = "";
     });
