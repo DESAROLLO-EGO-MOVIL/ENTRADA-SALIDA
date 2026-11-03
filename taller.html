@@ -10,86 +10,124 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:16px;background:#0f172a;color:#f8fafc;
-font:14px Arial,sans-serif}
-.app{max-width:480px;margin:auto;padding:18px;background:#1e293b;
-border-radius:12px}
+body{
+  margin:0;padding:16px;background:#0f172a;color:#f8fafc;
+  font:14px Arial,sans-serif
+}
+.app{
+  max-width:480px;margin:auto;padding:18px;
+  background:#1e293b;border-radius:12px
+}
 h1{font-size:21px;color:#22c55e;margin:0 0 18px}
-.datos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.datos{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px
+}
 label{display:block;font-size:11px;font-weight:bold}
-input{width:100%;margin:6px 0 12px;padding:10px 5px;border:1px solid #38bdf8;
-border-radius:6px;background:#0f172a;color:white;font:inherit}
-h2{font-size:13px;background:#0f172a;padding:9px;color:#38bdf8}
-.fotos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+input{
+  width:100%;margin:6px 0 12px;padding:10px 5px;
+  border:1px solid #38bdf8;border-radius:6px;
+  background:#0f172a;color:white;font:inherit
+}
+h2{
+  font-size:13px;background:#0f172a;
+  padding:9px;color:#38bdf8
+}
+.fotos{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px
+}
 .doble{grid-template-columns:repeat(2,minmax(0,1fr))}
 .simple{grid-template-columns:1fr}
-.foto{position:relative;height:100px;overflow:hidden;border:2px dashed #64748b;
-border-radius:8px;background:#0f172a;color:#cbd5e1;cursor:pointer;
-display:flex;align-items:center;justify-content:center;text-align:center}
-.foto input{position:absolute;inset:0;width:100%;height:100%;margin:0;
-opacity:0;cursor:pointer}
-.foto img{position:absolute;width:100%;height:100%;object-fit:cover}
+.foto{
+  position:relative;height:100px;overflow:hidden;
+  border:2px dashed #64748b;border-radius:8px;
+  background:#0f172a;color:#cbd5e1;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center
+}
+.foto input{
+  position:absolute;inset:0;width:100%;height:100%;
+  margin:0;opacity:0;cursor:pointer
+}
+.foto img{
+  position:absolute;width:100%;height:100%;
+  object-fit:cover
+}
 .foto span{padding:6px;font-size:12px}
 .foto:focus-within{outline:2px solid #38bdf8}
-button{width:100%;margin-top:18px;padding:14px;border:0;border-radius:8px;
-background:#16a34a;color:white;font-weight:bold;font-size:15px;cursor:pointer}
+button{
+  width:100%;margin-top:18px;padding:14px;border:0;
+  border-radius:8px;background:#16a34a;color:white;
+  font-weight:bold;font-size:15px;cursor:pointer
+}
 button:disabled{background:#64748b;cursor:wait}
 progress{width:100%;margin-top:16px;accent-color:#22c55e}
-#estado{white-space:pre-wrap;font-size:13px;line-height:1.5}
-.nota{font-size:12px;color:#cbd5e1}
+#estado{
+  white-space:pre-wrap;font-size:13px;
+  line-height:1.5;overflow-wrap:anywhere
+}
+.nota{font-size:12px;color:#cbd5e1;line-height:1.5}
+#verFormato{display:block;margin-top:12px;color:#7dd3fc}
 [hidden]{display:none!important}
 </style>
 </head>
 
 <body>
 <main class="app">
-<h1>e·go · Evidencias de taller</h1>
+  <h1>e·go · Evidencias de taller</h1>
 
-<form id="formulario">
-  <div class="datos">
-    <label>Unidad
-      <input id="unidadNum" type="text" inputmode="numeric"
-             pattern="[0-9]+" placeholder="3134" required>
-    </label>
-    <label>Kilometraje
-      <input id="kmNum" type="number" min="0" step="1"
-             placeholder="271079" required>
-    </label>
-    <label>Fecha
-      <input id="fechaManual" type="date" required>
-    </label>
-  </div>
+  <form id="formulario">
+    <div class="datos">
+      <label>Unidad
+        <input id="unidadNum" type="text"
+          inputmode="numeric" pattern="[0-9]+"
+          placeholder="3134" required>
+      </label>
 
-  <h2>1. Tablero y frontal de unidad</h2>
-  <div id="identificacion" class="fotos doble"></div>
+      <label>Kilometraje
+        <input id="kmNum" type="number"
+          min="0" step="1" placeholder="271079" required>
+      </label>
 
-  <h2>2. Refacciones nuevas</h2>
-  <div id="refacciones" class="fotos simple"></div>
+      <label>Fecha
+        <input id="fechaManual" type="date" required>
+      </label>
+    </div>
 
-  <h2>3. Antes del mantenimiento</h2>
-  <div id="antes" class="fotos"></div>
+    <h2>1. Tablero y frontal de unidad</h2>
+    <div id="identificacion" class="fotos doble"></div>
 
-  <h2>4. Después del mantenimiento</h2>
-  <div id="despues" class="fotos"></div>
+    <h2>2. Refacciones nuevas</h2>
+    <div id="refacciones" class="fotos simple"></div>
 
-  <p class="nota">
-    Puedes subir una o varias fotos. Las posiciones que no selecciones
-    conservarán sus enlaces anteriores.
-  </p>
+    <h2>3. Antes del mantenimiento</h2>
+    <div id="antes" class="fotos"></div>
 
-  <button id="btnSubmit" type="submit">SUBIR EVIDENCIAS</button>
-</form>
+    <h2>4. Después del mantenimiento</h2>
+    <div id="despues" class="fotos"></div>
 
-<progress id="progreso" max="100" value="0" hidden></progress>
-<p id="estado" role="status" aria-live="polite"></p>
-<a id="verFormato" hidden style="color:#7dd3fc">
-  Abrir formato de mantenimiento
-</a>
+    <p class="nota">
+      Puedes subir una o varias fotos. Las posiciones que no
+      selecciones conservarán sus enlaces anteriores.
+    </p>
+
+    <button id="btnSubmit" type="submit">
+      SUBIR EVIDENCIAS
+    </button>
+  </form>
+
+  <progress id="progreso" max="100" value="0" hidden></progress>
+  <p id="estado" role="status" aria-live="polite"></p>
+  <a id="verFormato" hidden>Abrir formato de mantenimiento</a>
 </main>
 
 <script>
 "use strict";
 
+// CONFIGURACIÓN FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
   authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -99,9 +137,13 @@ const firebaseConfig = {
   appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
 };
 
-const CLOUD_NAME = "dyqb7qjqt";
+// CLOUDINARY: CORREGIDO SEGÚN TU PÁGINA PRINCIPAL
+const CLOUD_NAME = "dygb7qjgt";
 const UPLOAD_PRESET = "ego_fotos";
+
 const $ = id => document.getElementById(id);
+let db = null;
+let ocupado = false;
 
 const posiciones = [
   ["identificacion", "odo", "Odómetro"],
@@ -115,35 +157,38 @@ const posiciones = [
   ["despues", "despues3", "Después 3"]
 ];
 
-let db = null;
-let ocupado = false;
-
 function mensaje(texto, error = false) {
   $("estado").textContent = texto;
   $("estado").style.color = error ? "#fca5a5" : "#cbd5e1";
 }
 
+// INICIAR FIREBASE
 try {
-  if (!window.firebase) throw new Error("No se descargó el SDK de Firebase.");
+  if (!window.firebase) {
+    throw new Error("No se descargó el SDK de Firebase.");
+  }
+
   const app = firebase.apps.length
     ? firebase.app()
     : firebase.initializeApp(firebaseConfig);
 
-  db = app.firestore();
-
   if (app.options.projectId !== firebaseConfig.projectId) {
-    throw new Error("La aplicación Firebase pertenece a otro proyecto.");
+    throw new Error("Firebase está conectado a otro proyecto.");
   }
+
+  db = app.firestore();
 } catch (error) {
-  db = null;
-  mensaje("No se pudo iniciar Firebase: " + error.message, true);
+  mensaje("Error al iniciar Firebase: " + error.message, true);
 }
 
+// FECHA LOCAL
 const hoy = new Date();
 $("fechaManual").value =
-  `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,"0")}-` +
-  String(hoy.getDate()).padStart(2,"0");
+  `${hoy.getFullYear()}-` +
+  `${String(hoy.getMonth() + 1).padStart(2, "0")}-` +
+  String(hoy.getDate()).padStart(2, "0");
 
+// CREAR SELECTORES DE FOTOGRAFÍAS
 for (const [grupo, clave, titulo] of posiciones) {
   const tarjeta = document.createElement("label");
   tarjeta.className = "foto";
@@ -159,13 +204,16 @@ for (const [grupo, clave, titulo] of posiciones) {
   input.type = "file";
   input.accept = "image/*";
   input.setAttribute("capture", "environment");
-  input.id = "foto-" + clave;
   input.setAttribute("aria-label", titulo);
+  input.id = "foto-" + clave;
+
+  let vistaActual = 0;
 
   input.addEventListener("change", () => {
     const archivo = input.files[0];
     if (!archivo) return;
 
+    const version = ++vistaActual;
     imagen.hidden = true;
     texto.hidden = false;
     tarjeta.style.borderColor = "#64748b";
@@ -176,30 +224,48 @@ for (const [grupo, clave, titulo] of posiciones) {
       return;
     }
 
+    // Una imagen independiente evita mezclar eventos de selecciones rápidas.
+    const vista = new Image();
     const url = URL.createObjectURL(archivo);
 
-    imagen.onload = () => {
-      URL.revokeObjectURL(url);
-      imagen.hidden = false;
-      texto.hidden = true;
-      tarjeta.style.borderColor = "#22c55e";
+    vista.onload = () => {
+      if (version === vistaActual) {
+        imagen.src = vista.src;
+        imagen.hidden = false;
+        texto.hidden = true;
+        tarjeta.style.borderColor = "#22c55e";
+
+        // Mantener la URL mientras la miniatura esté en pantalla.
+        const anterior = tarjeta.dataset.preview;
+        tarjeta.dataset.preview = url;
+        if (anterior) URL.revokeObjectURL(anterior);
+      } else {
+        URL.revokeObjectURL(url);
+      }
     };
 
-    imagen.onerror = () => {
+    vista.onerror = () => {
       URL.revokeObjectURL(url);
+      if (version !== vistaActual) return;
+
       input.value = "";
       imagen.hidden = true;
       texto.hidden = false;
-      mensaje("No se pudo abrir la imagen: " + titulo, true);
+      mensaje(
+        "No se pudo abrir " + titulo +
+        ". Intenta con una imagen JPG o PNG.",
+        true
+      );
     };
 
-    imagen.src = url;
+    vista.src = url;
   });
 
   tarjeta.append(texto, imagen, input);
   $(grupo).append(tarjeta);
 }
 
+// COMPRIMIR IMAGEN
 function comprimirImagen(archivo) {
   return new Promise((resolve, reject) => {
     const imagen = new Image();
@@ -207,20 +273,27 @@ function comprimirImagen(archivo) {
 
     imagen.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("El navegador no pudo abrir una fotografía."));
+      reject(new Error(
+        "No se pudo abrir la fotografía. Intenta usar JPG o PNG."
+      ));
     };
 
     imagen.onload = () => {
       URL.revokeObjectURL(url);
 
       try {
-        const escala = Math.min(
-          1, 1280 / Math.max(imagen.naturalWidth, imagen.naturalHeight)
-        );
+        const ancho = imagen.naturalWidth;
+        const alto = imagen.naturalHeight;
 
+        if (!ancho || !alto) {
+          throw new Error("La fotografía no tiene dimensiones válidas.");
+        }
+
+        const escala = Math.min(1, 1280 / Math.max(ancho, alto));
         const canvas = document.createElement("canvas");
-        canvas.width = Math.max(1, Math.round(imagen.naturalWidth * escala));
-        canvas.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
+
+        canvas.width = Math.max(1, Math.round(ancho * escala));
+        canvas.height = Math.max(1, Math.round(alto * escala));
 
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("No se pudo preparar la imagen.");
@@ -230,8 +303,11 @@ function comprimirImagen(archivo) {
         ctx.drawImage(imagen, 0, 0, canvas.width, canvas.height);
 
         canvas.toBlob(blob => {
-          if (blob) resolve(blob);
-          else reject(new Error("No se pudo comprimir la fotografía."));
+          if (blob && blob.size > 0) {
+            resolve(blob);
+          } else {
+            reject(new Error("No se pudo comprimir la fotografía."));
+          }
         }, "image/jpeg", 0.75);
       } catch (error) {
         reject(error);
@@ -242,8 +318,9 @@ function comprimirImagen(archivo) {
   });
 }
 
+// SUBIR A CLOUDINARY
 async function uploadCloudinary(blob) {
-  if (!blob) throw new Error("La imagen comprimida está vacía.");
+  if (!blob) throw new Error("La imagen está vacía.");
 
   const form = new FormData();
   form.append("file", blob, "evidencia.jpg");
@@ -255,15 +332,27 @@ async function uploadCloudinary(blob) {
   try {
     const respuesta = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-      { method: "POST", body: form, signal: controlador.signal }
+      {
+        method: "POST",
+        body: form,
+        signal: controlador.signal
+      }
     );
 
-    const datos = await respuesta.json();
+    let datos;
+
+    try {
+      datos = await respuesta.json();
+    } catch {
+      throw new Error(
+        `Respuesta no válida de Cloudinary (${respuesta.status}).`
+      );
+    }
 
     if (!respuesta.ok || !datos.secure_url) {
       throw new Error(
         datos.error?.message ||
-        `Cloudinary rechazó la imagen (${respuesta.status}).`
+        `Cloudinary rechazó la fotografía (${respuesta.status}).`
       );
     }
 
@@ -274,25 +363,33 @@ async function uploadCloudinary(blob) {
     return datos.secure_url;
   } catch (error) {
     if (error.name === "AbortError") {
-      throw new Error("La subida tardó demasiado. Revisa tu conexión.");
+      throw new Error(
+        "Se agotó el tiempo de subida. Revisa tu conexión."
+      );
     }
+
     throw error;
   } finally {
     clearTimeout(limite);
   }
 }
 
+// SUBIR FOTOS Y GUARDAR ENLACES
 $("formulario").addEventListener("submit", async evento => {
   evento.preventDefault();
   if (ocupado) return;
 
   if (!db) {
-    mensaje("Firebase no está conectado. Revisa la carga de los SDK.", true);
+    mensaje(
+      "Firebase no está conectado. Recarga la página y revisa tu conexión.",
+      true
+    );
     return;
   }
 
   const unidad = $("unidadNum").value.trim();
-  const km = Number($("kmNum").value);
+  const kilometrajeTexto = $("kmNum").value.trim();
+  const km = Number(kilometrajeTexto);
   const fecha = $("fechaManual").value;
 
   if (!/^\d+$/.test(unidad)) {
@@ -300,17 +397,20 @@ $("formulario").addEventListener("submit", async evento => {
     return;
   }
 
-  if ($("kmNum").value === "" || !Number.isSafeInteger(km) || km < 0) {
+  if (
+    kilometrajeTexto === "" ||
+    !Number.isSafeInteger(km) ||
+    km < 0
+  ) {
     mensaje("Ingresa un kilometraje entero válido.", true);
     return;
   }
 
   if (!fecha) {
-    mensaje("Selecciona la fecha.", true);
+    mensaje("Selecciona la fecha del mantenimiento.", true);
     return;
   }
 
-  // Capturar los archivos antes de iniciar la subida.
   const seleccionadas = posiciones.flatMap(([, clave, titulo]) => {
     const archivo = $("foto-" + clave).files[0];
     return archivo ? [{ clave, titulo, archivo }] : [];
@@ -322,30 +422,51 @@ $("formulario").addEventListener("submit", async evento => {
   }
 
   ocupado = true;
-  const controles = [...$("formulario").querySelectorAll("input,button")];
+
+  const controles = [
+    ...$("formulario").querySelectorAll("input,button")
+  ];
+
   controles.forEach(control => control.disabled = true);
   $("verFormato").hidden = true;
   $("progreso").hidden = false;
   $("progreso").value = 0;
 
+  let etapa = "Preparación";
+  let fotoActual = "";
+
   try {
-    // Solo contendrá fotos nuevas: no se envían cadenas vacías.
     const fotos = {};
 
     for (let i = 0; i < seleccionadas.length; i++) {
       const item = seleccionadas[i];
+      fotoActual = item.titulo;
 
-      mensaje(`Procesando ${i+1}/${seleccionadas.length}: ${item.titulo}`);
+      etapa = "Compresión";
+      mensaje(
+        `Comprimiendo ${i + 1}/${seleccionadas.length}: ${item.titulo}`
+      );
+
       const blob = await comprimirImagen(item.archivo);
+
+      etapa = "Cloudinary";
+      mensaje(
+        `Subiendo ${i + 1}/${seleccionadas.length}: ${item.titulo}`
+      );
+
       fotos[item.clave] = await uploadCloudinary(blob);
 
       $("progreso").value =
         Math.round((i + 1) / seleccionadas.length * 85);
     }
 
+    etapa = "Firestore";
+    fotoActual = "";
     mensaje("Guardando enlaces en Firestore...");
     $("progreso").value = 95;
 
+    // Solo se envían las fotos seleccionadas.
+    // merge:true conserva los demás campos y fotos anteriores.
     await db.collection("evidencias_mantenimiento")
       .doc("EV_" + unidad)
       .set({
@@ -359,21 +480,28 @@ $("formulario").addEventListener("submit", async evento => {
     $("progreso").value = 100;
 
     mensaje(
-      `Guardado confirmado: unidad ${unidad}, ` +
-      `${seleccionadas.length} fotografía(s).`
+      `✅ Guardado confirmado.\n` +
+      `Unidad: ${unidad}\n` +
+      `Fotografías guardadas: ${seleccionadas.length}`
     );
 
     $("verFormato").href =
       "formato-manto.html?unidad=" + encodeURIComponent(unidad);
     $("verFormato").hidden = false;
 
-    // Se limpian las selecciones; las miniaturas quedan visibles.
-    seleccionadas.forEach(item => $("foto-" + item.clave).value = "");
+    // Evitar subir nuevamente las mismas selecciones por accidente.
+    seleccionadas.forEach(item => {
+      $("foto-" + item.clave).value = "";
+    });
   } catch (error) {
-    console.error("Error al guardar evidencias:", error);
+    console.error("Error en " + etapa, error);
+
     mensaje(
-      "No se confirmó el guardado en Firestore: " + error.message +
-      "\nConserva las fotografías e intenta nuevamente.",
+      `❌ Error en ${etapa}` +
+      (fotoActual ? ` · ${fotoActual}` : "") +
+      `:\n${error.message}\n\n` +
+      "No se confirmó el guardado de esta carga en Firestore. " +
+      "Conserva tus fotografías e intenta nuevamente.",
       true
     );
   } finally {
