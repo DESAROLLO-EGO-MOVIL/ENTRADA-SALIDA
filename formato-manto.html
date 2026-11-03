@@ -4,15 +4,14 @@
 <meta charset="utf-8">
 <title>Evidencia de Mantenimiento Preventivo</title>
 
-<!-- Cargar catálogo de unidades si existe -->
-<script src="catálogo.js"></script>
+<!-- 1. Cargar catálogo sin tilde para coincidir con GitHub -->
+<script src="catalogo.js"></script>
 
-<!-- SDK Firebase Compat (Mismo motor que índice.html y taller.html) -->
+<!-- SDK Firebase Compat -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <script>
-  // Credenciales reales de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
     authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -32,7 +31,6 @@
     console.warn("Error al inicializar Firebase en formato-manto:", e);
   }
 
-  // Carga automática al iniciar la página
   window.addEventListener('DOMContentLoaded', () => {
     initAutoload();
   });
@@ -577,7 +575,13 @@
     }
   }
 
-  // Carga automática si viene en la URL: ?unidad=3122
+  function formatearFecha(fStr) {
+    if (!fStr) return "--/--/----";
+    const p = fStr.split('-');
+    if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`;
+    return fStr;
+  }
+
   function initAutoload() {
     const params = new URLSearchParams(window.location.search);
     const u = params.get('unidad');
@@ -594,14 +598,16 @@
 
     document.getElementById('txtUnidad').textContent = unidad;
 
-    // 1. Catálogo local (VIN, marca, año, modelo, transportista)
+    // 1. Cargar datos del catálogo local optimizado
     if (window.catalogoUnidades && window.catalogoUnidades[unidad]) {
       const c = window.catalogoUnidades[unidad];
       if (c.vin) document.getElementById('txtVin').textContent = c.vin;
-      if (c.marca) document.getElementById('txtMarca').textContent = c.marca;
-      if (c.modelo) document.getElementById('txtModelo').textContent = c.modelo;
-      if (c.transportista) document.getElementById('txtTransportista').textContent = c.transportista;
-      if (c.placas) document.getElementById('txtPlacas').textContent = c.placas;
+      if (c.m) document.getElementById('txtMarca').textContent = c.m;
+      if (c.y) document.getElementById('txtModelo').textContent = c.y;
+      if (c.emp) document.getElementById('txtTransportista').textContent = c.emp;
+      if (c.pl) document.getElementById('txtPlacas').textContent = c.pl;
+    } else {
+      console.warn("Unidad no encontrada en el catálogo local:", unidad);
     }
 
     if (!db) {
@@ -610,46 +616,28 @@
     }
 
     try {
-      // 2. Traer odómetro y fotos de entrada de Kevin (filtrado simple sin exigir índice compuesto)
-      const snapEntradas = await db.collection("entradas_flota")
-        .where("unidad", "==", unidad)
-        .get();
+      // 2. Traer evidencias subidas por ID directo 'EV_unidad'
+      const docSnap = await db.collection("evidencias_mantenimiento").doc(`EV_${unidad}`).get();
 
-      if (!snapEntradas.empty) {
-        const docsEntrada = snapEntradas.docs.map(d => d.data());
-        docsEntrada.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        const ent = docsEntrada[0];
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        if (data.km) document.getElementById('txtKm').textContent = Number(data.km).toLocaleString('es-MX') + " KM";
+        if (data.fecha) document.getElementById('txtFecha').textContent = formatearFecha(data.fecha);
 
-        if (ent.km) document.getElementById('txtKm').textContent = Number(ent.km).toLocaleString('es-MX') + " KM";
-        if (ent.fecha) document.getElementById('txtFecha').textContent = ent.fecha;
-        if (ent.vin && document.getElementById('txtVin').textContent === "---") document.getElementById('txtVin').textContent = ent.vin;
-        if (ent.ruta && document.getElementById('txtTransportista').textContent === "---") document.getElementById('txtTransportista').textContent = ent.ruta;
-
-        if (ent.fotoOdo) setImgSrc("imgOdometro", ent.fotoOdo);
-        if (ent.fotoFrontal) setImgSrc("imgFrontal", ent.fotoFrontal);
-      }
-
-      // 3. Traer evidencias subidas por los mecánicos desde taller.html
-      const snapManto = await db.collection("evidencias_mantenimiento")
-        .where("unidad", "==", unidad)
-        .get();
-
-      if (!snapManto.empty) {
-        const docsManto = snapManto.docs.map(d => d.data());
-        docsManto.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        const m = docsManto[0].fotos || {};
-
-        if (m.nuevas) setImgSrc("imgPiezasNuevas", m.nuevas);
-        if (m.antes1) setImgSrc("imgAntes1", m.antes1);
-        if (m.antes2) setImgSrc("imgAntes2", m.antes2);
-        if (m.antes3) setImgSrc("imgAntes3", m.antes3);
-        if (m.despues1) setImgSrc("imgDespues1", m.despues1);
-        if (m.despues2) setImgSrc("imgDespues2", m.despues2);
-        if (m.despues3) setImgSrc("imgDespues3", m.despues3);
+        const fotos = data.fotos || {};
+        if (fotos.odo) setImgSrc("imgOdometro", fotos.odo);
+        if (fotos.frontal) setImgSrc("imgFrontal", fotos.frontal);
+        if (fotos.nuevas) setImgSrc("imgPiezasNuevas", fotos.nuevas);
+        if (fotos.antes1) setImgSrc("imgAntes1", fotos.antes1);
+        if (fotos.antes2) setImgSrc("imgAntes2", fotos.antes2);
+        if (fotos.antes3) setImgSrc("imgAntes3", fotos.antes3);
+        if (fotos.despues1) setImgSrc("imgDespues1", fotos.despues1);
+        if (fotos.despues2) setImgSrc("imgDespues2", fotos.despues2);
+        if (fotos.despues3) setImgSrc("imgDespues3", fotos.despues3);
 
         alert(`✅ Evidencias de la unidad ${unidad} cargadas correctamente.`);
       } else {
-        alert(`ℹ️ No se encontraron evidencias en la colección 'evidencias_mantenimiento' para la unidad ${unidad}.`);
+        alert(`ℹ️ No hay evidencias registradas en Firestore para la unidad ${unidad}. Súbelas primero desde taller.html.`);
       }
 
     } catch (err) {
