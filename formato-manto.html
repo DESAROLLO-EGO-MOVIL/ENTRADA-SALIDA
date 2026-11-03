@@ -11,83 +11,164 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:20px;background:#525659;font-family:Calibri,Arial,sans-serif}
-.toolbar{max-width:816px;margin:0 auto 12px;padding:12px;background:#1e293b;
-color:white;border-radius:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.toolbar input{width:110px;padding:8px;border-radius:4px;border:1px solid #64748b}
-button{padding:9px 12px;border:0;border-radius:4px;background:#0284c7;
-color:white;font-weight:bold;cursor:pointer}
+body{
+  margin:0;padding:20px;background:#525659;
+  font-family:Calibri,Arial,sans-serif
+}
+.toolbar{
+  max-width:816px;margin:0 auto 12px;padding:12px;
+  background:#1e293b;color:white;border-radius:6px;
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap
+}
+.toolbar input{
+  width:110px;padding:8px;border-radius:4px;
+  border:1px solid #64748b
+}
+button{
+  padding:9px 12px;border:0;border-radius:4px;
+  background:#0284c7;color:white;font-weight:bold;cursor:pointer
+}
 button:disabled{opacity:.6;cursor:wait}
 .imprimir{background:#16a34a;margin-left:auto}
-#estado{max-width:816px;margin:0 auto 12px;color:white;font-size:14px;
-white-space:pre-wrap;line-height:1.4}
+#estado{
+  max-width:816px;margin:0 auto 12px;color:white;
+  font-size:14px;white-space:pre-wrap;line-height:1.4
+}
 .mp-wrap{max-width:816px;margin:auto;overflow:auto}
-.mp{position:relative;width:612pt;height:792pt;background:white;color:black;
-font:7.5pt/1.2 Calibri,Arial,sans-serif}
-.mp header{position:absolute;top:26pt;left:58pt;width:484pt;height:41pt;
-display:grid;grid-template-columns:64pt 1fr 80pt;gap:4pt;align-items:end}
-.ego{font-size:26pt;line-height:1;color:#21823b;font-weight:900}
+.mp{
+  position:relative;width:612pt;height:792pt;
+  background:white;color:black;
+  font:7.5pt/1.2 Calibri,Arial,sans-serif
+}
+.mp header{
+  position:absolute;top:26pt;left:58pt;width:484pt;height:41pt;
+  display:grid;grid-template-columns:64pt 1fr 80pt;
+  gap:4pt;align-items:end
+}
+.ego{
+  font-size:26pt;line-height:1;
+  color:#21823b;font-weight:900
+}
 .ego i{color:#e32636;font-style:normal}
-.ego small{display:block;font-size:4pt;color:#444;white-space:nowrap}
-.golden{color:#002b80;text-align:center;font-weight:bold;font-size:8pt}
-.mp h1{font-size:10pt;margin:0;background:#f2f2f2;padding:5pt 0;text-align:center}
-.mp section,.mp footer{position:absolute;left:58pt;width:484pt}
+.ego small{
+  display:block;font-size:4pt;color:#444;white-space:nowrap
+}
+.golden{
+  color:#002b80;text-align:center;font-weight:bold;font-size:8pt
+}
+.mp h1{
+  font-size:10pt;margin:0;background:#f2f2f2;
+  padding:5pt 0;text-align:center
+}
+.mp section,.mp footer{
+  position:absolute;left:58pt;width:484pt
+}
 .bar{background:#f2f2f2;text-align:center;font-weight:bold}
 .owner{top:70pt}
-.owner span{display:inline-block;min-width:100pt;margin-left:10pt;
-text-align:center;border-bottom:.5pt solid}
+.owner span{
+  display:inline-block;min-width:100pt;margin-left:10pt;
+  text-align:center;border-bottom:.5pt solid
+}
 .data{top:84pt}
-.fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-gap:6pt 14pt;padding-top:4pt}
-.field{display:flex;align-items:center;gap:3pt;min-width:0}
+.fields{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6pt 14pt;padding-top:4pt
+}
+.field{
+  display:flex;align-items:center;gap:3pt;min-width:0
+}
 .field b{white-space:nowrap}
-.field span{flex:1;min-width:0;text-align:center;border-bottom:.5pt solid;
-padding-bottom:2pt;overflow-wrap:anywhere}
-.carrier{grid-column:span 2}
-.carrier span{font-size:6.8pt;min-height:18pt}
+.field span{
+  flex:1;min-width:0;text-align:center;
+  border-bottom:.5pt solid;padding-bottom:2pt;
+  overflow-wrap:anywhere
+}
+
+/* TRANSPORTISTA PEGADO AL RENGLÓN */
+.mp .carrier{
+  grid-column:span 2;
+  align-items:flex-end
+}
+.mp .carrier span{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  min-height:18pt;
+  padding-bottom:1pt;
+  font-size:6.8pt
+}
+
 [contenteditable]{outline:none}
 [contenteditable]:focus{background:#fff9db}
-.work{top:154pt;height:226pt;border:.6pt solid}
+.work{
+  top:154pt;height:226pt;border:.6pt solid
+}
 .work>.bar{height:11pt;border-bottom:.6pt solid}
-.types{height:15pt;display:grid;grid-template-columns:44% 8% 16% 18% 14%;
-border-bottom:.6pt solid;text-align:center;font-weight:bold;
-align-items:center;font-size:6.5pt}
+.types{
+  height:15pt;display:grid;
+  grid-template-columns:44% 8% 16% 18% 14%;
+  border-bottom:.6pt solid;text-align:center;
+  font-weight:bold;align-items:center;font-size:6.5pt
+}
 .types>span:nth-child(-n+2){border-right:.5pt solid}
 .chk{cursor:pointer;user-select:none}
-.jobs{height:198pt;padding:5pt;display:flex;align-items:center;
-justify-content:center;text-align:center;line-height:10.5pt}
+.jobs{
+  height:198pt;padding:5pt;display:flex;
+  align-items:center;justify-content:center;
+  text-align:center;line-height:10.5pt
+}
 .jobs>div{width:100%}
-.photos{display:grid;grid-template-columns:52% 48%;border:.6pt solid}
+.photos{
+  display:grid;grid-template-columns:52% 48%;
+  border:.6pt solid
+}
 .photos>div+div{border-left:.6pt solid}
-.photos .bar{height:10.5pt;border-bottom:.6pt solid;
-font-size:6.4pt;white-space:nowrap}
+.photos .bar{
+  height:10.5pt;border-bottom:.6pt solid;
+  font-size:6.4pt;white-space:nowrap
+}
 .slots{height:102.5pt;display:flex}
-.slot{position:relative;flex:1;min-width:0;height:100%;
-display:flex;align-items:center;justify-content:center;overflow:hidden;
-border-right:.5pt dashed #ccc;background:#fafafa;text-align:center;cursor:pointer}
+.slot{
+  position:relative;flex:1;min-width:0;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;border-right:.5pt dashed #ccc;
+  background:#fafafa;text-align:center;cursor:pointer
+}
 .slot:last-child{border-right:0}
 .slot img{width:100%;height:100%;object-fit:cover}
 .slot .hint{padding:3pt;font-size:6.5pt;color:#777}
-.slot input{position:absolute;inset:0;width:100%;height:100%;
-opacity:0;cursor:pointer}
+.slot input{
+  position:absolute;inset:0;width:100%;height:100%;
+  opacity:0;cursor:pointer
+}
 .evidence{top:505pt;border:.6pt solid}
 .evidence>.bar{height:10.5pt;border-bottom:.6pt solid}
 .evidence .photos{border:0}
 .evidence .slots{height:119.3pt}
-.signatures{top:672pt;display:grid;grid-template-columns:44% 48%;
-justify-content:space-between;text-align:center;font-size:8pt}
-.signatures div,.mp .institute{border-top:.7pt solid;padding-top:2pt}
-.mp .institute{top:717pt;left:125pt;width:333pt;
-font-size:8pt;text-align:center;line-height:12pt}
+.signatures{
+  top:672pt;display:grid;grid-template-columns:44% 48%;
+  justify-content:space-between;text-align:center;font-size:8pt
+}
+.signatures div,.mp .institute{
+  border-top:.7pt solid;padding-top:2pt
+}
+.mp .institute{
+  top:717pt;left:125pt;width:333pt;
+  font-size:8pt;text-align:center;line-height:12pt
+}
 .mp footer{top:757pt;font-size:6pt}
 [hidden]{display:none!important}
+
 @media print{
   @page{size:letter;margin:0}
   body{padding:0;background:white}
   .toolbar,#estado{display:none!important}
   .mp-wrap{max-width:none;overflow:visible;margin:0}
-  .mp{break-inside:avoid;print-color-adjust:exact;
-  -webkit-print-color-adjust:exact}
+  .mp{
+    break-inside:avoid;
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact
+  }
   .hint,.slot input{display:none!important}
   .slot{border-right:0;background:white}
 }
@@ -97,10 +178,14 @@ font-size:8pt;text-align:center;line-height:12pt}
 <body>
 <div class="toolbar">
   <label for="buscarUnidad">Unidad:</label>
-  <input id="buscarUnidad" type="text" inputmode="numeric" placeholder="3134">
+  <input id="buscarUnidad" type="text"
+         inputmode="numeric" placeholder="3134">
   <button id="btnCargar" type="button">Cargar</button>
-  <button id="btnImprimir" class="imprimir" type="button">Imprimir / PDF</button>
+  <button id="btnImprimir" class="imprimir" type="button">
+    Imprimir / PDF
+  </button>
 </div>
+
 <p id="estado" role="status" aria-live="polite">
   Ingresa una unidad para consultar sus evidencias.
 </p>
@@ -108,7 +193,8 @@ font-size:8pt;text-align:center;line-height:12pt}
 <div class="mp-wrap">
 <article class="mp">
   <header>
-    <div class="ego">e<i>·</i>go
+    <div class="ego">
+      e<i>·</i>go
       <small>GAS ELECTRO MOVILIDAD SUSTENTADA</small>
     </div>
     <h1>EVIDENCIA DE MANTENIMIENTO PREVENTIVO</h1>
@@ -122,38 +208,64 @@ font-size:8pt;text-align:center;line-height:12pt}
 
   <section class="data">
     <div class="bar">DATOS GENERALES</div>
+
     <div class="fields">
-      <div class="field"><b>UNIDAD:</b>
-        <span id="txtUnidad" contenteditable="true">---</span></div>
-      <div class="field"><b>MARCA:</b>
-        <span id="txtMarca" contenteditable="true">GOLDEN DRAGON</span></div>
-      <div class="field"><b>AÑO/MODELO:</b>
-        <span id="txtModelo" contenteditable="true">---</span></div>
+      <div class="field">
+        <b>UNIDAD:</b>
+        <span id="txtUnidad" contenteditable="true">---</span>
+      </div>
 
-      <div class="field"><b>ODÓMETRO:</b>
-        <span id="txtKm" contenteditable="true">---</span></div>
-      <div class="field"><b>PLACAS:</b>
-        <span id="txtPlacas" contenteditable="true">---</span></div>
-      <div class="field"><b>VIN:</b>
-        <span id="txtVin" contenteditable="true">---</span></div>
+      <div class="field">
+        <b>MARCA:</b>
+        <span id="txtMarca" contenteditable="true">GOLDEN DRAGON</span>
+      </div>
 
-      <div class="field"><b>FECHA:</b>
-        <span id="txtFecha" contenteditable="true">--/--/----</span></div>
-      <div class="field carrier"><b>TRANSPORTISTA:</b>
-        <span id="txtTransportista" contenteditable="true">---</span></div>
+      <div class="field">
+        <b>AÑO/MODELO:</b>
+        <span id="txtModelo" contenteditable="true">---</span>
+      </div>
+
+      <div class="field">
+        <b>ODÓMETRO:</b>
+        <span id="txtKm" contenteditable="true">---</span>
+      </div>
+
+      <div class="field">
+        <b>PLACAS:</b>
+        <span id="txtPlacas" contenteditable="true">---</span>
+      </div>
+
+      <div class="field">
+        <b>VIN:</b>
+        <span id="txtVin" contenteditable="true">---</span>
+      </div>
+
+      <div class="field">
+        <b>FECHA:</b>
+        <span id="txtFecha" contenteditable="true">--/--/----</span>
+      </div>
+
+      <div class="field carrier">
+        <b>TRANSPORTISTA:</b>
+        <span id="txtTransportista" contenteditable="true">---</span>
+      </div>
     </div>
   </section>
 
   <section class="work">
     <div class="bar">DESCRIPCIÓN DEL TRABAJO REALIZADO</div>
+
     <div class="types">
-      <span># DE MANTENIMIENTO PREVENTIVO:
-        <b id="txtNumPreventivo" contenteditable="true">--</b></span>
+      <span>
+        # DE MANTENIMIENTO PREVENTIVO:
+        <b id="txtNumPreventivo" contenteditable="true">--</b>
+      </span>
       <span id="txtTipoManto" contenteditable="true">M7</span>
       <span class="chk">MOTOR ( <b>✓</b> )</span>
       <span class="chk">TRANSMISIÓN ( <b>✓</b> )</span>
       <span class="chk">DIFERENCIAL ( <b>✓</b> )</span>
     </div>
+
     <div class="jobs">
       <div id="txtListaTrabajos" contenteditable="true">
         CAMBIO DE 24 LITROS DE ACEITE MOTOR<br>
@@ -182,7 +294,9 @@ font-size:8pt;text-align:center;line-height:12pt}
       <div class="slots" id="grupoNuevas"></div>
     </div>
     <div>
-      <div class="bar">FOTOGRAFÍAS DEL TABLERO Y ECONÓMICO DEL AUTOBÚS</div>
+      <div class="bar">
+        FOTOGRAFÍAS DEL TABLERO Y ECONÓMICO DEL AUTOBÚS
+      </div>
       <div class="slots" id="grupoUnidad"></div>
     </div>
   </section>
@@ -239,7 +353,9 @@ function mensaje(texto, error = false) {
 }
 
 try {
-  if (!window.firebase) throw new Error("No se descargó el SDK de Firebase.");
+  if (!window.firebase) {
+    throw new Error("No se descargó el SDK de Firebase.");
+  }
 
   const app = firebase.apps.length
     ? firebase.app()
@@ -254,7 +370,6 @@ try {
   mensaje("No se pudo iniciar Firebase: " + error.message, true);
 }
 
-// La clave de cada posición coincide con la guardada desde taller.html.
 const posiciones = [
   ["grupoNuevas", "nuevas", "Piezas nuevas"],
   ["grupoUnidad", "odo", "Odómetro"],
@@ -291,6 +406,7 @@ for (const [grupo, clave, titulo] of posiciones) {
     if (!archivo) return;
 
     const url = URL.createObjectURL(archivo);
+
     try {
       await mostrarImagen(clave, url);
     } catch (error) {
@@ -306,7 +422,6 @@ for (const [grupo, clave, titulo] of posiciones) {
   slots.set(clave, { img, hint, input, titulo });
 }
 
-// Espera a que la imagen cargue realmente; no basta con asignar img.src.
 function mostrarImagen(clave, url) {
   const slot = slots.get(clave);
 
@@ -317,6 +432,7 @@ function mostrarImagen(clave, url) {
     function finalizar(error) {
       if (terminado) return;
       terminado = true;
+
       clearTimeout(limite);
       img.onload = null;
       img.onerror = null;
@@ -335,7 +451,9 @@ function mostrarImagen(clave, url) {
     }
 
     const limite = setTimeout(() => {
-      finalizar(new Error("Tiempo agotado al cargar " + slot.titulo + "."));
+      finalizar(new Error(
+        "Tiempo agotado al cargar " + slot.titulo + "."
+      ));
     }, 30000);
 
     img.hidden = true;
@@ -343,9 +461,10 @@ function mostrarImagen(clave, url) {
     slot.hint.textContent = "Cargando " + slot.titulo + "...";
 
     img.onload = () => finalizar();
-    img.onerror = () => finalizar(
-      new Error("El enlace no permite cargar " + slot.titulo + ".")
-    );
+
+    img.onerror = () => finalizar(new Error(
+      "El enlace no permite cargar " + slot.titulo + "."
+    ));
 
     img.src = url;
   });
@@ -420,6 +539,7 @@ async function cargarUnidad() {
   if (cargando) return;
 
   const unidad = $("buscarUnidad").value.trim();
+
   if (!/^\d+$/.test(unidad)) {
     mensaje("Ingresa un número de unidad válido.", true);
     return;
@@ -430,10 +550,13 @@ async function cargarUnidad() {
   $("btnImprimir").disabled = true;
   $("buscarUnidad").disabled = true;
 
-  for (const slot of slots.values()) slot.input.disabled = true;
+  for (const slot of slots.values()) {
+    slot.input.disabled = true;
+  }
 
   limpiarDatos(unidad);
   const enCatalogo = cargarCatalogo(unidad);
+
   const avisoCatalogo = enCatalogo
     ? ""
     : "\nNo se encontró la unidad en catalogo.js; completa sus datos manualmente.";
@@ -450,7 +573,8 @@ async function cargarUnidad() {
     if (!documento.exists) {
       mensaje(
         "No existe el documento EV_" + unidad +
-        ". Primero guarda las evidencias desde taller.html." + avisoCatalogo,
+        ". Primero guarda las evidencias desde taller.html." +
+        avisoCatalogo,
         true
       );
       return;
@@ -458,8 +582,13 @@ async function cargarUnidad() {
 
     const datos = documento.data();
 
-    if (datos.km !== undefined && datos.km !== null && datos.km !== "") {
+    if (
+      datos.km !== undefined &&
+      datos.km !== null &&
+      datos.km !== ""
+    ) {
       const km = Number(datos.km);
+
       $("txtKm").textContent = Number.isFinite(km)
         ? km.toLocaleString("es-MX") + " KM"
         : String(datos.km);
@@ -468,14 +597,17 @@ async function cargarUnidad() {
     $("txtFecha").textContent = formatearFecha(datos.fecha);
 
     const fotos = datos.fotos || {};
+
     const disponibles = posiciones.filter(([, clave]) => {
-      return typeof fotos[clave] === "string" && fotos[clave].trim();
+      return typeof fotos[clave] === "string" &&
+             fotos[clave].trim();
     });
 
     if (!disponibles.length) {
       mensaje(
         "El documento existe, pero no contiene enlaces de fotografías." +
-        "\nVuelve a subirlas desde taller.html." + avisoCatalogo,
+        "\nVuelve a subirlas desde taller.html." +
+        avisoCatalogo,
         true
       );
       return;
@@ -487,23 +619,28 @@ async function cargarUnidad() {
       disponibles.map(([, clave]) => {
         const url = fotos[clave].trim();
 
-        // taller.html guarda enlaces HTTPS de Cloudinary.
         if (!/^https?:\/\//i.test(url)) {
           const slot = slots.get(clave);
           slot.hint.textContent = "Enlace inválido: " + slot.titulo;
-          return Promise.reject(
-            new Error("La foto " + clave + " no contiene una URL HTTP/HTTPS.")
-          );
+
+          return Promise.reject(new Error(
+            "La foto " + clave + " no contiene una URL HTTP/HTTPS."
+          ));
         }
 
         return mostrarImagen(clave, url);
       })
     );
 
-    const errores = resultados.filter(r => r.status === "rejected");
+    const errores = resultados.filter(
+      resultado => resultado.status === "rejected"
+    );
+
     const correctas = resultados.length - errores.length;
 
-    errores.forEach(r => console.error(r.reason));
+    errores.forEach(resultado => {
+      console.error(resultado.reason);
+    });
 
     mensaje(
       `Unidad ${unidad}: ${correctas} de ${disponibles.length} foto(s) cargadas.` +
@@ -515,20 +652,30 @@ async function cargarUnidad() {
     );
   } catch (error) {
     console.error("Error al consultar evidencias:", error);
-    mensaje("No se pudieron consultar las evidencias: " + error.message, true);
+
+    mensaje(
+      "No se pudieron consultar las evidencias: " + error.message,
+      true
+    );
   } finally {
     cargando = false;
     $("btnCargar").disabled = false;
     $("btnImprimir").disabled = false;
     $("buscarUnidad").disabled = false;
-    for (const slot of slots.values()) slot.input.disabled = false;
+
+    for (const slot of slots.values()) {
+      slot.input.disabled = false;
+    }
   }
 }
 
 document.querySelectorAll(".chk").forEach(elemento => {
   elemento.addEventListener("click", () => {
     const marca = elemento.querySelector("b");
-    marca.textContent = marca.textContent.trim() === "✓" ? "\u00a0" : "✓";
+
+    marca.textContent = marca.textContent.trim() === "✓"
+      ? "\u00a0"
+      : "✓";
   });
 });
 
@@ -543,7 +690,6 @@ $("buscarUnidad").addEventListener("keydown", evento => {
 
 $("btnImprimir").addEventListener("click", () => window.print());
 
-// Permite abrir el formato desde taller.html con ?unidad=3134.
 const unidadInicial = new URLSearchParams(location.search).get("unidad");
 
 if (unidadInicial) {
