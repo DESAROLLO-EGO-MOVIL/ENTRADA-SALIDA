@@ -7,32 +7,32 @@
 <!-- Cargar catálogo de unidades si existe -->
 <script src="catálogo.js"></script>
 
-<!-- Firebase Modular -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<!-- SDK Firebase Compat (Mismo motor que índice.html y taller.html) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-  // Reemplaza con tus credenciales de Firebase (las mismas de índice.html)
+<script>
+  // Credenciales reales de Firebase
   const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU_PROJECT_ID.firebaseapp.com",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_PROJECT_ID.appspot.com",
-    messagingSenderId: "TU_SENDER_ID",
-    appId: "TU_APP_ID"
+    apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
+    authDomain: "gestion-servicios-ego.firebaseapp.com",
+    projectId: "gestion-servicios-ego",
+    storageBucket: "gestion-servicios-ego.firebasestorage.app",
+    messagingSenderId: "378018276879",
+    appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  window.db = db;
-  window.query = query;
-  window.where = where;
-  window.orderBy = orderBy;
-  window.limit = limit;
-  window.getDocs = getDocs;
-  window.collection = collection;
+  let db = null;
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+  } catch (e) {
+    console.warn("Error al inicializar Firebase en formato-manto:", e);
+  }
 
-  // Ejecutar carga automática al estar listo Firebase
+  // Carga automática al iniciar la página
   window.addEventListener('DOMContentLoaded', () => {
     initAutoload();
   });
@@ -593,7 +593,7 @@
 
     document.getElementById('txtUnidad').textContent = unidad;
 
-    // 1. Catálogo local (VIN, año, modelo, transportista)
+    // 1. Catálogo local (VIN, marca, año, modelo, transportista)
     if (window.catalogoUnidades && window.catalogoUnidades[unidad]) {
       const c = window.catalogoUnidades[unidad];
       if (c.vin) document.getElementById('txtVin').textContent = c.vin;
@@ -603,33 +603,35 @@
       if (c.placas) document.getElementById('txtPlacas').textContent = c.placas;
     }
 
-    if (!window.db) return;
+    if (!db) return;
 
     try {
-      // 2. Traer odómetro y fotos de entrada de Kevin
-      const qEntradas = window.query(
-        window.collection(window.db, "entradas_flota"),
-        window.where("unidad", "==", unidad),
-        window.orderBy("timestamp", "desc"),
-        window.limit(1)
-      );
-      const snapEntradas = await window.getDocs(qEntradas);
+      // 2. Traer odómetro y fotos de la última entrada registrada por Kevin
+      const snapEntradas = await db.collection("entradas_flota")
+        .where("unidad", "==", unidad)
+        .orderBy("timestamp", "desc")
+        .limit(1)
+        .get();
+
       if (!snapEntradas.empty) {
         const ent = snapEntradas.docs[0].data();
-        if (ent.km) document.getElementById('txtKm').textContent = ent.km + " KM";
-        if (ent.fecha) document.getElementById('txtFecha').textContent = ent.fecha;
+        if (ent.km) {
+          document.getElementById('txtKm').textContent = Number(ent.km).toLocaleString('es-MX') + " KM";
+        }
+        if (ent.fecha) {
+          document.getElementById('txtFecha').textContent = ent.fecha;
+        }
         if (ent.fotoOdo) setImgSrc("imgOdometro", ent.fotoOdo);
         if (ent.fotoFrontal) setImgSrc("imgFrontal", ent.fotoFrontal);
       }
 
       // 3. Traer fotos que subió el mecánico desde taller.html
-      const qManto = window.query(
-        window.collection(window.db, "evidencias_mantenimiento"),
-        window.where("unidad", "==", unidad),
-        window.orderBy("timestamp", "desc"),
-        window.limit(1)
-      );
-      const snapManto = await window.getDocs(qManto);
+      const snapManto = await db.collection("evidencias_mantenimiento")
+        .where("unidad", "==", unidad)
+        .orderBy("timestamp", "desc")
+        .limit(1)
+        .get();
+
       if (!snapManto.empty) {
         const m = snapManto.docs[0].data().fotos || {};
         if (m.nuevas) setImgSrc("imgPiezasNuevas", m.nuevas);
@@ -642,7 +644,7 @@
       }
 
     } catch (err) {
-      console.warn("Consulta Firestore:", err.message);
+      console.warn("Consulta Firestore en formato-manto:", err.message);
     }
   }
 </script>
