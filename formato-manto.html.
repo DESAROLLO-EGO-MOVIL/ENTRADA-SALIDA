@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Evidencia de Mantenimiento Preventivo</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #525659;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: Calibri, Arial, sans-serif;
+  }
+
+  /* BARRA DE ACCIÓN SUPERIOR (No sale al imprimir) */
+  .toolbar {
+    width: 612pt;
+    background: #1e293b;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+  }
+  .btn-print {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  /* ESTRUCTURA EXACTA HOJA CARTA (612pt x 792pt) */
+  .mp-wrap { overflow: auto; }
+  .mp {
+    position: relative;
+    width: 612pt;
+    height: 792pt;
+    background: #fff;
+    color: #000;
+    font: 7.5pt Calibri, Arial, sans-serif;
+    line-height: 1.2;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+
+  /* ENCABEZADO */
+  .mp header {
+    position: absolute;
+    inset: 26pt 70pt auto 58pt;
+    display: flex;
+    align-items: flex-end;
+    gap: 6pt;
+  }
+  .mp header .brand-ego {
+    width: 90pt;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .ego-title {
+    font-size: 24pt;
+    font-weight: 900;
+    color: #1e7e34;
+    line-height: 0.9;
+    letter-spacing: -1px;
+  }
+  .ego-title span { color: #dc3545; }
+  .ego-sub {
+    font-size: 4.8pt;
+    color: #444;
+    font-weight: bold;
+    letter-spacing: 0.1pt;
+    margin-top: 1pt;
+    white-space: nowrap;
+  }
+  .mp header .brand-gd {
+    width: 80pt;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .gd-text {
+    font-size: 6.5pt;
+    font-weight: 900;
+    color: #002b80;
+    letter-spacing: 0.4pt;
+    margin-top: 1pt;
+  }
+
+  .mp h1 {
+    flex: 1;
+    margin: 0;
+    background: #f2f2f2;
+    font-size: 10.5pt;
+    text-align: center;
+    padding: 5pt 0;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+
+  .mp section, .mp footer {
+    position: absolute;
+    left: 58pt;
+    width: 484pt;
+  }
+  .mp .bar {
+    background: #f2f2f2;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  /* ARRENDADORA */
+  .mp .owner { top: 69pt; }
+  .mp .owner span {
+    display: inline-block;
+    border-bottom: .5pt solid #000;
+    width: 93pt;
+    margin-left: 10pt;
+    text-align: center;
+    padding-bottom: 2pt;
+    outline: none;
+  }
+
+  /* DATOS GENERALES */
+  .mp .data { top: 84pt; }
+  .mp .fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5pt 20pt;
+    padding-top: 3pt;
+    align-items: center;
+  }
+  .mp .field {
+    display: flex;
+    align-items: center;
+    gap: 2pt;
+    white-space: nowrap;
+  }
+  .mp .field b {
+    min-width: 66pt;
+    text-align: right;
+  }
+  .mp .field span {
+    flex: 1;
+    text-align: center;
+    border-bottom: .5pt solid #000;
+    padding: 0 2pt 2pt;
+    outline: none;
+  }
+  .mp .carrier { grid-column: span 2; }
+  .mp .carrier span {
+    font-size: 6.8pt;
+    white-space: normal;
+    min-height: 18pt;
+    display: grid;
+    place-items: center;
+  }
+
+  /* TRABAJO REALIZADO */
+  .mp .work {
+    top: 154pt;
+    height: 226pt;
+    border: .6pt solid #000;
+  }
+  .mp .work > .bar {
+    border-bottom: .6pt solid #000;
+    height: 10.5pt;
+  }
+  .mp .types {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 11pt;
+    border-bottom: .8pt solid #000;
+    font-weight: bold;
+  }
+  .mp .types span:first-child {
+    border-right: .5pt solid #000;
+    width: 44%;
+    text-align: center;
+  }
+  .mp .types span:nth-child(2) {
+    border-right: .5pt solid #000;
+    width: 8%;
+    text-align: center;
+    outline: none;
+  }
+  .mp .chk-btn {
+    cursor: pointer;
+    user-select: none;
+  }
+  .mp .jobs {
+    height: 203pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 10.5pt;
+    padding: 4pt;
+  }
+  .mp .jobs div {
+    outline: none;
+    width: 100%;
+  }
+
+  /* CONTENEDORES DE FOTOS */
+  .mp .photos {
+    display: grid;
+    grid-template-columns: 52% 48%;
+    border: .6pt solid #000;
+  }
+  .mp .photos > div + div { border-left: .6pt solid #000; }
+  .mp .photos .bar {
+    border-bottom: .6pt solid #000;
+    height: 10.5pt;
+    font-size: 6.5pt;
+    white-space: nowrap;
+  }
+
+  .photo-slot-grid {
+    display: flex;
+    width: 100%;
+    height: 102.5pt;
+    background: #fafafa;
+  }
+  .photo-slot-grid.tall {
+    height: 119.3pt;
+  }
+  .slot-item {
+    flex: 1;
+    height: 100%;
+    border-right: .5pt dashed #ccc;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .slot-item:last-child { border-right: none; }
+  .slot-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+  .slot-item .hint {
+    font-size: 6.5pt;
+    color: #888;
+    text-align: center;
+    padding: 2pt;
+    user-select: none;
+  }
+  .slot-item input[type="file"] { display: none; }
+
+  /* EVIDENCIAS INFERIORES */
+  .mp .evidence {
+    top: 505pt;
+    border: .6pt solid #000;
+  }
+  .mp .evidence > .bar {
+    height: 10.5pt;
+    border-bottom: .6pt solid #000;
+  }
+  .mp .evidence .photos { border: 0; }
+
+  /* FIRMAS Y PIE */
+  .mp .signatures {
+    top: 672pt;
+    display: grid;
+    grid-template-columns: 44% 48%;
+    justify-content: space-between;
+    text-align: center;
+    font-size: 8pt;
+  }
+  .mp .signatures div, .mp .institute {
+    border-top: .7pt solid #000;
+    padding-top: 1pt;
+  }
+  .mp .institute {
+    top: 717pt;
+    left: 125pt;
+    width: 333pt;
+    text-align: center;
+    font-size: 8pt;
+    line-height: 12pt;
+  }
+  .mp footer {
+    top: 757pt;
+    font-size: 6pt;
+  }
+
+  /* IMPRESIÓN LIMPIA */
+  @media print {
+    body {
+      background: transparent;
+      padding: 0;
+    }
+    .toolbar { display: none !important; }
+    @page { size: letter; margin: 0; }
+    .mp-wrap { overflow: visible; }
+    .mp {
+      box-shadow: none;
+      break-inside: avoid;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+    .slot-item { border-right: none; }
+    .slot-item .hint { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div style="font-weight: bold; font-size: 14px;">Evidencia de Mantenimiento Preventivo — EGO Móvil</div>
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+</div>
+
+<div class="mp-wrap">
+<article class="mp" aria-label="Evidencia de mantenimiento preventivo">
+  
+  <!-- ENCABEZADO -->
+  <header>
+    <div class="brand-ego">
+      <div class="ego-title">e<span>·</span>go</div>
+      <div class="ego-sub">GAS ELECTRO MOVILIDAD SUSTENTADA</div>
+    </div>
+    <h1>EVIDENCIA DE MANTENIMIENTO PREVENTIVO</h1>
+    <div class="brand-gd">
+      <svg width="24" height="24" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="44" stroke="#002b80" stroke-width="8" fill="none"/>
+        <path d="M 28 44 C 28 26, 72 26, 72 44 C 72 58, 50 68, 50 78" fill="none" stroke="#002b80" stroke-width="8" stroke-linecap="round"/>
+        <path d="M 40 45 L 60 45" stroke="#002b80" stroke-width="7"/>
+      </svg>
+      <div class="gd-text">GOLDEN DRAGON</div>
+    </div>
+  </header>
+
+  <!-- ARRENDADORA -->
+  <section class="owner">
+    <b>ARRENDADORA:</b><span contenteditable="true">EGO MOVIL S.A. DE C.V.</span>
+  </section>
+
+  <!-- DATOS GENERALES -->
+  <section class="data">
+    <div class="bar">DATOS GENERALES</div>
+    <div class="fields">
+      <div class="field"><b>UNIDAD:</b><span id="txtUnidad" contenteditable="true">3172</span></div>
+      <div class="field"><b>MARCA:</b><span contenteditable="true">GOLDEN DRAGON</span></div>
+      <div class="field"><b>AÑO/MODELO:</b><span contenteditable="true">2024</span></div>
+      
+      <div class="field"><b>ODOMETRO:</b><span id="txtKm" contenteditable="true">250,333 KM</span></div>
+      <div class="field"><b>PLACAS:</b><span contenteditable="true">PERMISO</span></div>
+      <div class="field"><b>VIN:</b><span id="txtVin" contenteditable="true">LL3AGCHJXRA071186</span></div>
+      
+      <div class="field"><b>FECHA:</b><span id="txtFecha" contenteditable="true">27/10/2026</span></div>
+      <div class="field carrier"><b>TRANSPORTISTA:</b><span id="txtTransportista" contenteditable="true">Transportes Kasal, S.A. de C.V.</span></div>
+    </div>
+  </section>
+
+  <!-- DESCRIPCIÓN DEL TRABAJO -->
+  <section class="work">
+    <div class="bar">DESCRIPCION DEL TRABAJO REALIZADO</div>
+    <div class="types">
+      <span># DE MANTENIMIENTO PREVENTIVO: <b id="txtNumPreventivo" contenteditable="true">16</b></span>
+      <span id="txtTipoManto" contenteditable="true">M7</span>
+      <span class="chk-btn" onclick="toggleChk(this)">MOTOR ( <b class="chk-v">✓</b> )</span>
+      <span class="chk-btn" onclick="toggleChk(this)">TRANSMISIÓN ( <b class="chk-v">✓</b> )</span>
+      <span class="chk-btn" onclick="toggleChk(this)">DIFERENCIAL ( <b class="chk-v">✓</b> )</span>
+    </div>
+    <div class="jobs">
+      <div id="txtListaTrabajos" contenteditable="true">
+        CAMBIO DE 24 LITROS DE ACEITE MOTOR<br>
+        CAMBIO DE 2 FILTROS DE ACEITE MOTOR<br>
+        CAMBIO DE 1 KIT FILTRO DE AIRE<br>
+        ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA<br>
+        CAMBIO DE BALATAS DELANTERAS DE DISCO Y TRASERAS DE TAMBOR<br>
+        REVISION FUNCIONAMIENTO EN SISTEMA DE ENFRIAMIENTO DE CLIMA<br>
+        CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION<br>
+        CAMBIO DE 2 FILTROS DE ACEITE DE TRANSMISION CORRESPONDIENTES AL PERIODO<br>
+        CAMBIO DE BALEROS DELANTEROS Y TRASEROS<br>
+        CAMBIO DE SECADOR COMPLETO<br>
+        CAMBIO DE 1 FILTRO DE GAS DE ALTA<br>
+        CAMBIO DE 1 FILTRO DE GAS DE BAJA<br>
+        CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL<br>
+        REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO<br>
+        REVISION DE PERIFERICOS<br>
+        CAMBIO DE CABLES Y BUJIAS
+      </div>
+    </div>
+  </section>
+
+  <!-- FOTOGRAFÍAS SUPERIORES -->
+  <section class="photos" style="top:386pt">
+    <!-- Piezas Nuevas -->
+    <div>
+      <div class="bar">FOTOGRAFIAS DE LA PIEZAS NUEVAS</div>
+      <div class="photo-slot-grid">
+        <div class="slot-item" onclick="triggerInput(this)">
+          <div class="hint">📷 Cargar Piezas Nuevas</div>
+          <img id="imgPiezasNuevas" alt="Piezas Nuevas">
+          <input type="file" accept="image/*" onchange="previewImg(this)">
+        </div>
+      </div>
+    </div>
+    <!-- Tablero y Frontal (Entrada) -->
+    <div>
+      <div class="bar">FOTOGRAFIAS DEL TABLERO Y ECONOMICO DEL AUTOBUS</div>
+      <div class="photo-slot-grid">
+        <div class="slot-item" onclick="triggerInput(this)">
+          <div class="hint">📷 Odómetro</div>
+          <img id="imgOdometro" alt="Odómetro">
+          <input type="file" accept="image/*" onchange="previewImg(this)">
+        </div>
+        <div class="slot-item" onclick="triggerInput(this)">
+          <div class="hint">📷 Frontal / Eco</div>
+          <img id="imgFrontal" alt="Frontal Económico">
+          <input type="file" accept="image/*" onchange="previewImg(this)">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOTOGRAFÍAS INFERIORES (3 ANTES Y 3 DESPUÉS) -->
+  <section class="evidence">
+    <div class="bar">FOTOGRAFIAS DE LA EVIDENCIA DEL TRABAJO</div>
+    <div class="photos">
+      <!-- 3 Tomas Antes -->
+      <div>
+        <div class="bar">ANTES</div>
+        <div class="photo-slot-grid tall">
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Antes 1</div>
+            <img id="imgAntes1" alt="Antes 1">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Antes 2</div>
+            <img id="imgAntes2" alt="Antes 2">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Antes 3</div>
+            <img id="imgAntes3" alt="Antes 3">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+        </div>
+      </div>
+      <!-- 3 Tomas Después -->
+      <div>
+        <div class="bar">DESPUES</div>
+        <div class="photo-slot-grid tall">
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Después 1</div>
+            <img id="imgDespues1" alt="Después 1">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Después 2</div>
+            <img id="imgDespues2" alt="Después 2">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Después 3</div>
+            <img id="imgDespues3" alt="Después 3">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIRMAS -->
+  <section class="signatures">
+    <div>NOMBRE Y FIRMA DE ARRENDADORA</div>
+    <div>NOMBRE Y FIRMA DE TRANSPORTISTA</div>
+  </section>
+
+  <section class="institute">
+    NOMBRE Y FIRMA DE GESTION DEL TRANSPORTE DEL INSTITUTO<br>DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEON
+  </section>
+
+  <footer>
+    *ANEXAR FOTO DE LA INE DE AMBOS LADOS DE LAS PERSONAS QUE FIRMAN.
+  </footer>
+
+</article>
+</div>
+
+<script>
+  function toggleChk(el) {
+    const v = el.querySelector('.chk-v');
+    v.innerHTML = (v.innerHTML.trim() === '✓') ? '&nbsp;&nbsp;' : '✓';
+  }
+
+  function triggerInput(slot) {
+    const input = slot.querySelector('input[type="file"]');
+    if (input) input.click();
+  }
+
+  function previewImg(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      const slot = input.parentElement;
+      const img = slot.querySelector('img');
+      const hint = slot.querySelector('.hint');
+
+      reader.onload = function(e) {
+        img.src = e.target.result;
+        img.style.display = 'block';
+        if (hint) hint.style.display = 'none';
+      }
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
+
+</body>
+</html>
