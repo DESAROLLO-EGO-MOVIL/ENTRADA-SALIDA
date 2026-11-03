@@ -3,6 +3,41 @@
 <head>
 <meta charset="utf-8">
 <title>Evidencia de Mantenimiento Preventivo</title>
+
+<!-- Cargar catálogo de unidades si existe -->
+<script src="catálogo.js"></script>
+
+<!-- Firebase Modular -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // Reemplaza con tus credenciales de Firebase (las mismas de índice.html)
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_PROJECT_ID.firebaseapp.com",
+    projectId: "TU_PROJECT_ID",
+    storageBucket: "TU_PROJECT_ID.appspot.com",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.db = db;
+  window.query = query;
+  window.where = where;
+  window.orderBy = orderBy;
+  window.limit = limit;
+  window.getDocs = getDocs;
+  window.collection = collection;
+
+  // Ejecutar carga automática al estar listo Firebase
+  window.addEventListener('DOMContentLoaded', () => {
+    initAutoload();
+  });
+</script>
+
 <style>
   * { box-sizing: border-box; }
   body {
@@ -15,7 +50,7 @@
     font-family: Calibri, Arial, sans-serif;
   }
 
-  /* BARRA DE ACCIÓN SUPERIOR (No sale al imprimir) */
+  /* BARRA SUPERIOR */
   .toolbar {
     width: 612pt;
     background: #1e293b;
@@ -26,19 +61,44 @@
     justify-content: space-between;
     align-items: center;
     color: white;
+    gap: 10px;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .search-box input {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #475569;
+    background: #0f172a;
+    color: #fff;
+    font-weight: bold;
+    width: 100px;
+    text-align: center;
+  }
+  .btn-search {
+    background: #0284c7;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
   }
   .btn-print {
     background: #16a34a;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 7px 16px;
     border-radius: 4px;
     font-weight: bold;
     cursor: pointer;
     font-size: 13px;
   }
 
-  /* ESTRUCTURA EXACTA HOJA CARTA (612pt x 792pt) */
+  /* ESTRUCTURA CARTA (612pt x 792pt) */
   .mp-wrap { overflow: auto; }
   .mp {
     position: relative;
@@ -51,7 +111,6 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   }
 
-  /* ENCABEZADO */
   .mp header {
     position: absolute;
     inset: 26pt 70pt auto 58pt;
@@ -59,7 +118,7 @@
     align-items: flex-end;
     gap: 6pt;
   }
-  .mp header .brand-ego {
+  .brand-ego {
     width: 90pt;
     display: flex;
     flex-direction: column;
@@ -81,7 +140,7 @@
     margin-top: 1pt;
     white-space: nowrap;
   }
-  .mp header .brand-gd {
+  .brand-gd {
     width: 80pt;
     text-align: right;
     display: flex;
@@ -118,7 +177,6 @@
     font-weight: bold;
   }
 
-  /* ARRENDADORA */
   .mp .owner { top: 69pt; }
   .mp .owner span {
     display: inline-block;
@@ -130,7 +188,6 @@
     outline: none;
   }
 
-  /* DATOS GENERALES */
   .mp .data { top: 84pt; }
   .mp .fields {
     display: grid;
@@ -165,7 +222,6 @@
     place-items: center;
   }
 
-  /* TRABAJO REALIZADO */
   .mp .work {
     top: 154pt;
     height: 226pt;
@@ -212,7 +268,6 @@
     width: 100%;
   }
 
-  /* CONTENEDORES DE FOTOS */
   .mp .photos {
     display: grid;
     grid-template-columns: 52% 48%;
@@ -262,7 +317,6 @@
   }
   .slot-item input[type="file"] { display: none; }
 
-  /* EVIDENCIAS INFERIORES */
   .mp .evidence {
     top: 505pt;
     border: .6pt solid #000;
@@ -273,7 +327,6 @@
   }
   .mp .evidence .photos { border: 0; }
 
-  /* FIRMAS Y PIE */
   .mp .signatures {
     top: 672pt;
     display: grid;
@@ -299,12 +352,8 @@
     font-size: 6pt;
   }
 
-  /* IMPRESIÓN LIMPIA */
   @media print {
-    body {
-      background: transparent;
-      padding: 0;
-    }
+    body { background: transparent; padding: 0; }
     .toolbar { display: none !important; }
     @page { size: letter; margin: 0; }
     .mp-wrap { overflow: visible; }
@@ -322,14 +371,16 @@
 <body>
 
 <div class="toolbar">
-  <div style="font-weight: bold; font-size: 14px;">Evidencia de Mantenimiento Preventivo — EGO Móvil</div>
+  <div class="search-box">
+    <label for="buscarUnidad">Unidad:</label>
+    <input type="number" id="buscarUnidad" placeholder="Ej. 3172" inputmode="numeric">
+    <button class="btn-search" onclick="cargarUnidad()">🔍 Cargar</button>
+  </div>
   <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
 </div>
 
 <div class="mp-wrap">
 <article class="mp" aria-label="Evidencia de mantenimiento preventivo">
-  
-  <!-- ENCABEZADO -->
   <header>
     <div class="brand-ego">
       <div class="ego-title">e<span>·</span>go</div>
@@ -346,33 +397,30 @@
     </div>
   </header>
 
-  <!-- ARRENDADORA -->
   <section class="owner">
     <b>ARRENDADORA:</b><span contenteditable="true">EGO MOVIL S.A. DE C.V.</span>
   </section>
 
-  <!-- DATOS GENERALES -->
   <section class="data">
     <div class="bar">DATOS GENERALES</div>
     <div class="fields">
-      <div class="field"><b>UNIDAD:</b><span id="txtUnidad" contenteditable="true">3172</span></div>
-      <div class="field"><b>MARCA:</b><span contenteditable="true">GOLDEN DRAGON</span></div>
-      <div class="field"><b>AÑO/MODELO:</b><span contenteditable="true">2024</span></div>
+      <div class="field"><b>UNIDAD:</b><span id="txtUnidad" contenteditable="true">---</span></div>
+      <div class="field"><b>MARCA:</b><span id="txtMarca" contenteditable="true">GOLDEN DRAGON</span></div>
+      <div class="field"><b>AÑO/MODELO:</b><span id="txtModelo" contenteditable="true">2024</span></div>
       
-      <div class="field"><b>ODOMETRO:</b><span id="txtKm" contenteditable="true">250,333 KM</span></div>
-      <div class="field"><b>PLACAS:</b><span contenteditable="true">PERMISO</span></div>
-      <div class="field"><b>VIN:</b><span id="txtVin" contenteditable="true">LL3AGCHJXRA071186</span></div>
+      <div class="field"><b>ODOMETRO:</b><span id="txtKm" contenteditable="true">---</span></div>
+      <div class="field"><b>PLACAS:</b><span id="txtPlacas" contenteditable="true">PERMISO</span></div>
+      <div class="field"><b>VIN:</b><span id="txtVin" contenteditable="true">---</span></div>
       
-      <div class="field"><b>FECHA:</b><span id="txtFecha" contenteditable="true">27/10/2026</span></div>
-      <div class="field carrier"><b>TRANSPORTISTA:</b><span id="txtTransportista" contenteditable="true">Transportes Kasal, S.A. de C.V.</span></div>
+      <div class="field"><b>FECHA:</b><span id="txtFecha" contenteditable="true">--/--/----</span></div>
+      <div class="field carrier"><b>TRANSPORTISTA:</b><span id="txtTransportista" contenteditable="true">---</span></div>
     </div>
   </section>
 
-  <!-- DESCRIPCIÓN DEL TRABAJO -->
   <section class="work">
     <div class="bar">DESCRIPCION DEL TRABAJO REALIZADO</div>
     <div class="types">
-      <span># DE MANTENIMIENTO PREVENTIVO: <b id="txtNumPreventivo" contenteditable="true">16</b></span>
+      <span># DE MANTENIMIENTO PREVENTIVO: <b id="txtNumPreventivo" contenteditable="true">--</b></span>
       <span id="txtTipoManto" contenteditable="true">M7</span>
       <span class="chk-btn" onclick="toggleChk(this)">MOTOR ( <b class="chk-v">✓</b> )</span>
       <span class="chk-btn" onclick="toggleChk(this)">TRANSMISIÓN ( <b class="chk-v">✓</b> )</span>
@@ -400,9 +448,8 @@
     </div>
   </section>
 
-  <!-- FOTOGRAFÍAS SUPERIORES -->
+  <!-- FOTOS SUPERIORES -->
   <section class="photos" style="top:386pt">
-    <!-- Piezas Nuevas -->
     <div>
       <div class="bar">FOTOGRAFIAS DE LA PIEZAS NUEVAS</div>
       <div class="photo-slot-grid">
@@ -413,7 +460,6 @@
         </div>
       </div>
     </div>
-    <!-- Tablero y Frontal (Entrada) -->
     <div>
       <div class="bar">FOTOGRAFIAS DEL TABLERO Y ECONOMICO DEL AUTOBUS</div>
       <div class="photo-slot-grid">
@@ -431,11 +477,10 @@
     </div>
   </section>
 
-  <!-- FOTOGRAFÍAS INFERIORES (3 ANTES Y 3 DESPUÉS) -->
+  <!-- FOTOS INFERIORES -->
   <section class="evidence">
     <div class="bar">FOTOGRAFIAS DE LA EVIDENCIA DEL TRABAJO</div>
     <div class="photos">
-      <!-- 3 Tomas Antes -->
       <div>
         <div class="bar">ANTES</div>
         <div class="photo-slot-grid tall">
@@ -456,7 +501,6 @@
           </div>
         </div>
       </div>
-      <!-- 3 Tomas Después -->
       <div>
         <div class="bar">DESPUES</div>
         <div class="photo-slot-grid tall">
@@ -480,7 +524,6 @@
     </div>
   </section>
 
-  <!-- FIRMAS -->
   <section class="signatures">
     <div>NOMBRE Y FIRMA DE ARRENDADORA</div>
     <div>NOMBRE Y FIRMA DE TRANSPORTISTA</div>
@@ -493,7 +536,6 @@
   <footer>
     *ANEXAR FOTO DE LA INE DE AMBOS LADOS DE LAS PERSONAS QUE FIRMAN.
   </footer>
-
 </article>
 </div>
 
@@ -521,6 +563,86 @@
         if (hint) hint.style.display = 'none';
       }
       reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function setImgSrc(imgId, url) {
+    if (!url) return;
+    const img = document.getElementById(imgId);
+    if (img) {
+      img.src = url;
+      img.style.display = "block";
+      const hint = img.parentElement.querySelector('.hint');
+      if (hint) hint.style.display = "none";
+    }
+  }
+
+  // Carga automática si viene en la URL: ?unidad=3172
+  function initAutoload() {
+    const params = new URLSearchParams(window.location.search);
+    const u = params.get('unidad');
+    if (u) {
+      document.getElementById('buscarUnidad').value = u;
+      cargarUnidad();
+    }
+  }
+
+  async function cargarUnidad() {
+    const unidad = document.getElementById('buscarUnidad').value.trim();
+    if (!unidad) return;
+
+    document.getElementById('txtUnidad').textContent = unidad;
+
+    // 1. Catálogo local (VIN, año, modelo, transportista)
+    if (window.catalogoUnidades && window.catalogoUnidades[unidad]) {
+      const c = window.catalogoUnidades[unidad];
+      if (c.vin) document.getElementById('txtVin').textContent = c.vin;
+      if (c.marca) document.getElementById('txtMarca').textContent = c.marca;
+      if (c.modelo) document.getElementById('txtModelo').textContent = c.modelo;
+      if (c.transportista) document.getElementById('txtTransportista').textContent = c.transportista;
+      if (c.placas) document.getElementById('txtPlacas').textContent = c.placas;
+    }
+
+    if (!window.db) return;
+
+    try {
+      // 2. Traer odómetro y fotos de entrada de Kevin
+      const qEntradas = window.query(
+        window.collection(window.db, "entradas_flota"),
+        window.where("unidad", "==", unidad),
+        window.orderBy("timestamp", "desc"),
+        window.limit(1)
+      );
+      const snapEntradas = await window.getDocs(qEntradas);
+      if (!snapEntradas.empty) {
+        const ent = snapEntradas.docs[0].data();
+        if (ent.km) document.getElementById('txtKm').textContent = ent.km + " KM";
+        if (ent.fecha) document.getElementById('txtFecha').textContent = ent.fecha;
+        if (ent.fotoOdo) setImgSrc("imgOdometro", ent.fotoOdo);
+        if (ent.fotoFrontal) setImgSrc("imgFrontal", ent.fotoFrontal);
+      }
+
+      // 3. Traer fotos que subió el mecánico desde taller.html
+      const qManto = window.query(
+        window.collection(window.db, "evidencias_mantenimiento"),
+        window.where("unidad", "==", unidad),
+        window.orderBy("timestamp", "desc"),
+        window.limit(1)
+      );
+      const snapManto = await window.getDocs(qManto);
+      if (!snapManto.empty) {
+        const m = snapManto.docs[0].data().fotos || {};
+        if (m.nuevas) setImgSrc("imgPiezasNuevas", m.nuevas);
+        if (m.antes1) setImgSrc("imgAntes1", m.antes1);
+        if (m.antes2) setImgSrc("imgAntes2", m.antes2);
+        if (m.antes3) setImgSrc("imgAntes3", m.antes3);
+        if (m.despues1) setImgSrc("imgDespues1", m.despues1);
+        if (m.despues2) setImgSrc("imgDespues2", m.despues2);
+        if (m.despues3) setImgSrc("imgDespues3", m.despues3);
+      }
+
+    } catch (err) {
+      console.warn("Consulta Firestore:", err.message);
     }
   }
 </script>
