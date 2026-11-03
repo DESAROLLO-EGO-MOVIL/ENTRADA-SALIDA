@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Carga de Evidencias - Taller EGO</title>
+  <title>Carga Rápida de Evidencias - Taller EGO</title>
 
-  <!-- SDK Firebase Compat (Mismo motor que índice.html) -->
+  <!-- Firebase Compat -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body {
       margin: 0;
       padding: 12px;
@@ -40,24 +40,25 @@
       font-size: 20px;
       font-weight: 900;
       color: #22c55e;
-      letter-spacing: -0.5px;
     }
     .brand-title span { color: #ef4444; }
-    .sub-title { font-size: 11px; color: #94a3b8; font-weight: bold; }
-    .form-group { margin-bottom: 14px; }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
     label {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: bold;
       color: #cbd5e1;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
-    .input-unit {
+    input {
       width: 100%;
-      padding: 12px;
-      font-size: 18px;
+      padding: 10px;
+      font-size: 16px;
       font-weight: bold;
       text-align: center;
       background: #0f172a;
@@ -65,24 +66,27 @@
       border-radius: 8px;
       color: #fff;
       outline: none;
+      margin-bottom: 12px;
     }
-    .input-unit:focus { border-color: #22c55e; }
+    input:focus { border-color: #22c55e; }
     .section-title {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: bold;
       color: #38bdf8;
       background: #0f172a;
       padding: 6px 10px;
       border-radius: 6px;
-      margin: 14px 0 8px 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      margin: 10px 0 8px 0;
     }
-    .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .photo-grid.double { grid-template-columns: 1fr 1fr; }
     .photo-grid.single { grid-template-columns: 1fr; }
     .photo-btn {
-      height: 95px;
+      height: 90px;
       border: 2px dashed #475569;
       border-radius: 8px;
       display: flex;
@@ -105,7 +109,7 @@
       top: 0;
       left: 0;
     }
-    .photo-btn .icon { font-size: 22px; margin-bottom: 4px; }
+    .photo-btn .icon { font-size: 20px; margin-bottom: 2px; }
     .photo-btn .txt { font-size: 9px; font-weight: bold; color: #94a3b8; }
     .photo-btn input[type="file"] { display: none; }
     .btn-submit {
@@ -118,17 +122,13 @@
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      margin-top: 16px;
       box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4);
     }
-    .btn-submit:disabled { background: #475569; cursor: not-allowed; box-shadow: none; }
+    .btn-submit:disabled { background: #475569; cursor: not-allowed; }
     .progress-box {
       display: none;
-      margin-top: 15px;
+      margin-top: 12px;
       background: #0f172a;
       border-radius: 8px;
       padding: 10px;
@@ -136,9 +136,9 @@
     }
     .progress-bar-bg {
       width: 100%;
-      height: 12px;
+      height: 10px;
       background: #334155;
-      border-radius: 6px;
+      border-radius: 5px;
       overflow: hidden;
       margin-top: 6px;
     }
@@ -155,29 +155,51 @@
 
 <div class="app-card">
   <div class="header-logo">
+    <div class="brand-title">e<span>·</span>go 🛠️ EVIDENCIAS</div>
+    <div style="font-size: 11px; font-weight: bold; color: #38bdf8;">TALLER DIRECTO</div>
+  </div>
+
+  <div class="grid-2">
     <div>
-      <div class="brand-title">e<span>·</span>go 🛠️ TALLER</div>
-      <div class="sub-title">Carga de Evidencias de Mantenimiento</div>
+      <label>Unidad (Económico)</label>
+      <input type="number" id="unidadNum" placeholder="Ej. 3122" inputmode="numeric">
     </div>
-    <div style="font-size: 11px; font-weight: bold; color: #38bdf8;">PREVENTIVO</div>
+    <div>
+      <label>Kilometraje Actual</label>
+      <input type="number" id="kmNum" placeholder="Ej. 250333" inputmode="numeric">
+    </div>
   </div>
 
-  <div class="form-group">
-    <label>Número de Unidad (Económico)</label>
-    <input type="number" id="unidadNum" class="input-unit" placeholder="Ej. 3172 o 7000" inputmode="numeric">
+  <!-- FOTOS IDENTIFICACIÓN -->
+  <div class="section-title">🚌 1. Tablero y Frontal de Unidad</div>
+  <div class="photo-grid double">
+    <div class="photo-btn" onclick="triggerPick(this)">
+      <span class="icon">📷</span>
+      <span class="txt">Foto Odómetro</span>
+      <img style="display:none;">
+      <input type="file" accept="image/*" capture="environment" id="fotoOdo" onchange="handleFileSelect(this)">
+    </div>
+    <div class="photo-btn" onclick="triggerPick(this)">
+      <span class="icon">📷</span>
+      <span class="txt">Foto Frontal (Eco)</span>
+      <img style="display:none;">
+      <input type="file" accept="image/*" capture="environment" id="fotoFrontal" onchange="handleFileSelect(this)">
+    </div>
   </div>
 
-  <div class="section-title">📦 1. Piezas Nuevas (Refacciones de Almacén)</div>
+  <!-- REFACCIONES NUEVAS -->
+  <div class="section-title">📦 2. Refacciones Nuevas (Almacén)</div>
   <div class="photo-grid single">
     <div class="photo-btn" onclick="triggerPick(this)">
       <span class="icon">📸</span>
-      <span class="txt">Tomar foto de Piezas Nuevas</span>
+      <span class="txt">Tomar foto de Refacciones / Piezas Nuevas</span>
       <img style="display:none;">
       <input type="file" accept="image/*" capture="environment" id="fotoNuevas" onchange="handleFileSelect(this)">
     </div>
   </div>
 
-  <div class="section-title">⚠️ 2. Piezas Viejas / Dañadas (Antes)</div>
+  <!-- ANTES -->
+  <div class="section-title">⚠️ 3. Piezas Viejas / Desmontadas (Antes)</div>
   <div class="photo-grid">
     <div class="photo-btn" onclick="triggerPick(this)">
       <span class="icon">📷</span>
@@ -199,7 +221,8 @@
     </div>
   </div>
 
-  <div class="section-title">✅ 3. Trabajo Terminado / Instalado (Después)</div>
+  <!-- DESPUÉS -->
+  <div class="section-title">✅ 4. Trabajo Terminado / Instalado (Después)</div>
   <div class="photo-grid">
     <div class="photo-btn" onclick="triggerPick(this)">
       <span class="icon">📷</span>
@@ -222,19 +245,18 @@
   </div>
 
   <div class="progress-box" id="progressBox">
-    <div class="progress-text" id="progressText">Comprimiendo y subiendo imágenes...</div>
+    <div class="progress-text" id="progressText">Comprimiendo y guardando evidencias...</div>
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progressBar"></div>
     </div>
   </div>
 
   <button type="button" class="btn-submit" id="btnSubmit" onclick="subirTodo()">
-    ☁️ SUBIR EVIDENCIAS
+    ☁️ SUBIR EVIDENCIAS COMPLETAS
   </button>
 </div>
 
 <script>
-  // Inicialización con tus credenciales reales
   const firebaseConfig = {
     apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
     authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -244,9 +266,7 @@
     appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
   };
 
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
   const CLOUD_NAME = "dyqb7qjgt";
@@ -284,9 +304,7 @@
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         const maxDim = 1280;
-        let w = img.width;
-        let h = img.height;
-
+        let w = img.width, h = img.height;
         if (w > h && w > maxDim) {
           h = Math.round((h * maxDim) / w);
           w = maxDim;
@@ -294,7 +312,6 @@
           w = Math.round((w * maxDim) / h);
           h = maxDim;
         }
-
         canvas.width = w;
         canvas.height = h;
         ctx.drawImage(img, 0, 0, w, h);
@@ -307,7 +324,6 @@
     const formData = new FormData();
     formData.append("file", blob);
     formData.append("upload_preset", UPLOAD_PRESET);
-
     const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
       method: "POST",
       body: formData
@@ -318,12 +334,14 @@
 
   async function subirTodo() {
     const unidad = document.getElementById("unidadNum").value.trim();
-    if (!unidad) {
-      alert("Por favor, ingresa el número de unidad.");
-      return;
-    }
+    const km = document.getElementById("kmNum").value.trim();
+
+    if (!unidad) return alert("Por favor ingresa el número de unidad.");
+    if (!km) return alert("Por favor ingresa el kilometraje.");
 
     const inputs = [
+      { id: "fotoOdo", key: "odo" },
+      { id: "fotoFrontal", key: "frontal" },
       { id: "fotoNuevas", key: "nuevas" },
       { id: "fotoAntes1", key: "antes1" },
       { id: "fotoAntes2", key: "antes2" },
@@ -333,15 +351,12 @@
       { id: "fotoDespues3", key: "despues3" }
     ];
 
-    const fotosSeleccionadas = inputs.filter(item => {
+    const fotosAProcesar = inputs.filter(item => {
       const el = document.getElementById(item.id);
       return el.files && el.files[0];
     });
 
-    if (fotosSeleccionadas.length === 0) {
-      alert("Debes tomar al menos una foto de evidencia.");
-      return;
-    }
+    if (fotosAProcesar.length === 0) return alert("Debes cargar al menos una fotografía.");
 
     const btnSubmit = document.getElementById("btnSubmit");
     const progressBox = document.getElementById("progressBox");
@@ -351,53 +366,50 @@
     btnSubmit.disabled = true;
     progressBox.style.display = "block";
 
-    let resultadosUrls = {};
+    let fotosUrls = {};
     let procesadas = 0;
 
     try {
       for (const item of inputs) {
         const el = document.getElementById(item.id);
         if (el.files && el.files[0]) {
-          progressText.textContent = `Subiendo ${item.key}... (${procesadas + 1}/${fotosSeleccionadas.length})`;
+          progressText.textContent = `Subiendo foto (${procesadas + 1}/${fotosAProcesar.length})...`;
           const comprimida = await comprimirImagen(el.files[0]);
-          const urlCloudinary = await uploadCloudinary(comprimida);
-          resultadosUrls[item.key] = urlCloudinary;
+          fotosUrls[item.key] = await uploadCloudinary(comprimida);
           procesadas++;
-          progressBar.style.width = `${Math.round((procesadas / fotosSeleccionadas.length) * 80)}%`;
+          progressBar.style.width = `${Math.round((procesadas / fotosAProcesar.length) * 85)}%`;
         } else {
-          resultadosUrls[item.key] = "";
+          fotosUrls[item.key] = "";
         }
       }
 
       progressText.textContent = "Guardando en la base de datos...";
-      progressBar.style.width = "90%";
+      progressBar.style.width = "95%";
 
       const fechaHoy = new Date().toLocaleDateString('en-CA');
-      const docId = `${fechaHoy}_${unidad}_${Date.now()}`;
+      const docId = `EV_${unidad}`;
 
-      // Guardar en Firestore usando compatibilidad SDK
+      // Guardamos directamente por ID de unidad para lectura inmediata sin filtros
       await db.collection("evidencias_mantenimiento").doc(docId).set({
-        unidad: unidad,
+        unidad: String(unidad),
+        km: km,
         fecha: fechaHoy,
         timestamp: Date.now(),
-        fotos: resultadosUrls,
-        estatus: "PENDIENTE_VALIDACION"
-      });
+        fotos: fotosUrls
+      }, { merge: true });
 
       progressBar.style.width = "100%";
-      progressText.textContent = "¡Evidencias subidas con éxito!";
-      alert(`¡Evidencias de la unidad ${unidad} subidas correctamente!`);
+      progressText.textContent = "¡Evidencias listas!";
+      alert(`✅ ¡Evidencias de la unidad ${unidad} subidas correctamente!`);
 
       location.reload();
-
     } catch (err) {
-      console.error("Error al subir:", err);
-      alert("Ocurrió un error: " + err.message);
+      console.error(err);
+      alert("Error al subir: " + err.message);
       btnSubmit.disabled = false;
       progressBox.style.display = "none";
     }
   }
 </script>
-
 </body>
 </html>
