@@ -1,269 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Carga Rápida de Evidencias - Taller EGO</title>
+<meta charset="utf-8">
+<title>Evidencia de Mantenimiento Preventivo</title>
 
-  <!-- SDK Firebase Compat -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<!-- Cargar catálogo de unidades con VIN y Empresas -->
+<script src="catálogo.js"></script>
 
-  <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body {
-      margin: 0;
-      padding: 12px;
-      background-color: #0f172a;
-      color: #f8fafc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .app-card {
-      width: 100%;
-      max-width: 480px;
-      background-color: #1e293b;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    }
-    .header-logo {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #334155;
-      padding-bottom: 10px;
-      margin-bottom: 15px;
-    }
-    .brand-title {
-      font-size: 20px;
-      font-weight: 900;
-      color: #22c55e;
-    }
-    .brand-title span { color: #ef4444; }
-    .grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-    }
-    label {
-      display: block;
-      font-size: 10.5px;
-      font-weight: bold;
-      color: #cbd5e1;
-      margin-bottom: 5px;
-      text-transform: uppercase;
-    }
-    input {
-      width: 100%;
-      padding: 10px 6px;
-      font-size: 15px;
-      font-weight: bold;
-      text-align: center;
-      background: #0f172a;
-      border: 2px solid #38bdf8;
-      border-radius: 8px;
-      color: #fff;
-      outline: none;
-      margin-bottom: 12px;
-    }
-    input:focus { border-color: #22c55e; }
-    .section-title {
-      font-size: 11.5px;
-      font-weight: bold;
-      color: #38bdf8;
-      background: #0f172a;
-      padding: 6px 10px;
-      border-radius: 6px;
-      margin: 10px 0 8px 0;
-    }
-    .photo-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-    .photo-grid.double { grid-template-columns: 1fr 1fr; }
-    .photo-grid.single { grid-template-columns: 1fr; }
-    .photo-btn {
-      height: 90px;
-      border: 2px dashed #475569;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #0f172a;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      text-align: center;
-      padding: 4px;
-    }
-    .photo-btn.has-photo { border: 2px solid #22c55e; }
-    .photo-btn img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    .photo-btn .icon { font-size: 20px; margin-bottom: 2px; }
-    .photo-btn .txt { font-size: 9px; font-weight: bold; color: #94a3b8; }
-    .photo-btn input[type="file"] { display: none; }
-    .btn-submit {
-      width: 100%;
-      background: #16a34a;
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 16px;
-      box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4);
-    }
-    .btn-submit:disabled { background: #475569; cursor: not-allowed; }
-    .progress-box {
-      display: none;
-      margin-top: 12px;
-      background: #0f172a;
-      border-radius: 8px;
-      padding: 10px;
-      border: 1px solid #334155;
-    }
-    .progress-bar-bg {
-      width: 100%;
-      height: 10px;
-      background: #334155;
-      border-radius: 5px;
-      overflow: hidden;
-      margin-top: 6px;
-    }
-    .progress-bar-fill {
-      width: 0%;
-      height: 100%;
-      background: #22c55e;
-      transition: width 0.3s ease;
-    }
-    .progress-text { font-size: 11px; color: #cbd5e1; text-align: center; font-weight: bold; }
-  </style>
-</head>
-<body>
-
-<div class="app-card">
-  <div class="header-logo">
-    <div class="brand-title">e<span>·</span>go 🛠️ EVIDENCIAS</div>
-    <div style="font-size: 11px; font-weight: bold; color: #38bdf8;">TALLER RÁPIDO</div>
-  </div>
-
-  <div class="grid-3">
-    <div>
-      <label>Unidad</label>
-      <input type="number" id="unidadNum" placeholder="Ej. 3122" inputmode="numeric">
-    </div>
-    <div>
-      <label>Kilometraje</label>
-      <input type="number" id="kmNum" placeholder="250333" inputmode="numeric">
-    </div>
-    <div>
-      <label>Fecha</label>
-      <input type="date" id="fechaManual" style="font-size: 12px; padding: 11px 4px;">
-    </div>
-  </div>
-
-  <!-- 1. IDENTIFICACIÓN -->
-  <div class="section-title">🚌 1. Tablero y Frontal de Unidad</div>
-  <div class="photo-grid double">
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📷</span>
-      <span class="txt">Foto Odómetro</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoOdo" onchange="handleFileSelect(this)">
-    </div>
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📷</span>
-      <span class="txt">Foto Frontal (Eco)</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoFrontal" onchange="handleFileSelect(this)">
-    </div>
-  </div>
-
-  <!-- 2. REFACCIONES NUEVAS -->
-  <div class="section-title">📦 2. Refacciones Nuevas (Almacén)</div>
-  <div class="photo-grid single">
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📸</span>
-      <span class="txt">Tomar foto de Refacciones / Piezas Nuevas</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoNuevas" onchange="handleFileSelect(this)">
-    </div>
-  </div>
-
-  <!-- 3. ANTES -->
-  <div class="section-title">⚠️ 3. Piezas Viejas / Desmontadas (Antes)</div>
-  <div class="photo-grid">
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📷</span>
-      <span class="txt">Antes 1</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoAntes1" onchange="handleFileSelect(this)">
-    </div>
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📷</span>
-      <span class="txt">Antes 2</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoAntes2" onchange="handleFileSelect(this)">
-    </div>
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📷</span>
-      <span class="txt">Antes 3</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoAntes3" onchange="handleFileSelect(this)">
-    </div>
-  </div>
-
-  <!-- 4. DESPUÉS -->
-  <div class="section-title">✅ 4. Trabajo Terminado / Instalado (Después)</div>
-  <div class="photo-grid">
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📷</span>
-      <span class="txt">Después 1</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoDespues1" onchange="handleFileSelect(this)">
-    </div>
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📷</span>
-      <span class="txt">Después 2</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoDespues2" onchange="handleFileSelect(this)">
-    </div>
-    <div class="photo-btn" onclick="triggerPick(this)">
-      <span class="icon">📷</span>
-      <span class="txt">Después 3</span>
-      <img style="display:none;">
-      <input type="file" accept="image/*" capture="environment" id="fotoDespues3" onchange="handleFileSelect(this)">
-    </div>
-  </div>
-
-  <div class="progress-box" id="progressBox">
-    <div class="progress-text" id="progressText">Comprimiendo y subiendo imágenes...</div>
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="progressBar"></div>
-    </div>
-  </div>
-
-  <button type="button" class="btn-submit" id="btnSubmit" onclick="subirTodo()">
-    ☁️ SUBIR EVIDENCIAS COMPLETAS
-  </button>
-</div>
+<!-- Firebase Compat -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <script>
-  // Inicializar fecha de hoy por defecto
-  document.getElementById('fechaManual').value = new Date().toLocaleDateString('en-CA');
-
   const firebaseConfig = {
     apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
     authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -273,151 +21,579 @@
     appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
   };
 
-  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  let db = null;
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  } catch (e) {
+    console.warn("Error Firebase:", e);
+  }
 
-  const CLOUD_NAME = "dyqb7qjgt";
-  const UPLOAD_PRESET = "ego_fotos";
+  window.addEventListener('DOMContentLoaded', () => {
+    initAutoload();
+  });
+</script>
 
-  function triggerPick(card) {
-    const input = card.querySelector('input[type="file"]');
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #525659;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: Calibri, Arial, sans-serif;
+  }
+  .toolbar {
+    width: 612pt;
+    background: #1e293b;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    gap: 10px;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .search-box input {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #475569;
+    background: #0f172a;
+    color: #fff;
+    font-weight: bold;
+    width: 100px;
+    text-align: center;
+  }
+  .btn-search {
+    background: #0284c7;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .btn-print {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 7px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  /* ESTRUCTURA CARTA (612pt x 792pt) */
+  .mp-wrap { overflow: auto; }
+  .mp {
+    position: relative;
+    width: 612pt;
+    height: 792pt;
+    background: #fff;
+    color: #000;
+    font: 7.5pt Calibri, Arial, sans-serif;
+    line-height: 1.2;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .mp header {
+    position: absolute;
+    inset: 26pt 70pt auto 58pt;
+    display: flex;
+    align-items: flex-end;
+    gap: 6pt;
+  }
+  .brand-ego {
+    width: 90pt;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .ego-title {
+    font-size: 24pt;
+    font-weight: 900;
+    color: #1e7e34;
+    line-height: 0.9;
+    letter-spacing: -1px;
+  }
+  .ego-title span { color: #dc3545; }
+  .ego-sub {
+    font-size: 4.8pt;
+    color: #444;
+    font-weight: bold;
+    letter-spacing: 0.1pt;
+    margin-top: 1pt;
+    white-space: nowrap;
+  }
+  .brand-gd {
+    width: 80pt;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .gd-text {
+    font-size: 6.5pt;
+    font-weight: 900;
+    color: #002b80;
+    letter-spacing: 0.4pt;
+    margin-top: 1pt;
+  }
+  .mp h1 {
+    flex: 1;
+    margin: 0;
+    background: #f2f2f2;
+    font-size: 10.5pt;
+    text-align: center;
+    padding: 5pt 0;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+  .mp section, .mp footer {
+    position: absolute;
+    left: 58pt;
+    width: 484pt;
+  }
+  .mp .bar {
+    background: #f2f2f2;
+    text-align: center;
+    font-weight: bold;
+  }
+  .mp .owner { top: 69pt; }
+  .mp .owner span {
+    display: inline-block;
+    border-bottom: .5pt solid #000;
+    width: 93pt;
+    margin-left: 10pt;
+    text-align: center;
+    padding-bottom: 2pt;
+    outline: none;
+  }
+  .mp .data { top: 84pt; }
+  .mp .fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 5pt 20pt;
+    padding-top: 3pt;
+    align-items: center;
+  }
+  .mp .field {
+    display: flex;
+    align-items: center;
+    gap: 2pt;
+    white-space: nowrap;
+  }
+  .mp .field b { min-width: 66pt; text-align: right; }
+  .mp .field span {
+    flex: 1;
+    text-align: center;
+    border-bottom: .5pt solid #000;
+    padding: 0 2pt 2pt;
+    outline: none;
+  }
+  .mp .carrier { grid-column: span 2; }
+  .mp .carrier span {
+    font-size: 6.8pt;
+    white-space: normal;
+    min-height: 18pt;
+    display: grid;
+    place-items: center;
+  }
+  .mp .work {
+    top: 154pt;
+    height: 226pt;
+    border: .6pt solid #000;
+  }
+  .mp .work > .bar { border-bottom: .6pt solid #000; height: 10.5pt; }
+  .mp .types {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 11pt;
+    border-bottom: .8pt solid #000;
+    font-weight: bold;
+  }
+  .mp .types span:first-child { border-right: .5pt solid #000; width: 44%; text-align: center; }
+  .mp .types span:nth-child(2) { border-right: .5pt solid #000; width: 8%; text-align: center; outline: none; }
+  .mp .chk-btn { cursor: pointer; user-select: none; }
+  .mp .jobs {
+    height: 203pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 10.5pt;
+    padding: 4pt;
+  }
+  .mp .jobs div { outline: none; width: 100%; }
+
+  .mp .photos {
+    display: grid;
+    grid-template-columns: 52% 48%;
+    border: .6pt solid #000;
+  }
+  .mp .photos > div + div { border-left: .6pt solid #000; }
+  .mp .photos .bar {
+    border-bottom: .6pt solid #000;
+    height: 10.5pt;
+    font-size: 6.5pt;
+    white-space: nowrap;
+  }
+  .photo-slot-grid {
+    display: flex;
+    width: 100%;
+    height: 102.5pt;
+    background: #fafafa;
+  }
+  .photo-slot-grid.tall { height: 119.3pt; }
+  .slot-item {
+    flex: 1;
+    height: 100%;
+    border-right: .5pt dashed #ccc;
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .slot-item:last-child { border-right: none; }
+  .slot-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+  .slot-item .hint {
+    font-size: 6.5pt;
+    color: #888;
+    text-align: center;
+    padding: 2pt;
+    user-select: none;
+  }
+  .slot-item input[type="file"] { display: none; }
+
+  .mp .evidence { top: 505pt; border: .6pt solid #000; }
+  .mp .evidence > .bar { height: 10.5pt; border-bottom: .6pt solid #000; }
+  .mp .evidence .photos { border: 0; }
+
+  .mp .signatures {
+    top: 672pt;
+    display: grid;
+    grid-template-columns: 44% 48%;
+    justify-content: space-between;
+    text-align: center;
+    font-size: 8pt;
+  }
+  .mp .signatures div, .mp .institute { border-top: .7pt solid #000; padding-top: 1pt; }
+  .mp .institute {
+    top: 717pt;
+    left: 125pt;
+    width: 333pt;
+    text-align: center;
+    font-size: 8pt;
+    line-height: 12pt;
+  }
+  .mp footer { top: 757pt; font-size: 6pt; }
+
+  @media print {
+    body { background: transparent; padding: 0; }
+    .toolbar { display: none !important; }
+    @page { size: letter; margin: 0; }
+    .mp-wrap { overflow: visible; }
+    .mp {
+      box-shadow: none;
+      break-inside: avoid;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+    .slot-item { border-right: none; }
+    .slot-item .hint { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="search-box">
+    <label for="buscarUnidad">Unidad:</label>
+    <input type="number" id="buscarUnidad" placeholder="Ej. 3122" inputmode="numeric">
+    <button class="btn-search" onclick="cargarUnidad()">🔍 Cargar</button>
+  </div>
+  <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+</div>
+
+<div class="mp-wrap">
+<article class="mp" aria-label="Evidencia de mantenimiento preventivo">
+  <header>
+    <div class="brand-ego">
+      <div class="ego-title">e<span>·</span>go</div>
+      <div class="ego-sub">GAS ELECTRO MOVILIDAD SUSTENTADA</div>
+    </div>
+    <h1>EVIDENCIA DE MANTENIMIENTO PREVENTIVO</h1>
+    <div class="brand-gd">
+      <svg width="24" height="24" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="44" stroke="#002b80" stroke-width="8" fill="none"/>
+        <path d="M 28 44 C 28 26, 72 26, 72 44 C 72 58, 50 68, 50 78" fill="none" stroke="#002b80" stroke-width="8" stroke-linecap="round"/>
+        <path d="M 40 45 L 60 45" stroke="#002b80" stroke-width="7"/>
+      </svg>
+      <div class="gd-text">GOLDEN DRAGON</div>
+    </div>
+  </header>
+
+  <section class="owner">
+    <b>ARRENDADORA:</b><span contenteditable="true">EGO MOVIL S.A. DE C.V.</span>
+  </section>
+
+  <section class="data">
+    <div class="bar">DATOS GENERALES</div>
+    <div class="fields">
+      <div class="field"><b>UNIDAD:</b><span id="txtUnidad" contenteditable="true">---</span></div>
+      <div class="field"><b>MARCA:</b><span id="txtMarca" contenteditable="true">GOLDEN DRAGON</span></div>
+      <div class="field"><b>AÑO/MODELO:</b><span id="txtModelo" contenteditable="true">2024</span></div>
+      
+      <div class="field"><b>ODOMETRO:</b><span id="txtKm" contenteditable="true">---</span></div>
+      <div class="field"><b>PLACAS:</b><span id="txtPlacas" contenteditable="true">PERMISO</span></div>
+      <div class="field"><b>VIN:</b><span id="txtVin" contenteditable="true">---</span></div>
+      
+      <div class="field"><b>FECHA:</b><span id="txtFecha" contenteditable="true">--/--/----</span></div>
+      <div class="field carrier"><b>TRANSPORTISTA:</b><span id="txtTransportista" contenteditable="true">---</span></div>
+    </div>
+  </section>
+
+  <section class="work">
+    <div class="bar">DESCRIPCION DEL TRABAJO REALIZADO</div>
+    <div class="types">
+      <span># DE MANTENIMIENTO PREVENTIVO: <b id="txtNumPreventivo" contenteditable="true">--</b></span>
+      <span id="txtTipoManto" contenteditable="true">M7</span>
+      <span class="chk-btn" onclick="toggleChk(this)">MOTOR ( <b class="chk-v">✓</b> )</span>
+      <span class="chk-btn" onclick="toggleChk(this)">TRANSMISIÓN ( <b class="chk-v">✓</b> )</span>
+      <span class="chk-btn" onclick="toggleChk(this)">DIFERENCIAL ( <b class="chk-v">✓</b> )</span>
+    </div>
+    <div class="jobs">
+      <div id="txtListaTrabajos" contenteditable="true">
+        CAMBIO DE 24 LITROS DE ACEITE MOTOR<br>
+        CAMBIO DE 2 FILTROS DE ACEITE MOTOR<br>
+        CAMBIO DE 1 KIT FILTRO DE AIRE<br>
+        ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA<br>
+        CAMBIO DE BALATAS DELANTERAS DE DISCO Y TRASERAS DE TAMBOR<br>
+        REVISION FUNCIONAMIENTO EN SISTEMA DE ENFRIAMIENTO DE CLIMA<br>
+        CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION<br>
+        CAMBIO DE 2 FILTROS DE ACEITE DE TRANSMISION CORRESPONDIENTES AL PERIODO<br>
+        CAMBIO DE BALEROS DELANTEROS Y TRASEROS<br>
+        CAMBIO DE SECADOR COMPLETO<br>
+        CAMBIO DE 1 FILTRO DE GAS DE ALTA<br>
+        CAMBIO DE 1 FILTRO DE GAS DE BAJA<br>
+        CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL<br>
+        REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO<br>
+        REVISION DE PERIFERICOS<br>
+        CAMBIO DE CABLES Y BUJIAS
+      </div>
+    </div>
+  </section>
+
+  <!-- FOTOS SUPERIORES -->
+  <section class="photos" style="top:386pt">
+    <div>
+      <div class="bar">FOTOGRAFIAS DE LA PIEZAS NUEVAS</div>
+      <div class="photo-slot-grid">
+        <div class="slot-item" onclick="triggerInput(this)">
+          <div class="hint">📷 Cargar Piezas Nuevas</div>
+          <img id="imgPiezasNuevas" alt="Piezas Nuevas">
+          <input type="file" accept="image/*" onchange="previewImg(this)">
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="bar">FOTOGRAFIAS DEL TABLERO Y ECONOMICO DEL AUTOBUS</div>
+      <div class="photo-slot-grid">
+        <div class="slot-item" onclick="triggerInput(this)">
+          <div class="hint">📷 Odómetro</div>
+          <img id="imgOdometro" alt="Odómetro">
+          <input type="file" accept="image/*" onchange="previewImg(this)">
+        </div>
+        <div class="slot-item" onclick="triggerInput(this)">
+          <div class="hint">📷 Frontal / Eco</div>
+          <img id="imgFrontal" alt="Frontal Económico">
+          <input type="file" accept="image/*" onchange="previewImg(this)">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOTOS INFERIORES -->
+  <section class="evidence">
+    <div class="bar">FOTOGRAFIAS DE LA EVIDENCIA DEL TRABAJO</div>
+    <div class="photos">
+      <div>
+        <div class="bar">ANTES</div>
+        <div class="photo-slot-grid tall">
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Antes 1</div>
+            <img id="imgAntes1" alt="Antes 1">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Antes 2</div>
+            <img id="imgAntes2" alt="Antes 2">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Antes 3</div>
+            <img id="imgAntes3" alt="Antes 3">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="bar">DESPUES</div>
+        <div class="photo-slot-grid tall">
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Después 1</div>
+            <img id="imgDespues1" alt="Después 1">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Después 2</div>
+            <img id="imgDespues2" alt="Después 2">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+          <div class="slot-item" onclick="triggerInput(this)">
+            <div class="hint">📷 Después 3</div>
+            <img id="imgDespues3" alt="Después 3">
+            <input type="file" accept="image/*" onchange="previewImg(this)">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="signatures">
+    <div>NOMBRE Y FIRMA DE ARRENDADORA</div>
+    <div>NOMBRE Y FIRMA DE TRANSPORTISTA</div>
+  </section>
+
+  <section class="institute">
+    NOMBRE Y FIRMA DE GESTION DEL TRANSPORTE DEL INSTITUTO<br>DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEON
+  </section>
+
+  <footer>
+    *ANEXAR FOTO DE LA INE DE AMBOS LADOS DE LAS PERSONAS QUE FIRMAN.
+  </footer>
+</article>
+</div>
+
+<script>
+  function toggleChk(el) {
+    const v = el.querySelector('.chk-v');
+    v.innerHTML = (v.innerHTML.trim() === '✓') ? '&nbsp;&nbsp;' : '✓';
+  }
+
+  function triggerInput(slot) {
+    const input = slot.querySelector('input[type="file"]');
     if (input) input.click();
   }
 
-  function handleFileSelect(input) {
+  function previewImg(input) {
     if (input.files && input.files[0]) {
-      const card = input.parentElement;
-      const img = card.querySelector('img');
-      const icon = card.querySelector('.icon');
-      const txt = card.querySelector('.txt');
-
       const reader = new FileReader();
+      const slot = input.parentElement;
+      const img = slot.querySelector('img');
+      const hint = slot.querySelector('.hint');
+
       reader.onload = function(e) {
         img.src = e.target.result;
-        img.style.display = "block";
-        if (icon) icon.style.display = "none";
-        if (txt) txt.style.display = "none";
-        card.classList.add('has-photo');
-      };
+        img.style.display = 'block';
+        if (hint) hint.style.display = 'none';
+      }
       reader.readAsDataURL(input.files[0]);
     }
   }
 
-  async function comprimirImagen(file) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const maxDim = 1280;
-        let w = img.width, h = img.height;
-        if (w > h && w > maxDim) {
-          h = Math.round((h * maxDim) / w);
-          w = maxDim;
-        } else if (h > maxDim) {
-          w = Math.round((w * maxDim) / h);
-          h = maxDim;
-        }
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(img, 0, 0, w, h);
-        canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.75);
-      };
-    });
+  function setImgSrc(imgId, url) {
+    if (!url) return;
+    const img = document.getElementById(imgId);
+    if (img) {
+      img.src = url;
+      img.style.display = "block";
+      const hint = img.parentElement.querySelector('.hint');
+      if (hint) hint.style.display = "none";
+    }
   }
 
-  async function uploadCloudinary(blob) {
-    const formData = new FormData();
-    formData.append("file", blob);
-    formData.append("upload_preset", UPLOAD_PRESET);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-      method: "POST",
-      body: formData
-    });
-    const data = await res.json();
-    return data.secure_url || "";
+  function formatearFecha(fStr) {
+    if (!fStr) return "--/--/----";
+    const p = fStr.split('-');
+    if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`;
+    return fStr;
   }
 
-  async function subirTodo() {
-    const unidad = document.getElementById("unidadNum").value.trim();
-    const km = document.getElementById("kmNum").value.trim();
-    const fecha = document.getElementById("fechaManual").value;
+  function initAutoload() {
+    const params = new URLSearchParams(window.location.search);
+    const u = params.get('unidad');
+    if (u) {
+      document.getElementById('buscarUnidad').value = u;
+      cargarUnidad();
+    }
+  }
 
-    if (!unidad) return alert("Por favor ingresa el número de unidad.");
-    if (!km) return alert("Por favor ingresa el kilometraje.");
-    if (!fecha) return alert("Por favor selecciona una fecha.");
+  async function cargarUnidad() {
+    const inputEl = document.getElementById('buscarUnidad');
+    const unidad = inputEl ? inputEl.value.trim() : "";
+    if (!unidad) return;
 
-    const inputs = [
-      { id: "fotoOdo", key: "odo" },
-      { id: "fotoFrontal", key: "frontal" },
-      { id: "fotoNuevas", key: "nuevas" },
-      { id: "fotoAntes1", key: "antes1" },
-      { id: "fotoAntes2", key: "antes2" },
-      { id: "fotoAntes3", key: "antes3" },
-      { id: "fotoDespues1", key: "despues1" },
-      { id: "fotoDespues2", key: "despues2" },
-      { id: "fotoDespues3", key: "despues3" }
-    ];
+    document.getElementById('txtUnidad').textContent = unidad;
 
-    const fotosAProcesar = inputs.filter(item => {
-      const el = document.getElementById(item.id);
-      return el.files && el.files[0];
-    });
+    // 1. Cargar datos del catálogo general (infoEV)
+    if (window.catalogoUnidades && window.catalogoUnidades[unidad]) {
+      const c = window.catalogoUnidades[unidad];
+      if (c.vin) document.getElementById('txtVin').textContent = c.vin;
+      if (c.m) document.getElementById('txtMarca').textContent = c.m;
+      if (c.y) document.getElementById('txtModelo').textContent = c.y;
+      if (c.emp) document.getElementById('txtTransportista').textContent = c.emp;
+      if (c.pl) document.getElementById('txtPlacas').textContent = c.pl;
+    }
 
-    if (fotosAProcesar.length === 0) return alert("Debes cargar al menos una fotografía.");
-
-    const btnSubmit = document.getElementById("btnSubmit");
-    const progressBox = document.getElementById("progressBox");
-    const progressBar = document.getElementById("progressBar");
-    const progressText = document.getElementById("progressText");
-
-    btnSubmit.disabled = true;
-    progressBox.style.display = "block";
-
-    let fotosUrls = {};
-    let procesadas = 0;
+    if (!db) return alert("⚠️ Firebase no conectado.");
 
     try {
-      for (const item of inputs) {
-        const el = document.getElementById(item.id);
-        if (el.files && el.files[0]) {
-          progressText.textContent = `Subiendo foto (${procesadas + 1}/${fotosAProcesar.length})...`;
-          const comprimida = await comprimirImagen(el.files[0]);
-          fotosUrls[item.key] = await uploadCloudinary(comprimida);
-          procesadas++;
-          progressBar.style.width = `${Math.round((procesadas / fotosAProcesar.length) * 85)}%`;
-        } else {
-          fotosUrls[item.key] = "";
-        }
+      // 2. Traer evidencias subidas directamente por ID 'EV_3122'
+      const docSnap = await db.collection("evidencias_mantenimiento").doc(`EV_${unidad}`).get();
+
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        if (data.km) document.getElementById('txtKm').textContent = Number(data.km).toLocaleString('es-MX') + " KM";
+        if (data.fecha) document.getElementById('txtFecha').textContent = formatearFecha(data.fecha);
+
+        const fotos = data.fotos || {};
+        if (fotos.odo) setImgSrc("imgOdometro", fotos.odo);
+        if (fotos.frontal) setImgSrc("imgFrontal", fotos.frontal);
+        if (fotos.nuevas) setImgSrc("imgPiezasNuevas", fotos.nuevas);
+        if (fotos.antes1) setImgSrc("imgAntes1", fotos.antes1);
+        if (fotos.antes2) setImgSrc("imgAntes2", fotos.antes2);
+        if (fotos.antes3) setImgSrc("imgAntes3", fotos.antes3);
+        if (fotos.despues1) setImgSrc("imgDespues1", fotos.despues1);
+        if (fotos.despues2) setImgSrc("imgDespues2", fotos.despues2);
+        if (fotos.despues3) setImgSrc("imgDespues3", fotos.despues3);
+
+        alert(`✅ Evidencias de la unidad ${unidad} cargadas correctamente.`);
+      } else {
+        alert(`ℹ️ No hay evidencias registradas aún para la unidad ${unidad}. Súbelas primero desde taller.html.`);
       }
-
-      progressText.textContent = "Guardando en la base de datos...";
-      progressBar.style.width = "95%";
-
-      const docId = `EV_${unidad}`;
-
-      // Guardamos directo por ID de unidad
-      await db.collection("evidencias_mantenimiento").doc(docId).set({
-        unidad: String(unidad),
-        km: km,
-        fecha: fecha,
-        timestamp: Date.now(),
-        fotos: fotosUrls
-      }, { merge: true });
-
-      progressBar.style.width = "100%";
-      progressText.textContent = "¡Evidencias listas!";
-      alert(`✅ ¡Evidencias de la unidad ${unidad} subidas correctamente!`);
-
-      location.reload();
     } catch (err) {
       console.error(err);
-      alert("Error al subir: " + err.message);
-      btnSubmit.disabled = false;
-      progressBox.style.display = "none";
+      alert("Error: " + err.message);
     }
   }
 </script>
+
 </body>
 </html>
