@@ -38,9 +38,8 @@ body{
   padding:8px;
   border-radius:4px;
   border:1px solid #64748b;
+  width:100px;
 }
-
-.toolbar input,.toolbar select{width:100px}
 
 .toolbar small{
   width:100%;
@@ -89,6 +88,7 @@ button:disabled{opacity:.6;cursor:wait}
   font:7.5pt/1.2 Calibri,Arial,sans-serif;
 }
 
+/* ENCABEZADO Y LOGOS */
 .mp header{
   position:absolute;
   top:26pt;
@@ -96,32 +96,18 @@ button:disabled{opacity:.6;cursor:wait}
   width:484pt;
   height:41pt;
   display:grid;
-  grid-template-columns:64pt 1fr 80pt;
+  grid-template-columns:64pt minmax(0,1fr) 80pt;
   gap:4pt;
   align-items:end;
 }
 
-.ego{
-  font-size:26pt;
-  line-height:1;
-  color:#21823b;
-  font-weight:900;
-}
-
-.ego i{color:#e32636;font-style:normal}
-
-.ego small{
+.mp header .logo-ego,
+.mp header .logo-golden{
   display:block;
-  font-size:4pt;
-  color:#444;
-  white-space:nowrap;
-}
-
-.golden{
-  color:#002b80;
-  text-align:center;
-  font-weight:bold;
-  font-size:8pt;
+  width:100%;
+  height:41pt;
+  object-fit:contain;
+  object-position:center;
 }
 
 .mp h1{
@@ -260,7 +246,7 @@ button:disabled{opacity:.6;cursor:wait}
   display:flex;
 }
 
-/* FOTOGRAFÍAS COMPLETAS, SIN ZOOM NI RECORTES */
+/* FOTOGRAFÍAS COMPLETAS, SIN RECORTES */
 .slot{
   position:relative;
   flex:1;
@@ -410,13 +396,21 @@ button:disabled{opacity:.6;cursor:wait}
 
 <div class="mp-wrap">
 <article class="mp">
+
   <header>
-    <div class="ego">
-      e<i>·</i>go
-      <small>GAS ELECTRO MOVILIDAD SUSTENTADA</small>
-    </div>
+    <img
+      id="logoEgo"
+      class="logo-ego"
+      src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1793691580/Picture1_fmvia9.png"
+      alt="Logo EGO">
+
     <h1>EVIDENCIA DE MANTENIMIENTO PREVENTIVO</h1>
-    <div class="golden">GOLDEN DRAGON</div>
+
+    <img
+      id="logoGolden"
+      class="logo-golden"
+      src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1793691558/Picture2_ksljto.png"
+      alt="Logo Golden Dragon">
   </header>
 
   <section class="owner">
@@ -544,6 +538,7 @@ button:disabled{opacity:.6;cursor:wait}
   <footer>
     *ANEXAR FOTO DE LA INE DE AMBOS LADOS DE LAS PERSONAS QUE FIRMAN.
   </footer>
+
 </article>
 </div>
 
@@ -563,8 +558,9 @@ const firebaseConfig = {
 const $ = id => document.getElementById(id);
 let db = null;
 let cargando = false;
+let preparandoImpresion = false;
 
-// CATÁLOGO DE MANTENIMIENTOS
+// TRABAJOS COMPARTIDOS
 const BASE = [
   "CAMBIO DE 24 LITROS DE ACEITE MOTOR",
   "CAMBIO DE 2 FILTROS DE ACEITE MOTOR",
@@ -600,6 +596,7 @@ function ficha(trabajos, transmision = false, diferencial = false) {
   };
 }
 
+// MANTENIMIENTOS M1 A M7
 const MANTENIMIENTOS = {
   M1: ficha([
     ...BASE,
@@ -700,7 +697,7 @@ try {
   mensaje("No se pudo iniciar Firebase: " + error.message, true);
 }
 
-// APLICAR DESCRIPCIÓN Y CASILLAS
+// APLICAR TIPO, NÚMERO, DESCRIPCIÓN Y CASILLAS
 function aplicarMantenimiento(tipo, numero, trabajosGuardados, sistemasGuardados) {
   const mantenimiento = MANTENIMIENTOS[tipo];
 
@@ -743,7 +740,7 @@ function aplicarMantenimiento(tipo, numero, trabajosGuardados, sistemasGuardados
     sistemas.diferencial === true ? "✓" : "\u00a0";
 }
 
-// AJUSTES PARA LA IMPRESIÓN
+// AJUSTES MANUALES PARA LA IMPRESIÓN
 $("seleccionTipo").addEventListener("change", () => {
   aplicarMantenimiento(
     $("seleccionTipo").value,
@@ -779,7 +776,9 @@ const slots = new Map();
 
 function actualizarBotonImprimir() {
   $("btnImprimir").disabled =
-    cargando || [...slots.values()].some(slot => slot.cargando);
+    cargando ||
+    preparandoImpresion ||
+    [...slots.values()].some(slot => slot.cargando);
 }
 
 for (const [grupo, clave, titulo] of posiciones) {
@@ -825,6 +824,7 @@ for (const [grupo, clave, titulo] of posiciones) {
         if (datosSlot.urlLocal) {
           URL.revokeObjectURL(datosSlot.urlLocal);
         }
+
         datosSlot.urlLocal = url;
       } else {
         URL.revokeObjectURL(url);
@@ -843,7 +843,7 @@ for (const [grupo, clave, titulo] of posiciones) {
   $(grupo).append(slot);
 }
 
-// CARGAR IMAGEN SIN CAMBIAR SU PROPORCIÓN
+// CARGAR UNA IMAGEN Y VERIFICAR QUE ABRA
 function mostrarImagen(clave, url) {
   const slot = slots.get(clave);
   const version = ++slot.version;
@@ -906,7 +906,7 @@ function mostrarImagen(clave, url) {
   });
 }
 
-// LIMPIAR DATOS DE LA UNIDAD ANTERIOR
+// LIMPIAR LA UNIDAD ANTERIOR
 function limpiarDatos(unidad) {
   const valores = {
     txtUnidad: unidad,
@@ -981,7 +981,7 @@ function formatearFecha(valor) {
 
 // CONSULTAR EVIDENCIAS EN FIRESTORE
 async function cargarUnidad() {
-  if (cargando) return;
+  if (cargando || preparandoImpresion) return;
 
   const unidad = $("buscarUnidad").value.trim();
 
@@ -1130,7 +1130,7 @@ async function cargarUnidad() {
   }
 }
 
-// CASILLAS AJUSTABLES PARA LA IMPRESIÓN
+// AJUSTAR CASILLAS PARA LA IMPRESIÓN
 document.querySelectorAll(".chk").forEach(elemento => {
   elemento.addEventListener("click", () => {
     const marca = elemento.querySelector("b");
@@ -1150,7 +1150,48 @@ $("buscarUnidad").addEventListener("keydown", evento => {
   }
 });
 
-$("btnImprimir").addEventListener("click", () => window.print());
+// ESPERAR A QUE LOS LOGOS E IMÁGENES ESTÉN LISTOS PARA IMPRIMIR
+async function imprimirFormato() {
+  if (
+    cargando ||
+    preparandoImpresion ||
+    [...slots.values()].some(slot => slot.cargando)
+  ) return;
+
+  preparandoImpresion = true;
+  actualizarBotonImprimir();
+
+  try {
+    const imagenes = [
+      ...document.querySelectorAll(".mp img")
+    ].filter(img => !img.hidden && img.getAttribute("src"));
+
+    await Promise.all(imagenes.map(async img => {
+      await Promise.race([
+        img.decode(),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error(
+            "Tiempo agotado al preparar " + img.alt + "."
+          )), 20000);
+        })
+      ]);
+    }));
+
+    window.print();
+  } catch (error) {
+    mensaje(
+      "No se pudo preparar una imagen para imprimir. " +
+      "Revisa que ambos logos y las fotografías se vean completos.\n" +
+      error.message,
+      true
+    );
+  } finally {
+    preparandoImpresion = false;
+    actualizarBotonImprimir();
+  }
+}
+
+$("btnImprimir").addEventListener("click", imprimirFormato);
 
 // ABRIR DIRECTAMENTE DESDE TALLER CON ?unidad=3134
 const unidadInicial = new URLSearchParams(location.search).get("unidad");
