@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>Evidencia de Mantenimiento Preventivo</title>
 
-<!-- 1. Cargar catálogo sin tilde para coincidir con GitHub -->
+<!-- Cargar catálogo de unidades (Golden Dragon) -->
 <script src="catalogo.js"></script>
 
 <!-- SDK Firebase Compat -->
@@ -565,12 +565,15 @@
   }
 
   function setImgSrc(imgId, url) {
-    if (!url) return;
+    if (!url || typeof url !== 'string' || url.trim() === '') return;
     const img = document.getElementById(imgId);
     if (img) {
-      img.src = url;
+      img.src = url.trim();
       img.style.display = "block";
-      const hint = img.parentElement.querySelector('.hint');
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+      const hint = img.parentElement ? img.parentElement.querySelector('.hint') : null;
       if (hint) hint.style.display = "none";
     }
   }
@@ -606,8 +609,6 @@
       if (c.y) document.getElementById('txtModelo').textContent = c.y;
       if (c.emp) document.getElementById('txtTransportista').textContent = c.emp;
       if (c.pl) document.getElementById('txtPlacas').textContent = c.pl;
-    } else {
-      console.warn("Unidad no encontrada en el catálogo local:", unidad);
     }
 
     if (!db) {
@@ -616,7 +617,7 @@
     }
 
     try {
-      // 2. Traer evidencias subidas por ID directo 'EV_unidad'
+      // 2. Traer evidencias y odómetro guardados con ID directo 'EV_unidad'
       const docSnap = await db.collection("evidencias_mantenimiento").doc(`EV_${unidad}`).get();
 
       if (docSnap.exists) {
