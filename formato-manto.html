@@ -20,10 +20,13 @@ body{
   background:#1e293b;color:white;border-radius:6px;
   display:flex;gap:8px;align-items:center;flex-wrap:wrap
 }
-.toolbar input{
-  width:110px;padding:8px;border-radius:4px;
-  border:1px solid #64748b
+.toolbar label{font-size:12px}
+.toolbar input,.toolbar select{
+  padding:8px;border-radius:4px;border:1px solid #64748b
 }
+.toolbar input{width:100px}
+.toolbar select{width:130px}
+.toolbar small{width:100%;line-height:1.4;color:#cbd5e1}
 button{
   padding:9px 12px;border:0;border-radius:4px;
   background:#0284c7;color:white;font-weight:bold;cursor:pointer
@@ -84,7 +87,7 @@ button:disabled{opacity:.6;cursor:wait}
   overflow-wrap:anywhere
 }
 
-/* TRANSPORTISTA PEGADO AL RENGLÓN */
+/* TRANSPORTISTA ALINEADO JUNTO AL RENGLÓN */
 .mp .carrier{
   grid-column:span 2;
   align-items:flex-end
@@ -100,9 +103,7 @@ button:disabled{opacity:.6;cursor:wait}
 
 [contenteditable]{outline:none}
 [contenteditable]:focus{background:#fff9db}
-.work{
-  top:154pt;height:226pt;border:.6pt solid
-}
+.work{top:154pt;height:226pt;border:.6pt solid}
 .work>.bar{height:11pt;border-bottom:.6pt solid}
 .types{
   height:15pt;display:grid;
@@ -180,10 +181,33 @@ button:disabled{opacity:.6;cursor:wait}
   <label for="buscarUnidad">Unidad:</label>
   <input id="buscarUnidad" type="text"
          inputmode="numeric" placeholder="3134">
+
   <button id="btnCargar" type="button">Cargar</button>
+
+  <label for="seleccionTipo">Tipo:</label>
+  <select id="seleccionTipo">
+    <option value="">Selecciona...</option>
+    <option value="M1">M1</option>
+    <option value="M2">M2</option>
+    <option value="M3">M3</option>
+    <option value="M4">M4</option>
+    <option value="M5">M5</option>
+    <option value="M6" disabled>M6 · Pendiente</option>
+    <option value="M7">M7</option>
+  </select>
+
+  <label for="seleccionNumero">N.º mantenimiento:</label>
+  <input id="seleccionNumero" type="number"
+         min="1" step="1" placeholder="15">
+
   <button id="btnImprimir" class="imprimir" type="button">
     Imprimir / PDF
   </button>
+
+  <small>
+    El tipo y el número se recuperan desde Taller.
+    Los ajustes hechos aquí son solo para imprimir.
+  </small>
 </div>
 
 <p id="estado" role="status" aria-live="polite">
@@ -260,30 +284,19 @@ button:disabled{opacity:.6;cursor:wait}
         # DE MANTENIMIENTO PREVENTIVO:
         <b id="txtNumPreventivo" contenteditable="true">--</b>
       </span>
-      <span id="txtTipoManto" contenteditable="true">M7</span>
-      <span class="chk">MOTOR ( <b>✓</b> )</span>
-      <span class="chk">TRANSMISIÓN ( <b>✓</b> )</span>
-      <span class="chk">DIFERENCIAL ( <b>✓</b> )</span>
+      <span id="txtTipoManto">--</span>
+      <span class="chk">MOTOR ( <b id="chkMotor">&nbsp;</b> )</span>
+      <span class="chk">
+        TRANSMISIÓN ( <b id="chkTransmision">&nbsp;</b> )
+      </span>
+      <span class="chk">
+        DIFERENCIAL ( <b id="chkDiferencial">&nbsp;</b> )
+      </span>
     </div>
 
     <div class="jobs">
       <div id="txtListaTrabajos" contenteditable="true">
-        CAMBIO DE 24 LITROS DE ACEITE MOTOR<br>
-        CAMBIO DE 2 FILTROS DE ACEITE MOTOR<br>
-        CAMBIO DE 1 KIT FILTRO DE AIRE<br>
-        ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERÍA<br>
-        CAMBIO DE BALATAS DELANTERAS DE DISCO Y TRASERAS DE TAMBOR<br>
-        REVISIÓN FUNCIONAMIENTO EN SISTEMA DE ENFRIAMIENTO DE CLIMA<br>
-        CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISIÓN<br>
-        CAMBIO DE 2 FILTROS DE ACEITE DE TRANSMISIÓN CORRESPONDIENTES AL PERIODO<br>
-        CAMBIO DE BALEROS DELANTEROS Y TRASEROS<br>
-        CAMBIO DE SECADOR COMPLETO<br>
-        CAMBIO DE 1 FILTRO DE GAS DE ALTA<br>
-        CAMBIO DE 1 FILTRO DE GAS DE BAJA<br>
-        CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL<br>
-        REVISIÓN FUNCIONAMIENTO EN SISTEMA ELÉCTRICO<br>
-        REVISIÓN DE PERIFÉRICOS<br>
-        CAMBIO DE CABLES Y BUJÍAS
+        Selecciona un tipo de mantenimiento.
       </div>
     </div>
   </section>
@@ -334,6 +347,7 @@ button:disabled{opacity:.6;cursor:wait}
 <script>
 "use strict";
 
+// FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
   authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -347,11 +361,115 @@ const $ = id => document.getElementById(id);
 let db = null;
 let cargando = false;
 
+// CATÁLOGO DE MANTENIMIENTOS
+const BASE = [
+  "CAMBIO DE 24 LITROS DE ACEITE MOTOR",
+  "CAMBIO DE 2 FILTROS DE ACEITE MOTOR",
+  "CAMBIO DE 1 KIT FILTRO DE AIRE",
+  "ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA"
+];
+
+const REVISION_BALATAS =
+  "REVISION DE BALATAS DELANTERAS DE DISCO Y TRASERAS DE TAMBOR";
+
+const CAMBIO_BALATAS =
+  "CAMBIO DE BALATAS DELANTERAS DE DISCO Y TRASERAS DE TAMBOR";
+
+const CLIMA =
+  "REVISION FUNCIONAMIENTO EN SISTEMA DE ENFRIAMIENTO DE CLIMA";
+
+const FILTROS_TRANSMISION =
+  "CAMBIO DE 2 FILTROS DE ACEITE DE TRANSMISION CORRESPONDIENTES AL PERIODO";
+
+const FILTROS_GAS = [
+  "CAMBIO DE 1 FILTRO DE GAS DE ALTA",
+  "CAMBIO DE 1 FILTRO DE GAS DE BAJA"
+];
+
+function ficha(trabajos, transmision = false, diferencial = false) {
+  return {
+    trabajos,
+    sistemas: {
+      motor: true,
+      transmision,
+      diferencial
+    }
+  };
+}
+
+const MANTENIMIENTOS = {
+  M1: ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    CLIMA
+  ]),
+
+  M2: ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    CLIMA,
+    "REVISION Y CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "CAMBIO DE 1 FILTRO SECADOR",
+    "REVISION NIVEL DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    ...FILTROS_GAS
+  ], true),
+
+  M3: ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    "REVISION Y AJUSTE EN TERMINALES DE DIRECCION",
+    "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
+    "REVISION DE BOBINAS Y ARNES DE BOBINAS"
+  ], false, true),
+
+  M4: ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    "REVISION EN SISTEMA DE ENFRIAMIENTO",
+    "CAMBIO DE 35 LITROS DE ANTICONGELANTE"
+  ]),
+
+  M5: ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    CLIMA,
+    "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    "CAMBIO DE SECADOR COMPLETO",
+    "REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO",
+    "CAMBIO DE CABLES Y BUJIAS",
+    "REVISION DE PERIFERICOS",
+    ...FILTROS_GAS
+  ], true),
+
+  // Pendiente de recibir la referencia de M6.
+  M6: null,
+
+  M7: ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    CLIMA,
+    "CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "CAMBIO DE SECADOR COMPLETO",
+    ...FILTROS_GAS,
+    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    "REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO",
+    "REVISION DE PERIFERICOS",
+    "CAMBIO DE CABLES Y BUJIAS"
+  ], true, true)
+};
+
 function mensaje(texto, error = false) {
   $("estado").textContent = texto;
   $("estado").style.color = error ? "#fecaca" : "#fff";
 }
 
+// INICIAR FIREBASE
 try {
   if (!window.firebase) {
     throw new Error("No se descargó el SDK de Firebase.");
@@ -370,6 +488,73 @@ try {
   mensaje("No se pudo iniciar Firebase: " + error.message, true);
 }
 
+// APLICAR TIPO, NÚMERO, DESCRIPCIÓN Y CASILLAS
+function aplicarMantenimiento(tipo, numero, trabajosGuardados, sistemasGuardados) {
+  const mantenimiento = MANTENIMIENTOS[tipo];
+
+  $("seleccionTipo").value = mantenimiento ? tipo : "";
+  $("seleccionNumero").value = numero ?? "";
+  $("txtTipoManto").textContent = tipo || "--";
+  $("txtNumPreventivo").textContent = numero ?? "--";
+
+  const trabajos = Array.isArray(trabajosGuardados)
+    ? trabajosGuardados
+    : mantenimiento?.trabajos;
+
+  const sistemas =
+    sistemasGuardados || mantenimiento?.sistemas || {};
+
+  const contenedor = $("txtListaTrabajos");
+  contenedor.replaceChildren();
+
+  if (trabajos && trabajos.length) {
+    trabajos.forEach((trabajo, indice) => {
+      if (indice > 0) {
+        contenedor.append(document.createElement("br"));
+      }
+
+      contenedor.append(
+        document.createTextNode(String(trabajo))
+      );
+    });
+  } else {
+    contenedor.textContent = tipo === "M6"
+      ? "M6 pendiente de recibir su descripción y casillas."
+      : "Selecciona un tipo de mantenimiento.";
+  }
+
+  $("chkMotor").textContent =
+    sistemas.motor === true ? "✓" : "\u00a0";
+
+  $("chkTransmision").textContent =
+    sistemas.transmision === true ? "✓" : "\u00a0";
+
+  $("chkDiferencial").textContent =
+    sistemas.diferencial === true ? "✓" : "\u00a0";
+}
+
+// CAMBIOS MANUALES PARA LA IMPRESIÓN
+$("seleccionTipo").addEventListener("change", () => {
+  const numero = $("seleccionNumero").value;
+
+  aplicarMantenimiento(
+    $("seleccionTipo").value,
+    numero || null
+  );
+});
+
+$("seleccionNumero").addEventListener("input", () => {
+  const valor = $("seleccionNumero").value;
+
+  $("txtNumPreventivo").textContent =
+    /^\d+$/.test(valor) &&
+    Number.isSafeInteger(Number(valor)) &&
+    Number(valor) > 0
+      ? valor
+      : "--";
+});
+
+// POSICIONES DE LAS FOTOGRAFÍAS
 const posiciones = [
   ["grupoNuevas", "nuevas", "Piezas nuevas"],
   ["grupoUnidad", "odo", "Odómetro"],
@@ -407,6 +592,9 @@ for (const [grupo, clave, titulo] of posiciones) {
 
     const url = URL.createObjectURL(archivo);
 
+    input.disabled = true;
+    $("btnImprimir").disabled = true;
+
     try {
       await mostrarImagen(clave, url);
     } catch (error) {
@@ -414,19 +602,37 @@ for (const [grupo, clave, titulo] of posiciones) {
     } finally {
       URL.revokeObjectURL(url);
       input.value = "";
+      input.disabled = cargando;
+
+      const fotosPendientes = [...slots.values()]
+        .some(elemento => elemento.cargando);
+
+      $("btnImprimir").disabled = cargando || fotosPendientes;
     }
   });
 
   slot.append(hint, img, input);
   $(grupo).append(slot);
-  slots.set(clave, { img, hint, input, titulo });
+
+  slots.set(clave, {
+    img,
+    hint,
+    input,
+    titulo,
+    cargando: false,
+    version: 0
+  });
 }
 
+// CARGAR UNA IMAGEN Y CONFIRMAR QUE ABRIÓ
 function mostrarImagen(clave, url) {
   const slot = slots.get(clave);
+  const version = ++slot.version;
+
+  slot.cargando = true;
 
   return new Promise((resolve, reject) => {
-    const img = slot.img;
+    const prueba = new Image();
     let terminado = false;
 
     function finalizar(error) {
@@ -434,17 +640,26 @@ function mostrarImagen(clave, url) {
       terminado = true;
 
       clearTimeout(limite);
-      img.onload = null;
-      img.onerror = null;
+      prueba.onload = null;
+      prueba.onerror = null;
+
+      // Ignorar resultados de una unidad o selección anterior.
+      if (version !== slot.version) {
+        resolve();
+        return;
+      }
+
+      slot.cargando = false;
 
       if (error) {
-        img.hidden = true;
-        img.removeAttribute("src");
+        slot.img.hidden = true;
+        slot.img.removeAttribute("src");
         slot.hint.hidden = false;
         slot.hint.textContent = "No se pudo cargar: " + slot.titulo;
         reject(error);
       } else {
-        img.hidden = false;
+        slot.img.src = url;
+        slot.img.hidden = false;
         slot.hint.hidden = true;
         resolve();
       }
@@ -456,20 +671,21 @@ function mostrarImagen(clave, url) {
       ));
     }, 30000);
 
-    img.hidden = true;
+    slot.img.hidden = true;
     slot.hint.hidden = false;
     slot.hint.textContent = "Cargando " + slot.titulo + "...";
 
-    img.onload = () => finalizar();
+    prueba.onload = () => finalizar();
 
-    img.onerror = () => finalizar(new Error(
+    prueba.onerror = () => finalizar(new Error(
       "El enlace no permite cargar " + slot.titulo + "."
     ));
 
-    img.src = url;
+    prueba.src = url;
   });
 }
 
+// LIMPIAR DATOS DE LA UNIDAD ANTERIOR
 function limpiarDatos(unidad) {
   const valores = {
     txtUnidad: unidad,
@@ -486,9 +702,11 @@ function limpiarDatos(unidad) {
     $(id).textContent = valor;
   }
 
+  aplicarMantenimiento("", null);
+
   for (const slot of slots.values()) {
-    slot.img.onload = null;
-    slot.img.onerror = null;
+    slot.version++;
+    slot.cargando = false;
     slot.img.removeAttribute("src");
     slot.img.hidden = true;
     slot.hint.hidden = false;
@@ -497,9 +715,9 @@ function limpiarDatos(unidad) {
   }
 }
 
+// DATOS GENERALES DESDE catalogo.js
 function cargarCatalogo(unidad) {
-  const catalogo = window.catalogoUnidades;
-  const camion = catalogo && catalogo[unidad];
+  const camion = window.catalogoUnidades?.[unidad];
 
   if (!camion) return false;
 
@@ -535,6 +753,7 @@ function formatearFecha(valor) {
     : texto;
 }
 
+// CONSULTAR EVIDENCIAS Y MANTENIMIENTO EN FIRESTORE
 async function cargarUnidad() {
   if (cargando) return;
 
@@ -546,20 +765,22 @@ async function cargarUnidad() {
   }
 
   cargando = true;
-  $("btnCargar").disabled = true;
-  $("btnImprimir").disabled = true;
-  $("buscarUnidad").disabled = true;
 
-  for (const slot of slots.values()) {
-    slot.input.disabled = true;
-  }
+  const controles = [
+    $("btnCargar"),
+    $("btnImprimir"),
+    $("buscarUnidad"),
+    $("seleccionTipo"),
+    $("seleccionNumero"),
+    ...[...slots.values()].map(slot => slot.input)
+  ];
 
+  controles.forEach(control => control.disabled = true);
   limpiarDatos(unidad);
-  const enCatalogo = cargarCatalogo(unidad);
 
-  const avisoCatalogo = enCatalogo
+  let avisos = cargarCatalogo(unidad)
     ? ""
-    : "\nNo se encontró la unidad en catalogo.js; completa sus datos manualmente.";
+    : "\nNo se encontró la unidad en catalogo.js. Completa sus datos manualmente.";
 
   try {
     if (!db) throw new Error("Firebase no está conectado.");
@@ -572,9 +793,9 @@ async function cargarUnidad() {
 
     if (!documento.exists) {
       mensaje(
-        "No existe el documento EV_" + unidad +
-        ". Primero guarda las evidencias desde taller.html." +
-        avisoCatalogo,
+        "No existen evidencias guardadas para la unidad " +
+        unidad + ". Primero guárdalas desde taller.html." +
+        avisos,
         true
       );
       return;
@@ -596,6 +817,24 @@ async function cargarUnidad() {
 
     $("txtFecha").textContent = formatearFecha(datos.fecha);
 
+    // Recuperar lo guardado desde taller.html.
+    aplicarMantenimiento(
+      datos.tipoMantenimiento || "",
+      datos.numeroMantenimiento ?? null,
+      datos.trabajosMantenimiento,
+      datos.sistemasMantenimiento
+    );
+
+    if (
+      !datos.tipoMantenimiento ||
+      datos.numeroMantenimiento === undefined ||
+      datos.numeroMantenimiento === null
+    ) {
+      avisos +=
+        "\nEste registro no tiene tipo o número de mantenimiento guardado." +
+        " Puedes indicarlos en la barra para imprimir.";
+    }
+
     const fotos = datos.fotos || {};
 
     const disponibles = posiciones.filter(([, clave]) => {
@@ -605,9 +844,8 @@ async function cargarUnidad() {
 
     if (!disponibles.length) {
       mensaje(
-        "El documento existe, pero no contiene enlaces de fotografías." +
-        "\nVuelve a subirlas desde taller.html." +
-        avisoCatalogo,
+        "Datos cargados. El documento no contiene enlaces de fotografías." +
+        avisos,
         true
       );
       return;
@@ -620,8 +858,7 @@ async function cargarUnidad() {
         const url = fotos[clave].trim();
 
         if (!/^https?:\/\//i.test(url)) {
-          const slot = slots.get(clave);
-          slot.hint.textContent = "Enlace inválido: " + slot.titulo;
+          slots.get(clave).hint.textContent = "Enlace inválido";
 
           return Promise.reject(new Error(
             "La foto " + clave + " no contiene una URL HTTP/HTTPS."
@@ -644,10 +881,14 @@ async function cargarUnidad() {
 
     mensaje(
       `Unidad ${unidad}: ${correctas} de ${disponibles.length} foto(s) cargadas.` +
+      (datos.tipoMantenimiento
+        ? `\nMantenimiento: ${datos.tipoMantenimiento}` +
+          ` · Número: ${datos.numeroMantenimiento ?? "--"}`
+        : "") +
       (errores.length
         ? "\nHay enlaces que no se pudieron abrir. Revisa esas fotos."
         : "") +
-      avisoCatalogo,
+      avisos,
       errores.length > 0
     );
   } catch (error) {
@@ -659,16 +900,11 @@ async function cargarUnidad() {
     );
   } finally {
     cargando = false;
-    $("btnCargar").disabled = false;
-    $("btnImprimir").disabled = false;
-    $("buscarUnidad").disabled = false;
-
-    for (const slot of slots.values()) {
-      slot.input.disabled = false;
-    }
+    controles.forEach(control => control.disabled = false);
   }
 }
 
+// PERMITIR AJUSTAR LAS CASILLAS PARA IMPRIMIR
 document.querySelectorAll(".chk").forEach(elemento => {
   elemento.addEventListener("click", () => {
     const marca = elemento.querySelector("b");
@@ -690,6 +926,7 @@ $("buscarUnidad").addEventListener("keydown", evento => {
 
 $("btnImprimir").addEventListener("click", () => window.print());
 
+// ABRIR DIRECTAMENTE DESDE taller.html?unidad=...
 const unidadInicial = new URLSearchParams(location.search).get("unidad");
 
 if (unidadInicial) {
