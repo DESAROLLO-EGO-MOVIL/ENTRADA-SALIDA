@@ -373,7 +373,7 @@
 <div class="toolbar">
   <div class="search-box">
     <label for="buscarUnidad">Unidad:</label>
-    <input type="number" id="buscarUnidad" placeholder="Ej. 3172" inputmode="numeric">
+    <input type="number" id="buscarUnidad" placeholder="Ej. 3122" inputmode="numeric">
     <button class="btn-search" onclick="cargarUnidad()">🔍 Cargar</button>
   </div>
   <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
@@ -577,7 +577,7 @@
     }
   }
 
-  // Carga automática si viene en la URL: ?unidad=3172
+  // Carga automática si viene en la URL: ?unidad=3122
   function initAutoload() {
     const params = new URLSearchParams(window.location.search);
     const u = params.get('unidad');
@@ -588,7 +588,8 @@
   }
 
   async function cargarUnidad() {
-    const unidad = document.getElementById('buscarUnidad').value.trim();
+    const inputEl = document.getElementById('buscarUnidad');
+    const unidad = inputEl ? inputEl.value.trim() : "";
     if (!unidad) return;
 
     document.getElementById('txtUnidad').textContent = unidad;
@@ -603,37 +604,41 @@
       if (c.placas) document.getElementById('txtPlacas').textContent = c.placas;
     }
 
-    if (!db) return;
+    if (!db) {
+      alert("⚠️ Firebase no se encuentra conectado.");
+      return;
+    }
 
     try {
-      // 2. Traer odómetro y fotos de la última entrada registrada por Kevin
+      // 2. Traer odómetro y fotos de entrada de Kevin (filtrado simple sin exigir índice compuesto)
       const snapEntradas = await db.collection("entradas_flota")
         .where("unidad", "==", unidad)
-        .orderBy("timestamp", "desc")
-        .limit(1)
         .get();
 
       if (!snapEntradas.empty) {
-        const ent = snapEntradas.docs[0].data();
-        if (ent.km) {
-          document.getElementById('txtKm').textContent = Number(ent.km).toLocaleString('es-MX') + " KM";
-        }
-        if (ent.fecha) {
-          document.getElementById('txtFecha').textContent = ent.fecha;
-        }
+        const docsEntrada = snapEntradas.docs.map(d => d.data());
+        docsEntrada.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const ent = docsEntrada[0];
+
+        if (ent.km) document.getElementById('txtKm').textContent = Number(ent.km).toLocaleString('es-MX') + " KM";
+        if (ent.fecha) document.getElementById('txtFecha').textContent = ent.fecha;
+        if (ent.vin && document.getElementById('txtVin').textContent === "---") document.getElementById('txtVin').textContent = ent.vin;
+        if (ent.ruta && document.getElementById('txtTransportista').textContent === "---") document.getElementById('txtTransportista').textContent = ent.ruta;
+
         if (ent.fotoOdo) setImgSrc("imgOdometro", ent.fotoOdo);
         if (ent.fotoFrontal) setImgSrc("imgFrontal", ent.fotoFrontal);
       }
 
-      // 3. Traer fotos que subió el mecánico desde taller.html
+      // 3. Traer evidencias subidas por los mecánicos desde taller.html
       const snapManto = await db.collection("evidencias_mantenimiento")
         .where("unidad", "==", unidad)
-        .orderBy("timestamp", "desc")
-        .limit(1)
         .get();
 
       if (!snapManto.empty) {
-        const m = snapManto.docs[0].data().fotos || {};
+        const docsManto = snapManto.docs.map(d => d.data());
+        docsManto.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        const m = docsManto[0].fotos || {};
+
         if (m.nuevas) setImgSrc("imgPiezasNuevas", m.nuevas);
         if (m.antes1) setImgSrc("imgAntes1", m.antes1);
         if (m.antes2) setImgSrc("imgAntes2", m.antes2);
@@ -641,10 +646,15 @@
         if (m.despues1) setImgSrc("imgDespues1", m.despues1);
         if (m.despues2) setImgSrc("imgDespues2", m.despues2);
         if (m.despues3) setImgSrc("imgDespues3", m.despues3);
+
+        alert(`✅ Evidencias de la unidad ${unidad} cargadas correctamente.`);
+      } else {
+        alert(`ℹ️ No se encontraron evidencias en la colección 'evidencias_mantenimiento' para la unidad ${unidad}.`);
       }
 
     } catch (err) {
-      console.warn("Consulta Firestore en formato-manto:", err.message);
+      console.error("Error al consultar:", err);
+      alert("Error al consultar Firestore: " + err.message);
     }
   }
 </script>
