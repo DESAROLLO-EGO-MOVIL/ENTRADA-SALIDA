@@ -2,522 +2,201 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Evidencia de Mantenimiento Preventivo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evidencia de mantenimiento preventivo</title>
 
-<!-- Cargar catálogo de unidades (Golden Dragon) -->
 <script src="catalogo.js"></script>
-
-<!-- SDK Firebase Compat -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
-    authDomain: "gestion-servicios-ego.firebaseapp.com",
-    projectId: "gestion-servicios-ego",
-    storageBucket: "gestion-servicios-ego.firebasestorage.app",
-    messagingSenderId: "378018276879",
-    appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
-  };
-
-  let db = null;
-  try {
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    db = firebase.firestore();
-  } catch (e) {
-    console.warn("Error al inicializar Firebase en formato-manto:", e);
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    initAutoload();
-  });
-</script>
-
 <style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    padding: 20px;
-    background: #525659;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-family: Calibri, Arial, sans-serif;
-  }
-
-  /* BARRA SUPERIOR */
-  .toolbar {
-    width: 612pt;
-    background: #1e293b;
-    padding: 10px 15px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-    gap: 10px;
-  }
-  .search-box {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .search-box input {
-    padding: 6px 10px;
-    border-radius: 4px;
-    border: 1px solid #475569;
-    background: #0f172a;
-    color: #fff;
-    font-weight: bold;
-    width: 100px;
-    text-align: center;
-  }
-  .btn-search {
-    background: #0284c7;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  .btn-print {
-    background: #16a34a;
-    color: white;
-    border: none;
-    padding: 7px 16px;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 13px;
-  }
-
-  /* ESTRUCTURA CARTA (612pt x 792pt) */
-  .mp-wrap { overflow: auto; }
-  .mp {
-    position: relative;
-    width: 612pt;
-    height: 792pt;
-    background: #fff;
-    color: #000;
-    font: 7.5pt Calibri, Arial, sans-serif;
-    line-height: 1.2;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  }
-
-  .mp header {
-    position: absolute;
-    inset: 26pt 70pt auto 58pt;
-    display: flex;
-    align-items: flex-end;
-    gap: 6pt;
-  }
-  .brand-ego {
-    width: 90pt;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-  .ego-title {
-    font-size: 24pt;
-    font-weight: 900;
-    color: #1e7e34;
-    line-height: 0.9;
-    letter-spacing: -1px;
-  }
-  .ego-title span { color: #dc3545; }
-  .ego-sub {
-    font-size: 4.8pt;
-    color: #444;
-    font-weight: bold;
-    letter-spacing: 0.1pt;
-    margin-top: 1pt;
-    white-space: nowrap;
-  }
-  .brand-gd {
-    width: 80pt;
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-  }
-  .gd-text {
-    font-size: 6.5pt;
-    font-weight: 900;
-    color: #002b80;
-    letter-spacing: 0.4pt;
-    margin-top: 1pt;
-  }
-
-  .mp h1 {
-    flex: 1;
-    margin: 0;
-    background: #f2f2f2;
-    font-size: 10.5pt;
-    text-align: center;
-    padding: 5pt 0;
-    white-space: nowrap;
-    font-weight: bold;
-  }
-
-  .mp section, .mp footer {
-    position: absolute;
-    left: 58pt;
-    width: 484pt;
-  }
-  .mp .bar {
-    background: #f2f2f2;
-    text-align: center;
-    font-weight: bold;
-  }
-
-  .mp .owner { top: 69pt; }
-  .mp .owner span {
-    display: inline-block;
-    border-bottom: .5pt solid #000;
-    width: 93pt;
-    margin-left: 10pt;
-    text-align: center;
-    padding-bottom: 2pt;
-    outline: none;
-  }
-
-  .mp .data { top: 84pt; }
-  .mp .fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 5pt 20pt;
-    padding-top: 3pt;
-    align-items: center;
-  }
-  .mp .field {
-    display: flex;
-    align-items: center;
-    gap: 2pt;
-    white-space: nowrap;
-  }
-  .mp .field b {
-    min-width: 66pt;
-    text-align: right;
-  }
-  .mp .field span {
-    flex: 1;
-    text-align: center;
-    border-bottom: .5pt solid #000;
-    padding: 0 2pt 2pt;
-    outline: none;
-  }
-  .mp .carrier { grid-column: span 2; }
-  .mp .carrier span {
-    font-size: 6.8pt;
-    white-space: normal;
-    min-height: 18pt;
-    display: grid;
-    place-items: center;
-  }
-
-  .mp .work {
-    top: 154pt;
-    height: 226pt;
-    border: .6pt solid #000;
-  }
-  .mp .work > .bar {
-    border-bottom: .6pt solid #000;
-    height: 10.5pt;
-  }
-  .mp .types {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    height: 11pt;
-    border-bottom: .8pt solid #000;
-    font-weight: bold;
-  }
-  .mp .types span:first-child {
-    border-right: .5pt solid #000;
-    width: 44%;
-    text-align: center;
-  }
-  .mp .types span:nth-child(2) {
-    border-right: .5pt solid #000;
-    width: 8%;
-    text-align: center;
-    outline: none;
-  }
-  .mp .chk-btn {
-    cursor: pointer;
-    user-select: none;
-  }
-  .mp .jobs {
-    height: 203pt;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    line-height: 10.5pt;
-    padding: 4pt;
-  }
-  .mp .jobs div {
-    outline: none;
-    width: 100%;
-  }
-
-  .mp .photos {
-    display: grid;
-    grid-template-columns: 52% 48%;
-    border: .6pt solid #000;
-  }
-  .mp .photos > div + div { border-left: .6pt solid #000; }
-  .mp .photos .bar {
-    border-bottom: .6pt solid #000;
-    height: 10.5pt;
-    font-size: 6.5pt;
-    white-space: nowrap;
-  }
-
-  .photo-slot-grid {
-    display: flex;
-    width: 100%;
-    height: 102.5pt;
-    background: #fafafa;
-  }
-  .photo-slot-grid.tall {
-    height: 119.3pt;
-  }
-  .slot-item {
-    flex: 1;
-    height: 100%;
-    border-right: .5pt dashed #ccc;
-    position: relative;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .slot-item:last-child { border-right: none; }
-  .slot-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: none;
-  }
-  .slot-item .hint {
-    font-size: 6.5pt;
-    color: #888;
-    text-align: center;
-    padding: 2pt;
-    user-select: none;
-  }
-  .slot-item input[type="file"] { display: none; }
-
-  .mp .evidence {
-    top: 505pt;
-    border: .6pt solid #000;
-  }
-  .mp .evidence > .bar {
-    height: 10.5pt;
-    border-bottom: .6pt solid #000;
-  }
-  .mp .evidence .photos { border: 0; }
-
-  .mp .signatures {
-    top: 672pt;
-    display: grid;
-    grid-template-columns: 44% 48%;
-    justify-content: space-between;
-    text-align: center;
-    font-size: 8pt;
-  }
-  .mp .signatures div, .mp .institute {
-    border-top: .7pt solid #000;
-    padding-top: 1pt;
-  }
-  .mp .institute {
-    top: 717pt;
-    left: 125pt;
-    width: 333pt;
-    text-align: center;
-    font-size: 8pt;
-    line-height: 12pt;
-  }
-  .mp footer {
-    top: 757pt;
-    font-size: 6pt;
-  }
-
-  @media print {
-    body { background: transparent; padding: 0; }
-    .toolbar { display: none !important; }
-    @page { size: letter; margin: 0; }
-    .mp-wrap { overflow: visible; }
-    .mp {
-      box-shadow: none;
-      break-inside: avoid;
-      print-color-adjust: exact;
-      -webkit-print-color-adjust: exact;
-    }
-    .slot-item { border-right: none; }
-    .slot-item .hint { display: none !important; }
-  }
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:#525659;font-family:Calibri,Arial,sans-serif}
+.toolbar{max-width:816px;margin:0 auto 12px;padding:12px;background:#1e293b;
+color:white;border-radius:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toolbar input{width:110px;padding:8px;border-radius:4px;border:1px solid #64748b}
+button{padding:9px 12px;border:0;border-radius:4px;background:#0284c7;
+color:white;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.imprimir{background:#16a34a;margin-left:auto}
+#estado{max-width:816px;margin:0 auto 12px;color:white;font-size:14px;
+white-space:pre-wrap;line-height:1.4}
+.mp-wrap{max-width:816px;margin:auto;overflow:auto}
+.mp{position:relative;width:612pt;height:792pt;background:white;color:black;
+font:7.5pt/1.2 Calibri,Arial,sans-serif}
+.mp header{position:absolute;top:26pt;left:58pt;width:484pt;height:41pt;
+display:grid;grid-template-columns:64pt 1fr 80pt;gap:4pt;align-items:end}
+.ego{font-size:26pt;line-height:1;color:#21823b;font-weight:900}
+.ego i{color:#e32636;font-style:normal}
+.ego small{display:block;font-size:4pt;color:#444;white-space:nowrap}
+.golden{color:#002b80;text-align:center;font-weight:bold;font-size:8pt}
+.mp h1{font-size:10pt;margin:0;background:#f2f2f2;padding:5pt 0;text-align:center}
+.mp section,.mp footer{position:absolute;left:58pt;width:484pt}
+.bar{background:#f2f2f2;text-align:center;font-weight:bold}
+.owner{top:70pt}
+.owner span{display:inline-block;min-width:100pt;margin-left:10pt;
+text-align:center;border-bottom:.5pt solid}
+.data{top:84pt}
+.fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+gap:6pt 14pt;padding-top:4pt}
+.field{display:flex;align-items:center;gap:3pt;min-width:0}
+.field b{white-space:nowrap}
+.field span{flex:1;min-width:0;text-align:center;border-bottom:.5pt solid;
+padding-bottom:2pt;overflow-wrap:anywhere}
+.carrier{grid-column:span 2}
+.carrier span{font-size:6.8pt;min-height:18pt}
+[contenteditable]{outline:none}
+[contenteditable]:focus{background:#fff9db}
+.work{top:154pt;height:226pt;border:.6pt solid}
+.work>.bar{height:11pt;border-bottom:.6pt solid}
+.types{height:15pt;display:grid;grid-template-columns:44% 8% 16% 18% 14%;
+border-bottom:.6pt solid;text-align:center;font-weight:bold;
+align-items:center;font-size:6.5pt}
+.types>span:nth-child(-n+2){border-right:.5pt solid}
+.chk{cursor:pointer;user-select:none}
+.jobs{height:198pt;padding:5pt;display:flex;align-items:center;
+justify-content:center;text-align:center;line-height:10.5pt}
+.jobs>div{width:100%}
+.photos{display:grid;grid-template-columns:52% 48%;border:.6pt solid}
+.photos>div+div{border-left:.6pt solid}
+.photos .bar{height:10.5pt;border-bottom:.6pt solid;
+font-size:6.4pt;white-space:nowrap}
+.slots{height:102.5pt;display:flex}
+.slot{position:relative;flex:1;min-width:0;height:100%;
+display:flex;align-items:center;justify-content:center;overflow:hidden;
+border-right:.5pt dashed #ccc;background:#fafafa;text-align:center;cursor:pointer}
+.slot:last-child{border-right:0}
+.slot img{width:100%;height:100%;object-fit:cover}
+.slot .hint{padding:3pt;font-size:6.5pt;color:#777}
+.slot input{position:absolute;inset:0;width:100%;height:100%;
+opacity:0;cursor:pointer}
+.evidence{top:505pt;border:.6pt solid}
+.evidence>.bar{height:10.5pt;border-bottom:.6pt solid}
+.evidence .photos{border:0}
+.evidence .slots{height:119.3pt}
+.signatures{top:672pt;display:grid;grid-template-columns:44% 48%;
+justify-content:space-between;text-align:center;font-size:8pt}
+.signatures div,.mp .institute{border-top:.7pt solid;padding-top:2pt}
+.mp .institute{top:717pt;left:125pt;width:333pt;
+font-size:8pt;text-align:center;line-height:12pt}
+.mp footer{top:757pt;font-size:6pt}
+[hidden]{display:none!important}
+@media print{
+  @page{size:letter;margin:0}
+  body{padding:0;background:white}
+  .toolbar,#estado{display:none!important}
+  .mp-wrap{max-width:none;overflow:visible;margin:0}
+  .mp{break-inside:avoid;print-color-adjust:exact;
+  -webkit-print-color-adjust:exact}
+  .hint,.slot input{display:none!important}
+  .slot{border-right:0;background:white}
+}
 </style>
 </head>
-<body>
 
+<body>
 <div class="toolbar">
-  <div class="search-box">
-    <label for="buscarUnidad">Unidad:</label>
-    <input type="number" id="buscarUnidad" placeholder="Ej. 3122" inputmode="numeric">
-    <button class="btn-search" onclick="cargarUnidad()">🔍 Cargar</button>
-  </div>
-  <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+  <label for="buscarUnidad">Unidad:</label>
+  <input id="buscarUnidad" type="text" inputmode="numeric" placeholder="3134">
+  <button id="btnCargar" type="button">Cargar</button>
+  <button id="btnImprimir" class="imprimir" type="button">Imprimir / PDF</button>
 </div>
+<p id="estado" role="status" aria-live="polite">
+  Ingresa una unidad para consultar sus evidencias.
+</p>
 
 <div class="mp-wrap">
-<article class="mp" aria-label="Evidencia de mantenimiento preventivo">
+<article class="mp">
   <header>
-    <div class="brand-ego">
-      <div class="ego-title">e<span>·</span>go</div>
-      <div class="ego-sub">GAS ELECTRO MOVILIDAD SUSTENTADA</div>
+    <div class="ego">e<i>·</i>go
+      <small>GAS ELECTRO MOVILIDAD SUSTENTADA</small>
     </div>
     <h1>EVIDENCIA DE MANTENIMIENTO PREVENTIVO</h1>
-    <div class="brand-gd">
-      <svg width="24" height="24" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="44" stroke="#002b80" stroke-width="8" fill="none"/>
-        <path d="M 28 44 C 28 26, 72 26, 72 44 C 72 58, 50 68, 50 78" fill="none" stroke="#002b80" stroke-width="8" stroke-linecap="round"/>
-        <path d="M 40 45 L 60 45" stroke="#002b80" stroke-width="7"/>
-      </svg>
-      <div class="gd-text">GOLDEN DRAGON</div>
-    </div>
+    <div class="golden">GOLDEN DRAGON</div>
   </header>
 
   <section class="owner">
-    <b>ARRENDADORA:</b><span contenteditable="true">EGO MOVIL S.A. DE C.V.</span>
+    <b>ARRENDADORA:</b>
+    <span contenteditable="true">EGO MOVIL S.A. DE C.V.</span>
   </section>
 
   <section class="data">
     <div class="bar">DATOS GENERALES</div>
     <div class="fields">
-      <div class="field"><b>UNIDAD:</b><span id="txtUnidad" contenteditable="true">---</span></div>
-      <div class="field"><b>MARCA:</b><span id="txtMarca" contenteditable="true">GOLDEN DRAGON</span></div>
-      <div class="field"><b>AÑO/MODELO:</b><span id="txtModelo" contenteditable="true">2024</span></div>
-      
-      <div class="field"><b>ODOMETRO:</b><span id="txtKm" contenteditable="true">---</span></div>
-      <div class="field"><b>PLACAS:</b><span id="txtPlacas" contenteditable="true">PERMISO</span></div>
-      <div class="field"><b>VIN:</b><span id="txtVin" contenteditable="true">---</span></div>
-      
-      <div class="field"><b>FECHA:</b><span id="txtFecha" contenteditable="true">--/--/----</span></div>
-      <div class="field carrier"><b>TRANSPORTISTA:</b><span id="txtTransportista" contenteditable="true">---</span></div>
+      <div class="field"><b>UNIDAD:</b>
+        <span id="txtUnidad" contenteditable="true">---</span></div>
+      <div class="field"><b>MARCA:</b>
+        <span id="txtMarca" contenteditable="true">GOLDEN DRAGON</span></div>
+      <div class="field"><b>AÑO/MODELO:</b>
+        <span id="txtModelo" contenteditable="true">---</span></div>
+
+      <div class="field"><b>ODÓMETRO:</b>
+        <span id="txtKm" contenteditable="true">---</span></div>
+      <div class="field"><b>PLACAS:</b>
+        <span id="txtPlacas" contenteditable="true">---</span></div>
+      <div class="field"><b>VIN:</b>
+        <span id="txtVin" contenteditable="true">---</span></div>
+
+      <div class="field"><b>FECHA:</b>
+        <span id="txtFecha" contenteditable="true">--/--/----</span></div>
+      <div class="field carrier"><b>TRANSPORTISTA:</b>
+        <span id="txtTransportista" contenteditable="true">---</span></div>
     </div>
   </section>
 
   <section class="work">
-    <div class="bar">DESCRIPCION DEL TRABAJO REALIZADO</div>
+    <div class="bar">DESCRIPCIÓN DEL TRABAJO REALIZADO</div>
     <div class="types">
-      <span># DE MANTENIMIENTO PREVENTIVO: <b id="txtNumPreventivo" contenteditable="true">--</b></span>
+      <span># DE MANTENIMIENTO PREVENTIVO:
+        <b id="txtNumPreventivo" contenteditable="true">--</b></span>
       <span id="txtTipoManto" contenteditable="true">M7</span>
-      <span class="chk-btn" onclick="toggleChk(this)">MOTOR ( <b class="chk-v">✓</b> )</span>
-      <span class="chk-btn" onclick="toggleChk(this)">TRANSMISIÓN ( <b class="chk-v">✓</b> )</span>
-      <span class="chk-btn" onclick="toggleChk(this)">DIFERENCIAL ( <b class="chk-v">✓</b> )</span>
+      <span class="chk">MOTOR ( <b>✓</b> )</span>
+      <span class="chk">TRANSMISIÓN ( <b>✓</b> )</span>
+      <span class="chk">DIFERENCIAL ( <b>✓</b> )</span>
     </div>
     <div class="jobs">
       <div id="txtListaTrabajos" contenteditable="true">
         CAMBIO DE 24 LITROS DE ACEITE MOTOR<br>
         CAMBIO DE 2 FILTROS DE ACEITE MOTOR<br>
         CAMBIO DE 1 KIT FILTRO DE AIRE<br>
-        ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA<br>
+        ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERÍA<br>
         CAMBIO DE BALATAS DELANTERAS DE DISCO Y TRASERAS DE TAMBOR<br>
-        REVISION FUNCIONAMIENTO EN SISTEMA DE ENFRIAMIENTO DE CLIMA<br>
-        CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION<br>
-        CAMBIO DE 2 FILTROS DE ACEITE DE TRANSMISION CORRESPONDIENTES AL PERIODO<br>
+        REVISIÓN FUNCIONAMIENTO EN SISTEMA DE ENFRIAMIENTO DE CLIMA<br>
+        CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISIÓN<br>
+        CAMBIO DE 2 FILTROS DE ACEITE DE TRANSMISIÓN CORRESPONDIENTES AL PERIODO<br>
         CAMBIO DE BALEROS DELANTEROS Y TRASEROS<br>
         CAMBIO DE SECADOR COMPLETO<br>
         CAMBIO DE 1 FILTRO DE GAS DE ALTA<br>
         CAMBIO DE 1 FILTRO DE GAS DE BAJA<br>
         CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL<br>
-        REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO<br>
-        REVISION DE PERIFERICOS<br>
-        CAMBIO DE CABLES Y BUJIAS
+        REVISIÓN FUNCIONAMIENTO EN SISTEMA ELÉCTRICO<br>
+        REVISIÓN DE PERIFÉRICOS<br>
+        CAMBIO DE CABLES Y BUJÍAS
       </div>
     </div>
   </section>
 
-  <!-- FOTOS SUPERIORES -->
   <section class="photos" style="top:386pt">
     <div>
-      <div class="bar">FOTOGRAFIAS DE LA PIEZAS NUEVAS</div>
-      <div class="photo-slot-grid">
-        <div class="slot-item" onclick="triggerInput(this)">
-          <div class="hint">📷 Cargar Piezas Nuevas</div>
-          <img id="imgPiezasNuevas" alt="Piezas Nuevas">
-          <input type="file" accept="image/*" onchange="previewImg(this)">
-        </div>
-      </div>
+      <div class="bar">FOTOGRAFÍAS DE LAS PIEZAS NUEVAS</div>
+      <div class="slots" id="grupoNuevas"></div>
     </div>
     <div>
-      <div class="bar">FOTOGRAFIAS DEL TABLERO Y ECONOMICO DEL AUTOBUS</div>
-      <div class="photo-slot-grid">
-        <div class="slot-item" onclick="triggerInput(this)">
-          <div class="hint">📷 Odómetro</div>
-          <img id="imgOdometro" alt="Odómetro">
-          <input type="file" accept="image/*" onchange="previewImg(this)">
-        </div>
-        <div class="slot-item" onclick="triggerInput(this)">
-          <div class="hint">📷 Frontal / Eco</div>
-          <img id="imgFrontal" alt="Frontal Económico">
-          <input type="file" accept="image/*" onchange="previewImg(this)">
-        </div>
-      </div>
+      <div class="bar">FOTOGRAFÍAS DEL TABLERO Y ECONÓMICO DEL AUTOBÚS</div>
+      <div class="slots" id="grupoUnidad"></div>
     </div>
   </section>
 
-  <!-- FOTOS INFERIORES -->
   <section class="evidence">
-    <div class="bar">FOTOGRAFIAS DE LA EVIDENCIA DEL TRABAJO</div>
+    <div class="bar">FOTOGRAFÍAS DE LA EVIDENCIA DEL TRABAJO</div>
     <div class="photos">
       <div>
         <div class="bar">ANTES</div>
-        <div class="photo-slot-grid tall">
-          <div class="slot-item" onclick="triggerInput(this)">
-            <div class="hint">📷 Antes 1</div>
-            <img id="imgAntes1" alt="Antes 1">
-            <input type="file" accept="image/*" onchange="previewImg(this)">
-          </div>
-          <div class="slot-item" onclick="triggerInput(this)">
-            <div class="hint">📷 Antes 2</div>
-            <img id="imgAntes2" alt="Antes 2">
-            <input type="file" accept="image/*" onchange="previewImg(this)">
-          </div>
-          <div class="slot-item" onclick="triggerInput(this)">
-            <div class="hint">📷 Antes 3</div>
-            <img id="imgAntes3" alt="Antes 3">
-            <input type="file" accept="image/*" onchange="previewImg(this)">
-          </div>
-        </div>
+        <div class="slots" id="grupoAntes"></div>
       </div>
       <div>
-        <div class="bar">DESPUES</div>
-        <div class="photo-slot-grid tall">
-          <div class="slot-item" onclick="triggerInput(this)">
-            <div class="hint">📷 Después 1</div>
-            <img id="imgDespues1" alt="Después 1">
-            <input type="file" accept="image/*" onchange="previewImg(this)">
-          </div>
-          <div class="slot-item" onclick="triggerInput(this)">
-            <div class="hint">📷 Después 2</div>
-            <img id="imgDespues2" alt="Después 2">
-            <input type="file" accept="image/*" onchange="previewImg(this)">
-          </div>
-          <div class="slot-item" onclick="triggerInput(this)">
-            <div class="hint">📷 Después 3</div>
-            <img id="imgDespues3" alt="Después 3">
-            <input type="file" accept="image/*" onchange="previewImg(this)">
-          </div>
-        </div>
+        <div class="bar">DESPUÉS</div>
+        <div class="slots" id="grupoDespues"></div>
       </div>
     </div>
   </section>
@@ -528,7 +207,8 @@
   </section>
 
   <section class="institute">
-    NOMBRE Y FIRMA DE GESTION DEL TRANSPORTE DEL INSTITUTO<br>DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEON
+    NOMBRE Y FIRMA DE GESTIÓN DEL TRANSPORTE DEL INSTITUTO<br>
+    DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEÓN
   </section>
 
   <footer>
@@ -538,115 +218,338 @@
 </div>
 
 <script>
-  function toggleChk(el) {
-    const v = el.querySelector('.chk-v');
-    v.innerHTML = (v.innerHTML.trim() === '✓') ? '&nbsp;&nbsp;' : '✓';
+"use strict";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
+  authDomain: "gestion-servicios-ego.firebaseapp.com",
+  projectId: "gestion-servicios-ego",
+  storageBucket: "gestion-servicios-ego.firebasestorage.app",
+  messagingSenderId: "378018276879",
+  appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
+};
+
+const $ = id => document.getElementById(id);
+let db = null;
+let cargando = false;
+
+function mensaje(texto, error = false) {
+  $("estado").textContent = texto;
+  $("estado").style.color = error ? "#fecaca" : "#fff";
+}
+
+try {
+  if (!window.firebase) throw new Error("No se descargó el SDK de Firebase.");
+
+  const app = firebase.apps.length
+    ? firebase.app()
+    : firebase.initializeApp(firebaseConfig);
+
+  if (app.options.projectId !== firebaseConfig.projectId) {
+    throw new Error("La aplicación Firebase pertenece a otro proyecto.");
   }
 
-  function triggerInput(slot) {
-    const input = slot.querySelector('input[type="file"]');
-    if (input) input.click();
-  }
+  db = app.firestore();
+} catch (error) {
+  mensaje("No se pudo iniciar Firebase: " + error.message, true);
+}
 
-  function previewImg(input) {
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      const slot = input.parentElement;
-      const img = slot.querySelector('img');
-      const hint = slot.querySelector('.hint');
+// La clave de cada posición coincide con la guardada desde taller.html.
+const posiciones = [
+  ["grupoNuevas", "nuevas", "Piezas nuevas"],
+  ["grupoUnidad", "odo", "Odómetro"],
+  ["grupoUnidad", "frontal", "Frontal / económico"],
+  ["grupoAntes", "antes1", "Antes 1"],
+  ["grupoAntes", "antes2", "Antes 2"],
+  ["grupoAntes", "antes3", "Antes 3"],
+  ["grupoDespues", "despues1", "Después 1"],
+  ["grupoDespues", "despues2", "Después 2"],
+  ["grupoDespues", "despues3", "Después 3"]
+];
 
-      reader.onload = function(e) {
-        img.src = e.target.result;
-        img.style.display = 'block';
-        if (hint) hint.style.display = 'none';
+const slots = new Map();
+
+for (const [grupo, clave, titulo] of posiciones) {
+  const slot = document.createElement("label");
+  slot.className = "slot";
+
+  const hint = document.createElement("span");
+  hint.className = "hint";
+  hint.textContent = "📷 " + titulo;
+
+  const img = document.createElement("img");
+  img.alt = titulo;
+  img.hidden = true;
+
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.setAttribute("aria-label", "Seleccionar " + titulo);
+
+  input.addEventListener("change", async () => {
+    const archivo = input.files[0];
+    if (!archivo) return;
+
+    const url = URL.createObjectURL(archivo);
+    try {
+      await mostrarImagen(clave, url);
+    } catch (error) {
+      mensaje(error.message, true);
+    } finally {
+      URL.revokeObjectURL(url);
+      input.value = "";
+    }
+  });
+
+  slot.append(hint, img, input);
+  $(grupo).append(slot);
+  slots.set(clave, { img, hint, input, titulo });
+}
+
+// Espera a que la imagen cargue realmente; no basta con asignar img.src.
+function mostrarImagen(clave, url) {
+  const slot = slots.get(clave);
+
+  return new Promise((resolve, reject) => {
+    const img = slot.img;
+    let terminado = false;
+
+    function finalizar(error) {
+      if (terminado) return;
+      terminado = true;
+      clearTimeout(limite);
+      img.onload = null;
+      img.onerror = null;
+
+      if (error) {
+        img.hidden = true;
+        img.removeAttribute("src");
+        slot.hint.hidden = false;
+        slot.hint.textContent = "No se pudo cargar: " + slot.titulo;
+        reject(error);
+      } else {
+        img.hidden = false;
+        slot.hint.hidden = true;
+        resolve();
       }
-      reader.readAsDataURL(input.files[0]);
+    }
+
+    const limite = setTimeout(() => {
+      finalizar(new Error("Tiempo agotado al cargar " + slot.titulo + "."));
+    }, 30000);
+
+    img.hidden = true;
+    slot.hint.hidden = false;
+    slot.hint.textContent = "Cargando " + slot.titulo + "...";
+
+    img.onload = () => finalizar();
+    img.onerror = () => finalizar(
+      new Error("El enlace no permite cargar " + slot.titulo + ".")
+    );
+
+    img.src = url;
+  });
+}
+
+function limpiarDatos(unidad) {
+  const valores = {
+    txtUnidad: unidad,
+    txtMarca: "GOLDEN DRAGON",
+    txtModelo: "---",
+    txtKm: "---",
+    txtPlacas: "---",
+    txtVin: "---",
+    txtFecha: "--/--/----",
+    txtTransportista: "---"
+  };
+
+  for (const [id, valor] of Object.entries(valores)) {
+    $(id).textContent = valor;
+  }
+
+  for (const slot of slots.values()) {
+    slot.img.onload = null;
+    slot.img.onerror = null;
+    slot.img.removeAttribute("src");
+    slot.img.hidden = true;
+    slot.hint.hidden = false;
+    slot.hint.textContent = "📷 " + slot.titulo;
+    slot.input.value = "";
+  }
+}
+
+function cargarCatalogo(unidad) {
+  const catalogo = window.catalogoUnidades;
+  const camion = catalogo && catalogo[unidad];
+
+  if (!camion) return false;
+
+  const valores = {
+    txtMarca: camion.m,
+    txtModelo: camion.y,
+    txtVin: camion.vin,
+    txtTransportista: camion.emp,
+    txtPlacas: camion.pl
+  };
+
+  for (const [id, valor] of Object.entries(valores)) {
+    if (valor !== undefined && valor !== null && valor !== "") {
+      $(id).textContent = String(valor);
     }
   }
 
-  function setImgSrc(imgId, url) {
-    if (!url || typeof url !== 'string' || url.trim() === '') return;
-    const img = document.getElementById(imgId);
-    if (img) {
-      img.src = url.trim();
-      img.style.display = "block";
-      img.style.width = "100%";
-      img.style.height = "100%";
-      img.style.objectFit = "cover";
-      const hint = img.parentElement ? img.parentElement.querySelector('.hint') : null;
-      if (hint) hint.style.display = "none";
-    }
+  return true;
+}
+
+function formatearFecha(valor) {
+  if (!valor) return "--/--/----";
+
+  if (typeof valor.toDate === "function") {
+    return valor.toDate().toLocaleDateString("es-MX");
   }
 
-  function formatearFecha(fStr) {
-    if (!fStr) return "--/--/----";
-    const p = fStr.split('-');
-    if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`;
-    return fStr;
+  const texto = String(valor);
+  const partes = /^(\d{4})-(\d{2})-(\d{2})/.exec(texto);
+
+  return partes
+    ? `${partes[3]}/${partes[2]}/${partes[1]}`
+    : texto;
+}
+
+async function cargarUnidad() {
+  if (cargando) return;
+
+  const unidad = $("buscarUnidad").value.trim();
+  if (!/^\d+$/.test(unidad)) {
+    mensaje("Ingresa un número de unidad válido.", true);
+    return;
   }
 
-  function initAutoload() {
-    const params = new URLSearchParams(window.location.search);
-    const u = params.get('unidad');
-    if (u) {
-      document.getElementById('buscarUnidad').value = u;
-      cargarUnidad();
-    }
-  }
+  cargando = true;
+  $("btnCargar").disabled = true;
+  $("btnImprimir").disabled = true;
+  $("buscarUnidad").disabled = true;
 
-  async function cargarUnidad() {
-    const inputEl = document.getElementById('buscarUnidad');
-    const unidad = inputEl ? inputEl.value.trim() : "";
-    if (!unidad) return;
+  for (const slot of slots.values()) slot.input.disabled = true;
 
-    document.getElementById('txtUnidad').textContent = unidad;
+  limpiarDatos(unidad);
+  const enCatalogo = cargarCatalogo(unidad);
+  const avisoCatalogo = enCatalogo
+    ? ""
+    : "\nNo se encontró la unidad en catalogo.js; completa sus datos manualmente.";
 
-    // 1. Cargar datos del catálogo local optimizado
-    if (window.catalogoUnidades && window.catalogoUnidades[unidad]) {
-      const c = window.catalogoUnidades[unidad];
-      if (c.vin) document.getElementById('txtVin').textContent = c.vin;
-      if (c.m) document.getElementById('txtMarca').textContent = c.m;
-      if (c.y) document.getElementById('txtModelo').textContent = c.y;
-      if (c.emp) document.getElementById('txtTransportista').textContent = c.emp;
-      if (c.pl) document.getElementById('txtPlacas').textContent = c.pl;
-    }
+  try {
+    if (!db) throw new Error("Firebase no está conectado.");
 
-    if (!db) {
-      alert("⚠️ Firebase no se encuentra conectado.");
+    mensaje("Consultando evidencias de la unidad " + unidad + "...");
+
+    const documento = await db.collection("evidencias_mantenimiento")
+      .doc("EV_" + unidad)
+      .get();
+
+    if (!documento.exists) {
+      mensaje(
+        "No existe el documento EV_" + unidad +
+        ". Primero guarda las evidencias desde taller.html." + avisoCatalogo,
+        true
+      );
       return;
     }
 
-    try {
-      // 2. Traer evidencias y odómetro guardados con ID directo 'EV_unidad'
-      const docSnap = await db.collection("evidencias_mantenimiento").doc(`EV_${unidad}`).get();
+    const datos = documento.data();
 
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        if (data.km) document.getElementById('txtKm').textContent = Number(data.km).toLocaleString('es-MX') + " KM";
-        if (data.fecha) document.getElementById('txtFecha').textContent = formatearFecha(data.fecha);
-
-        const fotos = data.fotos || {};
-        if (fotos.odo) setImgSrc("imgOdometro", fotos.odo);
-        if (fotos.frontal) setImgSrc("imgFrontal", fotos.frontal);
-        if (fotos.nuevas) setImgSrc("imgPiezasNuevas", fotos.nuevas);
-        if (fotos.antes1) setImgSrc("imgAntes1", fotos.antes1);
-        if (fotos.antes2) setImgSrc("imgAntes2", fotos.antes2);
-        if (fotos.antes3) setImgSrc("imgAntes3", fotos.antes3);
-        if (fotos.despues1) setImgSrc("imgDespues1", fotos.despues1);
-        if (fotos.despues2) setImgSrc("imgDespues2", fotos.despues2);
-        if (fotos.despues3) setImgSrc("imgDespues3", fotos.despues3);
-
-        alert(`✅ Evidencias de la unidad ${unidad} cargadas correctamente.`);
-      } else {
-        alert(`ℹ️ No hay evidencias registradas en Firestore para la unidad ${unidad}. Súbelas primero desde taller.html.`);
-      }
-
-    } catch (err) {
-      console.error("Error al consultar:", err);
-      alert("Error al consultar Firestore: " + err.message);
+    if (datos.km !== undefined && datos.km !== null && datos.km !== "") {
+      const km = Number(datos.km);
+      $("txtKm").textContent = Number.isFinite(km)
+        ? km.toLocaleString("es-MX") + " KM"
+        : String(datos.km);
     }
-  }
-</script>
 
+    $("txtFecha").textContent = formatearFecha(datos.fecha);
+
+    const fotos = datos.fotos || {};
+    const disponibles = posiciones.filter(([, clave]) => {
+      return typeof fotos[clave] === "string" && fotos[clave].trim();
+    });
+
+    if (!disponibles.length) {
+      mensaje(
+        "El documento existe, pero no contiene enlaces de fotografías." +
+        "\nVuelve a subirlas desde taller.html." + avisoCatalogo,
+        true
+      );
+      return;
+    }
+
+    mensaje(`Cargando ${disponibles.length} fotografía(s)...`);
+
+    const resultados = await Promise.allSettled(
+      disponibles.map(([, clave]) => {
+        const url = fotos[clave].trim();
+
+        // taller.html guarda enlaces HTTPS de Cloudinary.
+        if (!/^https?:\/\//i.test(url)) {
+          const slot = slots.get(clave);
+          slot.hint.textContent = "Enlace inválido: " + slot.titulo;
+          return Promise.reject(
+            new Error("La foto " + clave + " no contiene una URL HTTP/HTTPS.")
+          );
+        }
+
+        return mostrarImagen(clave, url);
+      })
+    );
+
+    const errores = resultados.filter(r => r.status === "rejected");
+    const correctas = resultados.length - errores.length;
+
+    errores.forEach(r => console.error(r.reason));
+
+    mensaje(
+      `Unidad ${unidad}: ${correctas} de ${disponibles.length} foto(s) cargadas.` +
+      (errores.length
+        ? "\nHay enlaces que no se pudieron abrir. Revisa esas fotos."
+        : "") +
+      avisoCatalogo,
+      errores.length > 0
+    );
+  } catch (error) {
+    console.error("Error al consultar evidencias:", error);
+    mensaje("No se pudieron consultar las evidencias: " + error.message, true);
+  } finally {
+    cargando = false;
+    $("btnCargar").disabled = false;
+    $("btnImprimir").disabled = false;
+    $("buscarUnidad").disabled = false;
+    for (const slot of slots.values()) slot.input.disabled = false;
+  }
+}
+
+document.querySelectorAll(".chk").forEach(elemento => {
+  elemento.addEventListener("click", () => {
+    const marca = elemento.querySelector("b");
+    marca.textContent = marca.textContent.trim() === "✓" ? "\u00a0" : "✓";
+  });
+});
+
+$("btnCargar").addEventListener("click", cargarUnidad);
+
+$("buscarUnidad").addEventListener("keydown", evento => {
+  if (evento.key === "Enter") {
+    evento.preventDefault();
+    cargarUnidad();
+  }
+});
+
+$("btnImprimir").addEventListener("click", () => window.print());
+
+// Permite abrir el formato desde taller.html con ?unidad=3134.
+const unidadInicial = new URLSearchParams(location.search).get("unidad");
+
+if (unidadInicial) {
+  $("buscarUnidad").value = unidadInicial;
+  cargarUnidad();
+}
+</script>
 </body>
 </html>
