@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Carga Rápida de Evidencias - Taller EGO</title>
 
-  <!-- Firebase Compat -->
+  <!-- SDK Firebase Compat -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -42,14 +42,14 @@
       color: #22c55e;
     }
     .brand-title span { color: #ef4444; }
-    .grid-2 {
+    .grid-3 {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
     }
     label {
       display: block;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: bold;
       color: #cbd5e1;
       margin-bottom: 5px;
@@ -57,8 +57,8 @@
     }
     input {
       width: 100%;
-      padding: 10px;
-      font-size: 16px;
+      padding: 10px 6px;
+      font-size: 15px;
       font-weight: bold;
       text-align: center;
       background: #0f172a;
@@ -156,21 +156,25 @@
 <div class="app-card">
   <div class="header-logo">
     <div class="brand-title">e<span>·</span>go 🛠️ EVIDENCIAS</div>
-    <div style="font-size: 11px; font-weight: bold; color: #38bdf8;">TALLER DIRECTO</div>
+    <div style="font-size: 11px; font-weight: bold; color: #38bdf8;">TALLER RÁPIDO</div>
   </div>
 
-  <div class="grid-2">
+  <div class="grid-3">
     <div>
-      <label>Unidad (Económico)</label>
+      <label>Unidad</label>
       <input type="number" id="unidadNum" placeholder="Ej. 3122" inputmode="numeric">
     </div>
     <div>
-      <label>Kilometraje Actual</label>
-      <input type="number" id="kmNum" placeholder="Ej. 250333" inputmode="numeric">
+      <label>Kilometraje</label>
+      <input type="number" id="kmNum" placeholder="250333" inputmode="numeric">
+    </div>
+    <div>
+      <label>Fecha</label>
+      <input type="date" id="fechaManual" style="font-size: 12px; padding: 11px 4px;">
     </div>
   </div>
 
-  <!-- FOTOS IDENTIFICACIÓN -->
+  <!-- 1. IDENTIFICACIÓN -->
   <div class="section-title">🚌 1. Tablero y Frontal de Unidad</div>
   <div class="photo-grid double">
     <div class="photo-btn" onclick="triggerPick(this)">
@@ -187,7 +191,7 @@
     </div>
   </div>
 
-  <!-- REFACCIONES NUEVAS -->
+  <!-- 2. REFACCIONES NUEVAS -->
   <div class="section-title">📦 2. Refacciones Nuevas (Almacén)</div>
   <div class="photo-grid single">
     <div class="photo-btn" onclick="triggerPick(this)">
@@ -198,7 +202,7 @@
     </div>
   </div>
 
-  <!-- ANTES -->
+  <!-- 3. ANTES -->
   <div class="section-title">⚠️ 3. Piezas Viejas / Desmontadas (Antes)</div>
   <div class="photo-grid">
     <div class="photo-btn" onclick="triggerPick(this)">
@@ -221,7 +225,7 @@
     </div>
   </div>
 
-  <!-- DESPUÉS -->
+  <!-- 4. DESPUÉS -->
   <div class="section-title">✅ 4. Trabajo Terminado / Instalado (Después)</div>
   <div class="photo-grid">
     <div class="photo-btn" onclick="triggerPick(this)">
@@ -245,7 +249,7 @@
   </div>
 
   <div class="progress-box" id="progressBox">
-    <div class="progress-text" id="progressText">Comprimiendo y guardando evidencias...</div>
+    <div class="progress-text" id="progressText">Comprimiendo y subiendo imágenes...</div>
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progressBar"></div>
     </div>
@@ -257,6 +261,9 @@
 </div>
 
 <script>
+  // Inicializar fecha de hoy por defecto
+  document.getElementById('fechaManual').value = new Date().toLocaleDateString('en-CA');
+
   const firebaseConfig = {
     apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
     authDomain: "gestion-servicios-ego.firebaseapp.com",
@@ -335,9 +342,11 @@
   async function subirTodo() {
     const unidad = document.getElementById("unidadNum").value.trim();
     const km = document.getElementById("kmNum").value.trim();
+    const fecha = document.getElementById("fechaManual").value;
 
     if (!unidad) return alert("Por favor ingresa el número de unidad.");
     if (!km) return alert("Por favor ingresa el kilometraje.");
+    if (!fecha) return alert("Por favor selecciona una fecha.");
 
     const inputs = [
       { id: "fotoOdo", key: "odo" },
@@ -386,14 +395,13 @@
       progressText.textContent = "Guardando en la base de datos...";
       progressBar.style.width = "95%";
 
-      const fechaHoy = new Date().toLocaleDateString('en-CA');
       const docId = `EV_${unidad}`;
 
-      // Guardamos directamente por ID de unidad para lectura inmediata sin filtros
+      // Guardamos directo por ID de unidad
       await db.collection("evidencias_mantenimiento").doc(docId).set({
         unidad: String(unidad),
         km: km,
-        fecha: fechaHoy,
+        fecha: fecha,
         timestamp: Date.now(),
         fotos: fotosUrls
       }, { merge: true });
