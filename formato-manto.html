@@ -246,7 +246,7 @@ button:disabled{opacity:.6;cursor:wait}
   display:flex;
 }
 
-/* FOTOGRAFÍAS COMPLETAS, SIN RECORTES */
+/* FOTOGRAFÍAS AL LÍMITE SIN ZOOM NI RECORTES */
 .slot{
   position:relative;
   flex:1;
@@ -268,7 +268,7 @@ button:disabled{opacity:.6;cursor:wait}
   display:block;
   width:100%;
   height:100%;
-  object-fit:contain;
+  object-fit:fill; /* Ajuste perfecto al borde */
   object-position:center;
   background:#fff;
 }
@@ -349,7 +349,7 @@ button:disabled{opacity:.6;cursor:wait}
   .slot{border-right:0;background:white}
 
   .slot img{
-    object-fit:contain;
+    object-fit:fill; /* Ajuste perfecto en impresión */
     object-position:center;
   }
 }
@@ -1080,7 +1080,12 @@ async function cargarUnidad() {
 
     const resultados = await Promise.allSettled(
       disponibles.map(([, clave]) => {
-        const url = fotos[clave].trim();
+        let url = fotos[clave].trim();
+        
+        // Optimización de Cloudinary para que cargue ultra rápido
+        if (url.includes('/upload/')) {
+          url = url.replace('/upload/', '/upload/q_auto,f_auto,w_800/');
+        }
 
         if (!/^https?:\/\//i.test(url)) {
           slots.get(clave).hint.textContent = "Enlace inválido";
@@ -1108,7 +1113,7 @@ async function cargarUnidad() {
       `Unidad ${unidad}: ${correctas} de ${disponibles.length} foto(s) cargadas.` +
       (datos.tipoMantenimiento
         ? `\nMantenimiento: ${datos.tipoMantenimiento}` +
-          ` · Número: ${datos.numeroMantenimiento ?? "--"}`
+        ` · Número: ${datos.numeroMantenimiento ?? "--"}`
         : "") +
       (errores.length
         ? "\nHay enlaces que no se pudieron abrir. Revisa esas fotos."
@@ -1138,6 +1143,16 @@ document.querySelectorAll(".chk").forEach(elemento => {
     marca.textContent = marca.textContent.trim() === "✓"
       ? "\u00a0"
       : "✓";
+  });
+});
+
+// BLOQUEAR LA TECLA ENTER EN LOS CAMPOS EDITABLES
+document.querySelectorAll('[contenteditable="true"]').forEach(campo => {
+  campo.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      campo.blur();
+    }
   });
 });
 
