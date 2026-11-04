@@ -368,6 +368,7 @@ button:disabled{opacity:.6;cursor:wait}
   <select id="seleccionTipo">
     <option value="">Selecciona...</option>
     <option value="M1">M1</option>
+    <option value="M1-MD">M1-MD</option>
     <option value="M2">M2</option>
     <option value="M3">M3</option>
     <option value="M4">M4</option>
@@ -603,6 +604,13 @@ const MANTENIMIENTOS = {
     REVISION_BALATAS,
     CLIMA
   ]),
+
+  "M1-MD": ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    "REVISION Y AJUSTE EN TERMINALES DE DIRECCION"
+  ], false, true),
 
   M2: ficha([
     ...BASE,
