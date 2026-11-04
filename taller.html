@@ -53,7 +53,7 @@ h2{
   border:2px dashed #64748b;border-radius:8px;
   background:#0f172a;color:#cbd5e1;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  text-align:center
+  text-align:center; transition: border-color 0.2s;
 }
 .foto input{
   position:absolute;inset:0;width:100%;height:100%;
@@ -63,8 +63,11 @@ h2{
   position:absolute;width:100%;height:100%;
   object-fit:cover
 }
-.foto span{padding:6px;font-size:12px}
+.foto span{padding:6px;font-size:12px; pointer-events: none;}
 .foto:focus-within{outline:2px solid #38bdf8}
+.foto.has-photo { border: 2px solid #22c55e; }
+.foto:hover { border-color: #38bdf8; }
+
 button{
   width:100%;margin-top:18px;padding:14px;border:0;
   border-radius:8px;background:#16a34a;color:white;
@@ -79,6 +82,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
 .nota{font-size:12px;color:#cbd5e1;line-height:1.5}
 #verFormato{display:block;margin-top:12px;color:#7dd3fc}
 [hidden]{display:none!important}
+.tip-paste { font-size: 11px; color: #94a3b8; text-align: center; margin-bottom: 12px; }
 </style>
 </head>
 
@@ -128,6 +132,10 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
 
     <div id="resumenManto" class="resumen" aria-live="polite">
       Selecciona el tipo para consultar sus trabajos y casillas.
+    </div>
+    
+    <div class="tip-paste">
+      💡 <b>Tip:</b> Pega imágenes copiadas presionando <b>Ctrl+V</b>
     </div>
 
     <h2>1. Tablero y frontal de unidad</h2>
@@ -356,10 +364,48 @@ $("fechaManual").value =
   `${String(hoy.getMonth() + 1).padStart(2, "0")}-` +
   String(hoy.getDate()).padStart(2, "0");
 
+// LÓGICA DE PEGADO CTRL+V
+let slotHovered = null;
+window.addEventListener('paste', e => {
+  let blob = null;
+  if (e.clipboardData && e.clipboardData.items) {
+    for (let item of e.clipboardData.items) {
+      if (item.type.startsWith("image/")) {
+        blob = item.getAsFile();
+        break;
+      }
+    }
+  }
+  if (!blob) return;
+
+  // Pega en el slot donde está el mouse, o en el primer slot sin foto
+  let target = slotHovered;
+  if (!target || target.classList.contains("has-photo")) {
+    target = document.querySelector('.foto:not(.has-photo)');
+  }
+  
+  if (target) {
+    const input = target.querySelector('input[type="file"]');
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(new File([blob], "foto_pegada.png", { type: blob.type }));
+    input.files = dataTransfer.files;
+    
+    // Forzamos el evento 'change'
+    const ev = new Event('change', { bubbles: true });
+    input.dispatchEvent(ev);
+  } else {
+    alert("Todos los recuadros ya tienen foto asignada.");
+  }
+});
+
 // CREAR SELECTORES DE FOTOGRAFÍAS
 for (const [grupo, clave, titulo] of posiciones) {
   const tarjeta = document.createElement("label");
   tarjeta.className = "foto";
+
+  // Controlar hover para Ctrl+V
+  tarjeta.addEventListener('mouseenter', () => slotHovered = tarjeta);
+  tarjeta.addEventListener('mouseleave', () => { if(slotHovered === tarjeta) slotHovered = null; });
 
   const texto = document.createElement("span");
   texto.textContent = "📷 " + titulo;
@@ -401,6 +447,7 @@ for (const [grupo, clave, titulo] of posiciones) {
         imagen.hidden = false;
         texto.hidden = true;
         tarjeta.style.borderColor = "#22c55e";
+        tarjeta.classList.add("has-photo");
 
         const anterior = tarjeta.dataset.preview;
         tarjeta.dataset.preview = url;
@@ -417,6 +464,7 @@ for (const [grupo, clave, titulo] of posiciones) {
       input.value = "";
       imagen.hidden = true;
       texto.hidden = false;
+      tarjeta.classList.remove("has-photo");
 
       mensaje(
         "No se pudo abrir " + titulo +
@@ -654,8 +702,6 @@ $("formulario").addEventListener("submit", async evento => {
     mensaje("Guardando mantenimiento y fotografías en Firestore...");
     $("progreso").value = 95;
 
-    // Se guardan el tipo, número, trabajos y casillas.
-    // Solo se actualizan las fotos seleccionadas.
     await db.collection("evidencias_mantenimiento")
       .doc("EV_" + unidad)
       .set({
@@ -685,7 +731,9 @@ $("formulario").addEventListener("submit", async evento => {
     $("verFormato").hidden = false;
 
     seleccionadas.forEach(item => {
+      const labelElement = $("foto-" + item.clave).parentElement;
       $("foto-" + item.clave).value = "";
+      labelElement.classList.remove("has-photo");
     });
   } catch (error) {
     console.error("Error en " + etapa, error);
