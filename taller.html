@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Carga de evidencias - Taller EGO</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -12,44 +12,49 @@
 *{box-sizing:border-box}
 body{
   margin:0;padding:16px;background:#0f172a;color:#f8fafc;
-  font:14px Arial,sans-serif
+  font:14px -apple-system, BlinkMacSystemFont, Arial, sans-serif
 }
 .app{
   max-width:480px;margin:auto;padding:18px;
-  background:#1e293b;border-radius:12px
+  background:#1e293b;border-radius:12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
-h1{font-size:21px;color:#22c55e;margin:0 0 18px}
+h1{font-size:21px;color:#22c55e;margin:0 0 18px; text-align: center;}
 .datos{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:8px
+  gap:10px
 }
 .mantenimiento{
-  display:grid;grid-template-columns:1fr 1fr;gap:8px
+  display:grid;grid-template-columns:1fr 1fr;gap:10px
 }
-label{display:block;font-size:11px;font-weight:bold}
+label{display:block;font-size:11px;font-weight:bold; margin-bottom: 2px;}
 input,select{
-  width:100%;margin:6px 0 12px;padding:10px 5px;
-  border:1px solid #38bdf8;border-radius:6px;
-  background:#0f172a;color:white;font:inherit
+  width:100%;margin:4px 0 12px;padding:11px 8px;
+  border:1px solid #38bdf8;border-radius:8px;
+  background:#0f172a;color:white;font:inherit;
+  outline:none;
 }
+input:focus, select:focus { border-color: #22c55e; }
 h2{
   font-size:13px;background:#0f172a;
-  padding:9px;color:#38bdf8
+  padding:10px;color:#38bdf8; border-radius: 6px;
+  margin-top: 15px; margin-bottom: 10px;
 }
 .resumen{
   padding:12px;background:#0f172a;border-radius:8px;
-  font-size:11px;line-height:1.5;white-space:pre-line
+  font-size:11px;line-height:1.5;white-space:pre-line;
+  border: 1px dashed #475569;
 }
 .fotos{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:8px
+  gap:10px
 }
 .doble{grid-template-columns:repeat(2,minmax(0,1fr))}
 .simple{grid-template-columns:1fr}
 .foto{
-  position:relative;height:100px;overflow:hidden;
+  position:relative;height:110px;overflow:hidden;
   border:2px dashed #64748b;border-radius:8px;
   background:#0f172a;color:#cbd5e1;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
@@ -69,20 +74,30 @@ h2{
 .foto:hover { border-color: #38bdf8; }
 
 button{
-  width:100%;margin-top:18px;padding:14px;border:0;
+  width:100%;margin-top:20px;padding:15px;border:0;
   border-radius:8px;background:#16a34a;color:white;
-  font-weight:bold;font-size:15px;cursor:pointer
+  font-weight:bold;font-size:15px;cursor:pointer;
+  transition: background 0.2s;
 }
+button:active{background:#15803d;}
 button:disabled{background:#64748b;cursor:wait}
-progress{width:100%;margin-top:16px;accent-color:#22c55e}
+progress{width:100%;margin-top:16px;accent-color:#22c55e; height: 10px; border-radius: 5px;}
 #estado{
   white-space:pre-wrap;font-size:13px;
-  line-height:1.5;overflow-wrap:anywhere
+  line-height:1.5;overflow-wrap:anywhere;
+  margin-top: 10px; text-align: center;
 }
-.nota{font-size:12px;color:#cbd5e1;line-height:1.5}
-#verFormato{display:block;margin-top:12px;color:#7dd3fc}
+.nota{font-size:12px;color:#cbd5e1;line-height:1.5; margin-top: 15px;}
+#verFormato{display:block;margin-top:15px;color:#7dd3fc; text-align: center; font-weight: bold; font-size: 14px;}
 [hidden]{display:none!important}
-.tip-paste { font-size: 11px; color: #94a3b8; text-align: center; margin-bottom: 12px; }
+.tip-paste { font-size: 12px; color: #94a3b8; text-align: center; margin: 12px 0; background: #0f172a; padding: 8px; border-radius: 6px; }
+
+@media (max-width: 450px) {
+  .datos { grid-template-columns: 1fr; gap: 4px; }
+  .mantenimiento { grid-template-columns: 1fr; gap: 4px; }
+  .fotos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .foto { height: 130px; }
+}
 </style>
 </head>
 
@@ -100,7 +115,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
 
       <label>Kilometraje
         <input id="kmNum" type="number"
-          min="0" step="1" placeholder="271079" required>
+          min="0" step="1" placeholder="271079" inputmode="numeric" required>
       </label>
 
       <label>Fecha
@@ -118,6 +133,8 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
           <option value="M1-MD">M1-MD</option>
           <option value="M2">M2</option>
           <option value="M3">M3</option>
+          <option value="M3-MFT">M3-MFT</option>
+          <option value="MD">MD</option>
           <option value="M4">M4</option>
           <option value="M5">M5</option>
           <option value="M6">M6</option>
@@ -127,7 +144,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
 
       <label>N.º de mantenimiento preventivo
         <input id="numeroMantenimiento" type="number"
-          min="1" step="1" placeholder="Ej. 15" required>
+          min="1" step="1" placeholder="Ej. 15" inputmode="numeric" required>
       </label>
     </div>
 
@@ -136,7 +153,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e}
     </div>
     
     <div class="tip-paste">
-      💡 <b>Tip:</b> Pega imágenes copiadas presionando <b>Ctrl+V</b>
+      💡 <b>Tip PC:</b> Pega imágenes copiadas presionando <b>Ctrl+V</b>
     </div>
 
     <h2>1. Tablero y frontal de unidad</h2>
@@ -189,11 +206,13 @@ let db = null;
 let ocupado = false;
 
 // TRABAJOS COMPARTIDOS
+const ENGRASADO = "ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA";
+
 const BASE = [
   "CAMBIO DE 24 LITROS DE ACEITE MOTOR",
   "CAMBIO DE 2 FILTROS DE ACEITE MOTOR",
   "CAMBIO DE 1 KIT FILTRO DE AIRE",
-  "ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA"
+  ENGRASADO
 ];
 
 const REVISION_BALATAS =
@@ -213,18 +232,20 @@ const FILTROS_GAS = [
   "CAMBIO DE 1 FILTRO DE GAS DE BAJA"
 ];
 
-function ficha(trabajos, transmision = false, diferencial = false) {
+const DIFERENCIAL_13L = "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL";
+
+function ficha(trabajos, transmision = false, diferencial = false, motor = true) {
   return {
     trabajos,
     sistemas: {
-      motor: true,
+      motor,
       transmision,
       diferencial
     }
   };
 }
 
-// MANTENIMIENTOS M1 A M7
+// MANTENIMIENTOS M1 A M7 + M3-MFT + MD
 const MANTENIMIENTOS = {
   M1: ficha([
     ...BASE,
@@ -235,7 +256,7 @@ const MANTENIMIENTOS = {
   "M1-MD": ficha([
     ...BASE,
     CAMBIO_BALATAS,
-    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    DIFERENCIAL_13L,
     "REVISION Y AJUSTE EN TERMINALES DE DIRECCION"
   ], false, true),
 
@@ -253,11 +274,26 @@ const MANTENIMIENTOS = {
   M3: ficha([
     ...BASE,
     CAMBIO_BALATAS,
-    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    DIFERENCIAL_13L,
     "REVISION Y AJUSTE EN TERMINALES DE DIRECCION",
     "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
     "REVISION DE BOBINAS Y ARNES DE BOBINAS"
   ], false, true),
+
+  "M3-MFT": ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    DIFERENCIAL_13L,
+    "REVISION Y AJUSTE EN TERMINALES DE DIRECCION",
+    "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
+    "REVISION DE BOBINAS Y ARNES DE BOBINAS",
+    FILTROS_TRANSMISION
+  ], true, true, true), // Motor, Transmisión y Diferencial
+
+  MD: ficha([
+    DIFERENCIAL_13L,
+    ENGRASADO
+  ], false, true, false), // Solo Diferencial
 
   M4: ficha([
     ...BASE,
@@ -301,7 +337,7 @@ const MANTENIMIENTOS = {
     "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
     "CAMBIO DE SECADOR COMPLETO",
     ...FILTROS_GAS,
-    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    DIFERENCIAL_13L,
     "REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO",
     "REVISION DE PERIFERICOS",
     "CAMBIO DE CABLES Y BUJIAS"
@@ -386,7 +422,6 @@ window.addEventListener('paste', e => {
   }
   if (!blob) return;
 
-  // Pega en el slot donde está el mouse, o en el primer slot sin foto
   let target = slotHovered;
   if (!target || target.classList.contains("has-photo")) {
     target = document.querySelector('.foto:not(.has-photo)');
@@ -398,7 +433,6 @@ window.addEventListener('paste', e => {
     dataTransfer.items.add(new File([blob], "foto_pegada.png", { type: blob.type }));
     input.files = dataTransfer.files;
     
-    // Forzamos el evento 'change'
     const ev = new Event('change', { bubbles: true });
     input.dispatchEvent(ev);
   } else {
@@ -411,7 +445,6 @@ for (const [grupo, clave, titulo] of posiciones) {
   const tarjeta = document.createElement("label");
   tarjeta.className = "foto";
 
-  // Controlar hover para Ctrl+V
   tarjeta.addEventListener('mouseenter', () => slotHovered = tarjeta);
   tarjeta.addEventListener('mouseleave', () => { if(slotHovered === tarjeta) slotHovered = null; });
 
@@ -425,7 +458,6 @@ for (const [grupo, clave, titulo] of posiciones) {
   const input = document.createElement("input");
   input.type = "file";
   input.accept = "image/*";
-  input.setAttribute("capture", "environment");
   input.setAttribute("aria-label", titulo);
   input.id = "foto-" + clave;
 
