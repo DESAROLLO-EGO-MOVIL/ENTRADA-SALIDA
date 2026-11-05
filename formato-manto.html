@@ -268,7 +268,7 @@ button:disabled{opacity:.6;cursor:wait}
   display:block;
   width:100%;
   height:100%;
-  object-fit:fill; /* Ajuste perfecto al borde */
+  object-fit:fill;
   object-position:center;
   background:#fff;
 }
@@ -349,7 +349,7 @@ button:disabled{opacity:.6;cursor:wait}
   .slot{border-right:0;background:white}
 
   .slot img{
-    object-fit:fill; /* Ajuste perfecto en impresión */
+    object-fit:fill;
     object-position:center;
   }
 }
@@ -371,6 +371,8 @@ button:disabled{opacity:.6;cursor:wait}
     <option value="M1-MD">M1-MD</option>
     <option value="M2">M2</option>
     <option value="M3">M3</option>
+    <option value="M3-MFT">M3-MFT</option>
+    <option value="MD">MD</option>
     <option value="M4">M4</option>
     <option value="M5">M5</option>
     <option value="M6">M6</option>
@@ -562,11 +564,13 @@ let cargando = false;
 let preparandoImpresion = false;
 
 // TRABAJOS COMPARTIDOS
+const ENGRASADO = "ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA";
+
 const BASE = [
   "CAMBIO DE 24 LITROS DE ACEITE MOTOR",
   "CAMBIO DE 2 FILTROS DE ACEITE MOTOR",
   "CAMBIO DE 1 KIT FILTRO DE AIRE",
-  "ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA"
+  ENGRASADO
 ];
 
 const REVISION_BALATAS =
@@ -586,18 +590,20 @@ const FILTROS_GAS = [
   "CAMBIO DE 1 FILTRO DE GAS DE BAJA"
 ];
 
-function ficha(trabajos, transmision = false, diferencial = false) {
+const DIFERENCIAL_13L = "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL";
+
+function ficha(trabajos, transmision = false, diferencial = false, motor = true) {
   return {
     trabajos,
     sistemas: {
-      motor: true,
+      motor,
       transmision,
       diferencial
     }
   };
 }
 
-// MANTENIMIENTOS M1 A M7
+// MANTENIMIENTOS M1 A M7 + M3-MFT + MD
 const MANTENIMIENTOS = {
   M1: ficha([
     ...BASE,
@@ -608,7 +614,7 @@ const MANTENIMIENTOS = {
   "M1-MD": ficha([
     ...BASE,
     CAMBIO_BALATAS,
-    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    DIFERENCIAL_13L,
     "REVISION Y AJUSTE EN TERMINALES DE DIRECCION"
   ], false, true),
 
@@ -626,11 +632,26 @@ const MANTENIMIENTOS = {
   M3: ficha([
     ...BASE,
     CAMBIO_BALATAS,
-    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    DIFERENCIAL_13L,
     "REVISION Y AJUSTE EN TERMINALES DE DIRECCION",
     "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
     "REVISION DE BOBINAS Y ARNES DE BOBINAS"
   ], false, true),
+
+  "M3-MFT": ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    DIFERENCIAL_13L,
+    "REVISION Y AJUSTE EN TERMINALES DE DIRECCION",
+    "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
+    "REVISION DE BOBINAS Y ARNES DE BOBINAS",
+    FILTROS_TRANSMISION
+  ], true, true, true), // Motor (✓), Transmisión (✓), Diferencial (✓)
+
+  MD: ficha([
+    DIFERENCIAL_13L,
+    ENGRASADO
+  ], false, true, false), // Solo Diferencial (✓)
 
   M4: ficha([
     ...BASE,
@@ -674,7 +695,7 @@ const MANTENIMIENTOS = {
     "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
     "CAMBIO DE SECADOR COMPLETO",
     ...FILTROS_GAS,
-    "CAMBIO DE 13 LITROS DE ACEITE DE DIFERENCIAL",
+    DIFERENCIAL_13L,
     "REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO",
     "REVISION DE PERIFERICOS",
     "CAMBIO DE CABLES Y BUJIAS"
@@ -1090,7 +1111,6 @@ async function cargarUnidad() {
       disponibles.map(([, clave]) => {
         let url = fotos[clave].trim();
         
-        // Optimización de Cloudinary para que cargue ultra rápido
         if (url.includes('/upload/')) {
           url = url.replace('/upload/', '/upload/q_auto,f_auto,w_800/');
         }
