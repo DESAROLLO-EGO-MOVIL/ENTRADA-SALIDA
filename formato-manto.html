@@ -629,11 +629,11 @@ button:disabled{opacity:.6;cursor:wait}
     ANEXO: IDENTIFICACIONES OFICIALES (INE) DE LOS FIRMANTES
   </div>
 
-  <!-- INE ARRENDADORA (FIJA: AMÉRICO) -->
+  <!-- INE ARRENDADORA (FIJA) -->
   <div class="seccion-ine">
     <div class="ine-header-barra">
       <span>1. INE DE ARRENDADORA: EGO MOVIL S.A. DE C.V.</span>
-      <span id="anexoNombreArrendadora">AMÉRICO (JEFE DE MECÁNICOS)</span>
+      <span id="anexoNombreArrendadora">DIRECTOR DE OPERACIONES</span>
     </div>
     <div class="ine-contenedor-fotos">
       <div class="ine-box">
@@ -877,7 +877,7 @@ try {
   mensaje("No se pudo iniciar Firebase: " + error.message, true);
 }
 
-// ASIGNACIÓN DINÁMICA DE LA INE DEL TRANSPORTISTA (Tolerante a espacios, comas y puntos)
+// ASIGNACIÓN DINÁMICA DE LA INE DEL TRANSPORTISTA
 function actualizarIneTransportista(nombreEmpresa) {
   const empLimpia = (nombreEmpresa || "").trim().toUpperCase();
   $("anexoEmpresaTransportista").textContent = empLimpia || "---";
