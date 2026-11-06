@@ -687,17 +687,17 @@ let preparandoImpresion = false;
 
 // ===== CATÁLOGO DE INES POR EMPRESA / TRANSPORTISTA =====
 const CATALOGO_INES_TRANSPORTISTAS = {
-  "CAMIONES MONTERREY,S.A": {
+  "CAMIONES MONTERREY": {
     representante: "REPRESENTANTE LEGAL",
     frontal: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985138/WhatsApp_Image_2026-11-06_at_11.11.18_AM_x7fod8.jpg",
     trasera: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985121/WhatsApp_Image_2026-11-06_at_11.11.25_AM_h1rxex.jpg"
   },
-  "LAZCANO,S.A": {
+  "LAZCANO": {
     representante: "REPRESENTANTE LEGAL",
     frontal: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985994/WhatsApp_Image_2026-11-06_at_11.24.57_AM_yncgcy.jpg",
     trasera: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985973/WhatsApp_Image_2026-11-06_at_11.25.37_AM_in21lk.jpg"
   },
-  "UNION DE PERMISIONARIOS RUTA LARGA 3, S.A DE C.V.": {
+  "RUTA 218": {
     representante: "REPRESENTANTE LEGAL",
     frontal: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985692/WhatsApp_Image_2026-11-06_at_11.20.38_AM_ja9um5.jpg",
     trasera: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985683/WhatsApp_Image_2026-11-06_at_11.21.05_AM_e5xx8q.jpg"
@@ -754,7 +754,7 @@ function ficha(trabajos, transmision = false, diferencial = false, motor = true)
   };
 }
 
-// MANTENIMIENTOS
+// MANTENIMIENTOS M1 A M7 + M3-MFT + MD
 const MANTENIMIENTOS = {
   M1: ficha([
     ...BASE,
@@ -797,12 +797,12 @@ const MANTENIMIENTOS = {
     "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
     "REVISION DE BOBINAS Y ARNES DE BOBINAS",
     FILTROS_TRANSMISION
-  ], true, true, true),
+  ], true, true, true), // Motor (✓), Transmisión (✓), Diferencial (✓)
 
   MD: ficha([
     DIFERENCIAL_13L,
     ENGRASADO
-  ], false, true, false),
+  ], false, true, false), // Solo Diferencial (✓)
 
   M4: ficha([
     ...BASE,
@@ -877,18 +877,21 @@ try {
   mensaje("No se pudo iniciar Firebase: " + error.message, true);
 }
 
-// ASIGNACIÓN DINÁMICA DE LA INE DEL TRANSPORTISTA
+// ASIGNACIÓN DINÁMICA DE LA INE DEL TRANSPORTISTA (Tolerante a espacios, comas y puntos)
 function actualizarIneTransportista(nombreEmpresa) {
   const empLimpia = (nombreEmpresa || "").trim().toUpperCase();
   $("anexoEmpresaTransportista").textContent = empLimpia || "---";
 
   let datosIne = CATALOGO_INES_TRANSPORTISTAS["DEFAULT"];
 
-  for (const [clave, conf] of Object.entries(CATALOGO_INES_TRANSPORTISTAS)) {
-    if (clave !== "DEFAULT" && empLimpia.includes(clave.toUpperCase())) {
-      datosIne = conf;
-      break;
-    }
+  if (empLimpia.includes("MONTERREY")) {
+    datosIne = CATALOGO_INES_TRANSPORTISTAS["CAMIONES MONTERREY"];
+  } else if (empLimpia.includes("LAZCANO")) {
+    datosIne = CATALOGO_INES_TRANSPORTISTAS["LAZCANO"];
+  } else if (empLimpia.includes("LARGA") || empLimpia.includes("218") || empLimpia.includes("PERMISIONARIOS")) {
+    datosIne = CATALOGO_INES_TRANSPORTISTAS["RUTA 218"];
+  } else if (empLimpia.includes("AGILSA") || empLimpia.includes("233") || empLimpia.includes("234")) {
+    datosIne = CATALOGO_INES_TRANSPORTISTAS["RUTA AGILSA"];
   }
 
   $("anexoRepresentanteTransportista").textContent = datosIne.representante;
