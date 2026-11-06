@@ -86,6 +86,7 @@ button:disabled{opacity:.6;cursor:wait}
   background:white;
   color:black;
   font:7.5pt/1.2 Calibri,Arial,sans-serif;
+  margin-bottom: 20px;
 }
 
 /* ENCABEZADO Y LOGOS */
@@ -167,7 +168,6 @@ button:disabled{opacity:.6;cursor:wait}
   overflow-wrap:anywhere;
 }
 
-/* TRANSPORTISTA JUNTO AL RENGLÓN */
 .mp .carrier{
   grid-column:span 2;
   align-items:flex-end;
@@ -246,7 +246,6 @@ button:disabled{opacity:.6;cursor:wait}
   display:flex;
 }
 
-/* FOTOGRAFÍAS AL LÍMITE SIN ZOOM NI RECORTES */
 .slot{
   position:relative;
   flex:1;
@@ -327,6 +326,79 @@ button:disabled{opacity:.6;cursor:wait}
 .mp footer{top:757pt;font-size:6pt}
 [hidden]{display:none!important}
 
+/* ===== ESTILOS DE LA PÁGINA ANEXA DE INES ===== */
+.pagina-anexo {
+  box-sizing: border-box;
+  padding: 30pt 58pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.anexo-titulo {
+  background: #f2f2f2;
+  border: 1pt solid #000;
+  text-align: center;
+  font-size: 11pt;
+  font-weight: bold;
+  padding: 6pt;
+  margin-bottom: 12pt;
+}
+
+.seccion-ine {
+  border: 1pt solid #333;
+  padding: 10pt;
+  background: #fafafa;
+  border-radius: 4pt;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12pt;
+}
+
+.seccion-ine:last-child {
+  margin-bottom: 0;
+}
+
+.ine-header-barra {
+  background: #e2e8f0;
+  padding: 5pt;
+  font-weight: bold;
+  font-size: 8.5pt;
+  border-left: 4pt solid #0284c7;
+  margin-bottom: 8pt;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ine-contenedor-fotos {
+  display: flex;
+  gap: 12pt;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.ine-box {
+  flex: 1;
+  height: 100%;
+  max-height: 145pt;
+  border: 1pt dashed #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  overflow: hidden;
+  border-radius: 4pt;
+}
+
+.ine-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
 @media print{
   @page{size:letter;margin:0}
 
@@ -341,8 +413,15 @@ button:disabled{opacity:.6;cursor:wait}
 
   .mp{
     break-inside:avoid;
+    page-break-after: always;
     print-color-adjust:exact;
     -webkit-print-color-adjust:exact;
+    margin-bottom: 0;
+  }
+
+  .pagina-anexo {
+    page-break-before: always;
+    break-inside: avoid;
   }
 
   .hint,.slot input{display:none!important}
@@ -388,8 +467,7 @@ button:disabled{opacity:.6;cursor:wait}
   </button>
 
   <small>
-    El tipo y el número se recuperan desde Taller.
-    Los ajustes hechos aquí son solo para imprimir.
+    El tipo, transportista e identificaciones INE se configuran automáticamente al ingresar la unidad.
   </small>
 </div>
 
@@ -398,6 +476,7 @@ button:disabled{opacity:.6;cursor:wait}
 </p>
 
 <div class="mp-wrap">
+<!-- ================= PÁGINA 1: FORMATO DE MANTENIMIENTO ================= -->
 <article class="mp">
 
   <header>
@@ -543,6 +622,49 @@ button:disabled{opacity:.6;cursor:wait}
   </footer>
 
 </article>
+
+<!-- ================= PÁGINA 2: ANEXO DE INEs ================= -->
+<article class="mp pagina-anexo">
+  <div class="anexo-titulo">
+    ANEXO: IDENTIFICACIONES OFICIALES (INE) DE LOS FIRMANTES
+  </div>
+
+  <!-- INE ARRENDADORA (FIJA) -->
+  <div class="seccion-ine">
+    <div class="ine-header-barra">
+      <span>1. INE DE ARRENDADORA: EGO MOVIL S.A. DE C.V.</span>
+      <span id="anexoNombreArrendadora">AMÉRICO (JEFE DE MECÁNICOS)</span>
+    </div>
+    <div class="ine-contenedor-fotos">
+      <div class="ine-box">
+        <img id="imgIneArrendadoraFrontal" src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985314/AMERICO_INE_nivz2t.jpg" alt="INE Arrendadora Frontal">
+      </div>
+      <div class="ine-box">
+        <img id="imgIneArrendadoraTrasera" src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985314/AMERICO_INE_nivz2t.jpg" alt="INE Arrendadora Reverso">
+      </div>
+    </div>
+  </div>
+
+  <!-- INE TRANSPORTISTA (DINÁMICA POR EMPRESA) -->
+  <div class="seccion-ine">
+    <div class="ine-header-barra" style="border-left-color: #16a34a;">
+      <span>2. INE DE TRANSPORTISTA: <span id="anexoEmpresaTransportista">---</span></span>
+      <span id="anexoRepresentanteTransportista">REPRESENTANTE ASIGNADO</span>
+    </div>
+    <div class="ine-contenedor-fotos">
+      <div class="ine-box">
+        <img id="imgIneTransportistaFrontal" src="https://via.placeholder.com/400x250?text=INE+Transportista+Frontal" alt="INE Transportista Frontal">
+      </div>
+      <div class="ine-box">
+        <img id="imgIneTransportistaTrasera" src="https://via.placeholder.com/400x250?text=INE+Transportista+Reverso" alt="INE Transportista Reverso">
+      </div>
+    </div>
+  </div>
+
+  <footer style="position: static; text-align: center; font-size: 6.5pt; color: #555; padding-top: 5pt;">
+    DOCUMENTO VINCULADO AL EXPEDIENTE DE MANTENIMIENTO PREVENTIVO DE LA UNIDAD <b id="anexoUnidadFooter">---</b>.
+  </footer>
+</article>
 </div>
 
 <script>
@@ -562,6 +684,35 @@ const $ = id => document.getElementById(id);
 let db = null;
 let cargando = false;
 let preparandoImpresion = false;
+
+// ===== CATÁLOGO DE INES POR EMPRESA / TRANSPORTISTA =====
+const CATALOGO_INES_TRANSPORTISTAS = {
+  "CAMIONES MONTERREY,S.A": {
+    representante: "REPRESENTANTE LEGAL",
+    frontal: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985138/WhatsApp_Image_2026-11-06_at_11.11.18_AM_x7fod8.jpg",
+    trasera: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985121/WhatsApp_Image_2026-11-06_at_11.11.25_AM_h1rxex.jpg"
+  },
+  "LAZCANO,S.A": {
+    representante: "REPRESENTANTE LEGAL",
+    frontal: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985994/WhatsApp_Image_2026-11-06_at_11.24.57_AM_yncgcy.jpg",
+    trasera: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985973/WhatsApp_Image_2026-11-06_at_11.25.37_AM_in21lk.jpg"
+  },
+  "UNION DE PERMISIONARIOS RUTA LARGA 3, S.A DE C.V.": {
+    representante: "REPRESENTANTE LEGAL",
+    frontal: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985692/WhatsApp_Image_2026-11-06_at_11.20.38_AM_ja9um5.jpg",
+    trasera: "https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985683/WhatsApp_Image_2026-11-06_at_11.21.05_AM_e5xx8q.jpg"
+  },
+  "RUTA AGILSA": {
+    representante: "REPRESENTANTE LEGAL",
+    frontal: "https://via.placeholder.com/400x250?text=INE+Agilsa+Frontal",
+    trasera: "https://via.placeholder.com/400x250?text=INE+Agilsa+Reverso"
+  },
+  "DEFAULT": {
+    representante: "REPRESENTANTE DE EMPRESA",
+    frontal: "https://via.placeholder.com/400x250?text=INE+Transportista+Frontal",
+    trasera: "https://via.placeholder.com/400x250?text=INE+Transportista+Reverso"
+  }
+};
 
 // TRABAJOS COMPARTIDOS
 const ENGRASADO = "ENGRASADO GENERAL A LA UNIDAD EN CHASIS Y CARROCERIA";
@@ -603,7 +754,7 @@ function ficha(trabajos, transmision = false, diferencial = false, motor = true)
   };
 }
 
-// MANTENIMIENTOS M1 A M7 + M3-MFT + MD
+// MANTENIMIENTOS
 const MANTENIMIENTOS = {
   M1: ficha([
     ...BASE,
@@ -646,12 +797,12 @@ const MANTENIMIENTOS = {
     "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
     "REVISION DE BOBINAS Y ARNES DE BOBINAS",
     FILTROS_TRANSMISION
-  ], true, true, true), // Motor (✓), Transmisión (✓), Diferencial (✓)
+  ], true, true, true),
 
   MD: ficha([
     DIFERENCIAL_13L,
     ENGRASADO
-  ], false, true, false), // Solo Diferencial (✓)
+  ], false, true, false),
 
   M4: ficha([
     ...BASE,
@@ -726,6 +877,25 @@ try {
   mensaje("No se pudo iniciar Firebase: " + error.message, true);
 }
 
+// ASIGNACIÓN DINÁMICA DE LA INE DEL TRANSPORTISTA
+function actualizarIneTransportista(nombreEmpresa) {
+  const empLimpia = (nombreEmpresa || "").trim().toUpperCase();
+  $("anexoEmpresaTransportista").textContent = empLimpia || "---";
+
+  let datosIne = CATALOGO_INES_TRANSPORTISTAS["DEFAULT"];
+
+  for (const [clave, conf] of Object.entries(CATALOGO_INES_TRANSPORTISTAS)) {
+    if (clave !== "DEFAULT" && empLimpia.includes(clave.toUpperCase())) {
+      datosIne = conf;
+      break;
+    }
+  }
+
+  $("anexoRepresentanteTransportista").textContent = datosIne.representante;
+  $("imgIneTransportistaFrontal").src = datosIne.frontal;
+  $("imgIneTransportistaTrasera").src = datosIne.trasera;
+}
+
 // APLICAR TIPO, NÚMERO, DESCRIPCIÓN Y CASILLAS
 function aplicarMantenimiento(tipo, numero, trabajosGuardados, sistemasGuardados) {
   const mantenimiento = MANTENIMIENTOS[tipo];
@@ -769,7 +939,7 @@ function aplicarMantenimiento(tipo, numero, trabajosGuardados, sistemasGuardados
     sistemas.diferencial === true ? "✓" : "\u00a0";
 }
 
-// AJUSTES MANUALES PARA LA IMPRESIÓN
+// AJUSTES MANUALES
 $("seleccionTipo").addEventListener("change", () => {
   aplicarMantenimiento(
     $("seleccionTipo").value,
@@ -952,6 +1122,8 @@ function limpiarDatos(unidad) {
     $(id).textContent = valor;
   }
 
+  $("anexoUnidadFooter").textContent = unidad;
+  actualizarIneTransportista("---");
   aplicarMantenimiento("", null);
 
   for (const slot of slots.values()) {
@@ -989,6 +1161,9 @@ function cargarCatalogo(unidad) {
       $(id).textContent = String(valor);
     }
   }
+
+  $("anexoUnidadFooter").textContent = unidad;
+  actualizarIneTransportista(camion.emp);
 
   return true;
 }
@@ -1163,7 +1338,7 @@ async function cargarUnidad() {
   }
 }
 
-// AJUSTAR CASILLAS PARA LA IMPRESIÓN
+// AJUSTAR CASILLAS
 document.querySelectorAll(".chk").forEach(elemento => {
   elemento.addEventListener("click", () => {
     const marca = elemento.querySelector("b");
@@ -1174,7 +1349,7 @@ document.querySelectorAll(".chk").forEach(elemento => {
   });
 });
 
-// BLOQUEAR LA TECLA ENTER EN LOS CAMPOS EDITABLES
+// BLOQUEAR TECLA ENTER
 document.querySelectorAll('[contenteditable="true"]').forEach(campo => {
   campo.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
@@ -1193,7 +1368,7 @@ $("buscarUnidad").addEventListener("keydown", evento => {
   }
 });
 
-// ESPERAR A QUE LOS LOGOS E IMÁGENES ESTÉN LISTOS PARA IMPRIMIR
+// IMPRIMIR / PDF
 async function imprimirFormato() {
   if (
     cargando ||
@@ -1224,7 +1399,7 @@ async function imprimirFormato() {
   } catch (error) {
     mensaje(
       "No se pudo preparar una imagen para imprimir. " +
-      "Revisa que ambos logos y las fotografías se vean completos.\n" +
+      "Revisa que ambos logos, las evidencias y las INEs se vean completas.\n" +
       error.message,
       true
     );
@@ -1236,7 +1411,7 @@ async function imprimirFormato() {
 
 $("btnImprimir").addEventListener("click", imprimirFormato);
 
-// ABRIR DIRECTAMENTE DESDE TALLER CON ?unidad=3134
+// ABRIR DIRECTAMENTE CON ?unidad=3134
 const unidadInicial = new URLSearchParams(location.search).get("unidad");
 
 if (unidadInicial) {
