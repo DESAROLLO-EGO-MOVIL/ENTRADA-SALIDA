@@ -629,7 +629,7 @@ button:disabled{opacity:.6;cursor:wait}
     ANEXO: IDENTIFICACIONES OFICIALES (INE) DE LOS FIRMANTES
   </div>
 
-  <!-- INE ARRENDADORA (FIJA) -->
+  <!-- INE ARRENDADORA (FIJA: AMÉRICO) -->
   <div class="seccion-ine">
     <div class="ine-header-barra">
       <span>1. INE DE ARRENDADORA: EGO MOVIL S.A. DE C.V.</span>
@@ -640,7 +640,7 @@ button:disabled{opacity:.6;cursor:wait}
         <img id="imgIneArrendadoraFrontal" src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985314/AMERICO_INE_nivz2t.jpg" alt="INE Arrendadora Frontal">
       </div>
       <div class="ine-box">
-        <img id="imgIneArrendadoraTrasera" src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985314/AMERICO_INE_nivz2t.jpg" alt="INE Arrendadora Reverso">
+        <img id="imgIneArrendadoraTrasera" src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1793985321/AMERICO_INE_PARTE_DE_ATRAS_b5glrn.jpg" alt="INE Arrendadora Reverso">
       </div>
     </div>
   </div>
@@ -754,7 +754,7 @@ function ficha(trabajos, transmision = false, diferencial = false, motor = true)
   };
 }
 
-// MANTENIMIENTOS M1 A M7 + M3-MFT + MD
+// MANTENIMIENTOS
 const MANTENIMIENTOS = {
   M1: ficha([
     ...BASE,
@@ -797,12 +797,12 @@ const MANTENIMIENTOS = {
     "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
     "REVISION DE BOBINAS Y ARNES DE BOBINAS",
     FILTROS_TRANSMISION
-  ], true, true, true), // Motor (✓), Transmisión (✓), Diferencial (✓)
+  ], true, true, true),
 
   MD: ficha([
     DIFERENCIAL_13L,
     ENGRASADO
-  ], false, true, false), // Solo Diferencial (✓)
+  ], false, true, false),
 
   M4: ficha([
     ...BASE,
