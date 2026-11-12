@@ -16,6 +16,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
+    <!-- Catálogo oficial de unidades (VIN, Rutas, Empresas) -->
+    <script src="catalogo.js"></script>
+
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
         .container { max-width: 440px; width: 100%; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); box-sizing: border-box; }
@@ -696,8 +699,8 @@
 </div>
 
 <script>
-    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 27.0) =====
-    const VERSION_APP = "27.0";
+    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 27.1) =====
+    const VERSION_APP = "27.1";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -754,18 +757,26 @@
         }, 1000);
     }
 
-    // ===== FUNCIÓN PARA ABRIR HOJA DE SERVICIO DIRECTAMENTE =====
+    // ===== FUNCIÓN PARA ABRIR HOJA DE SERVICIO DIRECTAMENTE CON LAS 5 FOTOS Y VIN =====
     function abrirHojaServicioGenerada(u, r, km, folio, fecha, manto, comentarios, obsEst, fotoFrontal, fotoTrasera, fotoDerecha, fotoIzquierda, fotoLicencia) {
         const rutaLimpia = r || obtenerRutaDeUnidad(u);
-        const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${encodeURIComponent(u)}&ruta=${encodeURIComponent(rutaLimpia)}&km=${encodeURIComponent(km || '0')}&folio=${encodeURIComponent(folio || 'N/A')}&fecha=${encodeURIComponent(fecha || '')}&comentarios=${encodeURIComponent(comentarios || '')}&obsest=${encodeURIComponent(obsEst || '')}&manto=${encodeURIComponent(manto || '')}&f_frontal=${encodeURIComponent(fotoFrontal || '')}&f_trasera=${encodeURIComponent(fotoTrasera || '')}&f_derecha=${encodeURIComponent(fotoDerecha || '')}&f_izquierda=${encodeURIComponent(fotoIzquierda || '')}&f_licencia=${encodeURIComponent(fotoLicencia || '')}`;
+        let vinLimpio = "";
+        if (window.catalogoUnidades && window.catalogoUnidades[String(u).trim()]) {
+            vinLimpio = window.catalogoUnidades[String(u).trim()].vin || "";
+        }
+        const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${encodeURIComponent(u)}&vin=${encodeURIComponent(vinLimpio)}&ruta=${encodeURIComponent(rutaLimpia)}&km=${encodeURIComponent(km || '0')}&folio=${encodeURIComponent(folio || 'N/A')}&fecha=${encodeURIComponent(fecha || '')}&comentarios=${encodeURIComponent(comentarios || '')}&obsest=${encodeURIComponent(obsEst || '')}&manto=${encodeURIComponent(manto || '')}&f_frontal=${encodeURIComponent(fotoFrontal || '')}&f_trasera=${encodeURIComponent(fotoTrasera || '')}&f_derecha=${encodeURIComponent(fotoDerecha || '')}&f_izquierda=${encodeURIComponent(fotoIzquierda || '')}&f_licencia=${encodeURIComponent(fotoLicencia || '')}`;
         window.open(urlServicio, '_blank');
     }
 
-    // ===== FUNCIÓN PARA ABRIR FORMATO DE ENTREGA (SALIDA) DIRECTAMENTE CON FOTO LICENCIA =====
+    // ===== FUNCIÓN PARA ABRIR FORMATO DE ENTREGA (SALIDA) DIRECTAMENTE CON FOTO LICENCIA Y VIN =====
     function abrirHojaSalidaGenerada(u, r, km, fecha, manto, comentarios, fotoLicencia) {
         const rutaLimpia = r || obtenerRutaDeUnidad(u);
+        let vinLimpio = "";
+        if (window.catalogoUnidades && window.catalogoUnidades[String(u).trim()]) {
+            vinLimpio = window.catalogoUnidades[String(u).trim()].vin || "";
+        }
         const fLic = fotoLicencia || '';
-        const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${encodeURIComponent(u)}&ruta=${encodeURIComponent(rutaLimpia)}&km=${encodeURIComponent(km || '0')}&fecha=${encodeURIComponent(fecha || '')}&comentarios=${encodeURIComponent(comentarios || '')}&movimiento=SALIDA&manto=${encodeURIComponent(manto || 'PREVENTIVO')}&f_licencia=${encodeURIComponent(fLic)}`;
+        const urlServicio = `https://desarollo-ego-movil.github.io/gestion-servicios-ego/?unidad=${encodeURIComponent(u)}&vin=${encodeURIComponent(vinLimpio)}&ruta=${encodeURIComponent(rutaLimpia)}&km=${encodeURIComponent(km || '0')}&fecha=${encodeURIComponent(fecha || '')}&comentarios=${encodeURIComponent(comentarios || '')}&movimiento=SALIDA&manto=${encodeURIComponent(manto || 'PREVENTIVO')}&f_licencia=${encodeURIComponent(fLic)}`;
         window.open(urlServicio, '_blank');
     }
 
@@ -1009,9 +1020,12 @@
             const cSafe = (item.comentarios || '').replace(/'/g, "\\'").replace(/\n/g, ' ');
             const estSafe = (item.obsEsteticas || '').replace(/'/g, "\\'").replace(/\n/g, ' ');
             const ffSafe = (item.fotoFrontal || '').replace(/'/g, "\\'");
+            const ftSafe = (item.fotoTrasera || '').replace(/'/g, "\\'");
+            const fdSafe = (item.fotoDerecha || '').replace(/'/g, "\\'");
+            const fiSafe = (item.fotoIzquierda || '').replace(/'/g, "\\'");
             const flSafe = (item.fotoLicencia || '').replace(/'/g, "\\'");
 
-            const btnVerHoja = `<button type="button" style="background:#ff9800; color:white; border:none; border-radius:4px; padding:3px 6px; font-size:10px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:2px;" onclick="abrirHojaServicioGenerada('${uSafe}', '${rSafe}', '${kmSafe}', '${folSafe}', '${fSafe}', '${mSafe}', '${cSafe}', '${estSafe}', '${ffSafe}', '', '', '', '${flSafe}')">📋 Hoja</button>`;
+            const btnVerHoja = `<button type="button" style="background:#ff9800; color:white; border:none; border-radius:4px; padding:3px 6px; font-size:10px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:2px;" onclick="abrirHojaServicioGenerada('${uSafe}', '${rSafe}', '${kmSafe}', '${folSafe}', '${fSafe}', '${mSafe}', '${cSafe}', '${estSafe}', '${ffSafe}', '${ftSafe}', '${fdSafe}', '${fiSafe}', '${flSafe}')">📋 Hoja</button>`;
             const btnFotoOdo = item.fotoOdo ? `<button type="button" style="background:#0284c7; color:white; border:none; border-radius:4px; padding:3px 6px; font-size:10px; cursor:pointer; width:100%;" onclick="window.open('${item.fotoOdo}', '_blank')">📷 Odómetro</button>` : '';
 
             tr.innerHTML = `
@@ -1165,6 +1179,9 @@
             const cSafe = (item.comentarios || '').replace(/'/g, "\\'").replace(/\n/g, ' ');
             const estSafe = (item.obsEsteticas || '').replace(/'/g, "\\'").replace(/\n/g, ' ');
             const ffSafe = (item.fotoFrontal || '').replace(/'/g, "\\'");
+            const ftSafe = (item.fotoTrasera || '').replace(/'/g, "\\'");
+            const fdSafe = (item.fotoDerecha || '').replace(/'/g, "\\'");
+            const fiSafe = (item.fotoIzquierda || '').replace(/'/g, "\\'");
             const flSafe = (item.fotoLicencia || '').replace(/'/g, "\\'");
 
             const tr = document.createElement('tr');
@@ -1183,7 +1200,7 @@
                     ${item.comentarios || 'Sin observaciones mecánicas'}
                 </td>
                 <td class="no-print" style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">
-                    <button type="button" style="background: #ff9800; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 3px; width: 100%;" onclick="abrirHojaServicioGenerada('${uSafe}', '${rSafe}', '${kmSafe}', '${folSafe}', '${fSafe}', '${mSafe}', '${cSafe}', '${estSafe}', '${ffSafe}', '', '', '', '${flSafe}')">📋 Hoja</button>
+                    <button type="button" style="background: #ff9800; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 3px; width: 100%;" onclick="abrirHojaServicioGenerada('${uSafe}', '${rSafe}', '${kmSafe}', '${folSafe}', '${fSafe}', '${mSafe}', '${cSafe}', '${estSafe}', '${ffSafe}', '${ftSafe}', '${fdSafe}', '${fiSafe}', '${flSafe}')">📋 Hoja</button>
                     <button type="button" style="background: #0284c7; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 3px; width: 100%;" onclick="abrirModalEdicionEstadia('${item.unidad}')">✏️ Editar</button>
                     <button type="button" style="background: #e11d48; color: white; border: none; border-radius: 4px; padding: 4px 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-bottom: 3px; width: 100%;" onclick="darSalidaDirectaDesdeEstadia('${item.unidad}', '${item.ruta}')">📤 Salida</button>
                     <button type="button" class="btn-quitar-fila" onclick="eliminarUnidadDeEstadia('${item.unidad}')">✕</button>
@@ -2006,7 +2023,7 @@
                 urlsFotosCache = { urlOdo, urlFro, urlLic, urlVin, urlTra, urlDer, urlIzq };
             }
 
-            // ===== GUARDAR ENTRADA HISTÓRICA Y PATIO =====
+            // ===== GUARDAR ENTRADA HISTÓRICA Y PATIO CON TODAS LAS FOTOS =====
             if (MODO_SELECCIONADO === "ENTRADA") {
                 status.innerText = "Registrando entrada en base de datos...";
                 const regEntradaCompleto = {
@@ -2023,6 +2040,10 @@
                     fotoOdo: urlsFotosCache.urlOdo,
                     fotoFrontal: urlsFotosCache.urlFro,
                     fotoLicencia: urlsFotosCache.urlLic,
+                    fotoVin: urlsFotosCache.urlVin,
+                    fotoTrasera: urlsFotosCache.urlTra,
+                    fotoDerecha: urlsFotosCache.urlDer,
+                    fotoIzquierda: urlsFotosCache.urlIzq,
                     estatus: "EN_TALLER",
                     timestamp: Date.now()
                 };
