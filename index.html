@@ -230,7 +230,7 @@
         <button class="btn-principal btn-modo" onclick="abrirFormulario('ENTRADA')">📥 ENTRADA DE UNIDAD</button>
         <button class="btn-principal btn-modo" onclick="abrirFormulario('SALIDA')">📤 SALIDA DE UNIDAD</button>
         
-        <button class="btn-principal btn-modo" style="border-color: #475569; color: #334155; background: #f8fafc;" onclick="consultarEstadoUnidadRapido()">🔍 CONSULTAR ESTADO DE UNIDAD</button>
+        <button class="btn-principal btn-modo" style="border-color: #475569; color: #334155; background: #f8fafc;" onclick="abrirModalEstadoUnidad()">🔍 CONSULTAR ESTADO DE UNIDAD</button>
         <button class="btn-principal btn-modo" style="border-color: #1e3a8a; color: #1e3a8a; background: #eff6ff;" onclick="abrirModalRegistroEntradas()">📋 REGISTRO DE ENTRADAS (HISTORIAL)</button>
         <button class="btn-principal btn-modo" style="border-color: #0d9488; color: #0d9488; background: #f0fdfa;" onclick="abrirModalEstadia()">⏱️ ÍNDICE DE ESTADÍA (EN PATIO)</button>
         <button class="btn-principal btn-modo" style="border-color: #0284c7; color: #0284c7; background: #f0f9ff;" onclick="abrirGeneradorCitas()">🎟️ GENERAR CITA PREVIA (QR)</button>
@@ -451,6 +451,52 @@
 
         <button id="btnRegistrar" class="btn-principal" onclick="iniciarRegistro()">REGISTRAR DATOS</button>
         <button id="btnAtras" class="btn-principal" style="background-color: #666; font-size: 14px;" onclick="cerrarFormulario()">ATRÁS</button>
+    </div>
+</div>
+
+<!-- ================= MODAL DE CONSULTA DE HISTORIAL POR UNIDAD (BAJO DEMANDA) ================= -->
+<div id="modalEstadoUnidad" class="modal-fullscreen">
+    <div class="modal-contenedor-ancho">
+        <div class="no-print" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <h2 style="margin: 0; font-size: 16px; color: #0f172a; text-align: left;">🔍 HISTORIAL Y ESTADO POR UNIDAD</h2>
+            <div style="display: flex; gap: 6px;">
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #198754;" onclick="imprimirModalEspecifico('modalEstadoUnidad')">🖨 Imprimir</button>
+                <button type="button" class="btn-principal" style="padding: 8px 12px; margin: 0; font-size: 12px; background: #666;" onclick="cerrarModalEstadoUnidad()">Cerrar</button>
+            </div>
+        </div>
+
+        <div class="barra-busqueda-patio no-print" style="border-color: #334155;">
+            <span style="font-size: 16px;">🚌</span>
+            <input type="text" id="inputBusquedaUnidadEstado" placeholder="Escribe el número de unidad (Ej: 3206 o 7000) y dale Buscar..." onkeypress="if(event.key === 'Enter') ejecutarBusquedaEstadoUnidad()">
+            <button type="button" class="btn-principal" style="width: auto; padding: 8px 16px; margin: 0; font-size: 13px; background: #1a73e8;" onclick="ejecutarBusquedaEstadoUnidad()">🔍 Buscar</button>
+        </div>
+
+        <!-- TARJETA DE ESTATUS ACTUAL EN PATIO -->
+        <div id="resumenEstadoActualUnidad" style="display: none; margin-bottom: 15px; padding: 14px; border-radius: 8px; border: 2px solid #cbd5e1; background: #f8fafc;"></div>
+
+        <!-- TABLA DE TODOS LOS MOVIMIENTOS DE ESA UNIDAD -->
+        <div id="contenedorHistorialUnidadTabla" style="display: none;">
+            <h3 style="margin: 0 0 8px 0; font-size: 13px; color: #1e293b; text-transform: uppercase;">📋 Bitácora Completa de Movimientos de la Unidad <span id="lblUnidadHistorialTitulo" style="color:#1a73e8;"></span> (<span id="lblTotalMovimientosUnidad">0</span> registros)</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 10px;">
+                <thead>
+                    <tr style="background: #e2e8f0; border: 1px solid #64748b; text-align: left;">
+                        <th style="padding: 6px; border: 1px solid #64748b; width: 95px; text-align: center;">Fecha y Hora</th>
+                        <th style="padding: 6px; border: 1px solid #64748b; width: 75px; text-align: center;">Movimiento</th>
+                        <th style="padding: 6px; border: 1px solid #64748b; width: 105px;">Ruta</th>
+                        <th style="padding: 6px; border: 1px solid #64748b; width: 70px; text-align: right;">Km</th>
+                        <th style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Folio / Estadía</th>
+                        <th style="padding: 6px; border: 1px solid #64748b; width: 85px; text-align: center;">Mtto.</th>
+                        <th style="padding: 6px; border: 1px solid #64748b;">Comentarios / Reporte</th>
+                        <th class="no-print" style="padding: 6px; border: 1px solid #64748b; width: 90px; text-align: center;">Documento</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaEstadoUnidad"></tbody>
+            </table>
+        </div>
+
+        <p id="msgInicialEstadoUnidad" style="text-align: center; color: #64748b; font-size: 13px; padding: 25px 10px; font-weight: bold;">
+            Escribe un número de unidad arriba y presiona Buscar para cargar todos sus registros de entrada y salida.
+        </p>
     </div>
 </div>
 
@@ -699,8 +745,8 @@
 </div>
 
 <script>
-    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 27.1) =====
-    const VERSION_APP = "27.1";
+    // ===== FORZADO ANTI-CACHÉ (VERSIÓN 27.2 - BÚSQUEDA HISTORIAL POR UNIDAD) =====
+    const VERSION_APP = "27.2";
 
     (function verificarVersion() {
         const versionGuardada = localStorage.getItem("ego_version");
@@ -880,65 +926,211 @@
         return { texto, minutosTotales: totalMinutos, diasEnteros: dias, tagClase };
     }
 
-    // ===== CONSULTA RÁPIDA: REPORTA SI ESTÁ EN PATIO O SI YA SALIÓ CON DETALLE COMPLETO =====
-    async function consultarEstadoUnidadRapido() {
-        const unidadBuscada = prompt("🔍 Ingresa el número de unidad a verificar (ej. 3206 o 7000):");
-        if (!unidadBuscada) return;
-        const uLimpia = unidadBuscada.trim();
+    // ===== NUEVA CONSULTA BAJO DEMANDA: ESTATUS ACTUAL + TODOS LOS REGISTROS DE ESA UNIDAD =====
+    function abrirModalEstadoUnidad() {
+        document.getElementById('inputBusquedaUnidadEstado').value = "";
+        document.getElementById('resumenEstadoActualUnidad').style.display = 'none';
+        document.getElementById('contenedorHistorialUnidadTabla').style.display = 'none';
+        document.getElementById('msgInicialEstadoUnidad').style.display = 'block';
+        document.getElementById('msgInicialEstadoUnidad').innerText = "Escribe un número de unidad arriba y presiona Buscar para cargar todos sus registros de entrada y salida.";
+        document.getElementById('modalEstadoUnidad').style.display = 'block';
+        setTimeout(() => document.getElementById('inputBusquedaUnidadEstado')?.focus(), 150);
+    }
 
-        let encontrado = null;
-        let revisadoEnFirestore = false;
+    function cerrarModalEstadoUnidad() {
+        document.getElementById('modalEstadoUnidad').style.display = 'none';
+    }
+
+    async function ejecutarBusquedaEstadoUnidad() {
+        const uLimpia = document.getElementById('inputBusquedaUnidadEstado').value.trim().toUpperCase();
+        if (!uLimpia) return alert("Por favor escribe el número de unidad a consultar.");
+
+        const cajaResumen = document.getElementById('resumenEstadoActualUnidad');
+        const contTabla = document.getElementById('contenedorHistorialUnidadTabla');
+        const msgInicial = document.getElementById('msgInicialEstadoUnidad');
+        const tbody = document.getElementById('cuerpoTablaEstadoUnidad');
+
+        msgInicial.style.display = 'block';
+        msgInicial.innerText = `🔍 Consultando historial completo de la unidad ${uLimpia}...`;
+        cajaResumen.style.display = 'none';
+        contTabla.style.display = 'none';
+        tbody.innerHTML = '';
+
+        let estadoPatio = null;
+        let movimientos = [];
 
         if (db) {
             try {
-                const doc = await db.collection("estadia_patio").doc(uLimpia).get();
-                revisadoEnFirestore = true;
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (data.estatus === "EN_TALLER") {
-                        encontrado = data;
-                    } else if (data.estatus === "LIBERADO") {
-                        const fechaEnt = data.fechaEntrada || "---";
-                        const horaEnt = data.horaEntrada ? `(${data.horaEntrada})` : "";
-                        const fechaSal = data.fechaSalida || "---";
-                        const horaSal = data.horaSalida ? `(${data.horaSalida})` : "";
-                        const estadia = data.tiempoEstadiaDetalle || (data.diasEstadia !== undefined ? `${data.diasEstadia} días` : "Calculada en entrega");
-
-                        alert(`⚪ LA UNIDAD ${uLimpia} YA SALIÓ DE PATIO\n\n` +
-                              `• Estatus: LIBERADO\n` +
-                              `• Fecha Entrada: ${fechaEnt} ${horaEnt}\n` +
-                              `• Fecha Salida: ${fechaSal} ${horaSal}\n` +
-                              `• Estadía Total: ${estadia}\n` +
-                              `• Mantenimiento: ${data.tipoSalidaManto || data.manto || 'N/A'}\n` +
-                              `• Comentarios de salida: ${data.comentariosSalida || 'Sin observaciones'}`);
-                        return;
-                    }
+                // 1. Estatus actual en patio (1 lectura)
+                const docPatio = await db.collection("estadia_patio").doc(uLimpia).get();
+                if (docPatio.exists) {
+                    estadoPatio = docPatio.data();
                 }
+
+                // 2. Todas las entradas de esa unidad (limit 50)
+                const snapEntradas = await db.collection("entradas_flota").where("unidad", "==", uLimpia).limit(50).get();
+                snapEntradas.forEach(doc => {
+                    const d = doc.data();
+                    movimientos.push({
+                        ...d,
+                        tipoMov: "ENTRADA",
+                        fechaOrden: d.fecha || d.fechaEntrada || "0000-00-00",
+                        horaOrden: d.horaEntrada || "",
+                        tsOrden: d.timestamp || new Date((d.fecha || "2000-01-01") + "T08:00:00").getTime()
+                    });
+                });
+
+                // 3. Todas las salidas de esa unidad (limit 50)
+                const snapSalidas = await db.collection("salidas_flota").where("unidad", "==", uLimpia).limit(50).get();
+                snapSalidas.forEach(doc => {
+                    const d = doc.data();
+                    movimientos.push({
+                        ...d,
+                        tipoMov: "SALIDA",
+                        fechaOrden: d.fecha || "0000-00-00",
+                        horaOrden: d.horaSalida || "",
+                        tsOrden: d.timestamp || new Date((d.fecha || "2000-01-01") + "T18:00:00").getTime()
+                    });
+                });
             } catch (e) {
-                console.warn("Fallo lectura en Firestore, usando respaldo local:", e);
+                console.warn("Error leyendo Firestore, usando respaldo local:", e);
             }
         }
 
-        if (!revisadoEnFirestore && !encontrado) {
+        // Respaldo local si no hubo conexión o está vacío
+        if (!estadoPatio) {
             try {
-                const local = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
-                encontrado = local.find(item => item.unidad === uLimpia && item.estatus === "EN_TALLER");
+                const localEst = JSON.parse(localStorage.getItem("ego_estadia_local") || "[]");
+                estadoPatio = localEst.find(i => i.unidad === uLimpia) || null;
+            } catch (e) {}
+        }
+        if (movimientos.length === 0) {
+            try {
+                const localEnt = JSON.parse(localStorage.getItem("ego_entradas_historial") || "[]");
+                localEnt.filter(i => i.unidad === uLimpia).forEach(d => {
+                    movimientos.push({ ...d, tipoMov: "ENTRADA", fechaOrden: d.fecha || "", horaOrden: d.horaEntrada || "", tsOrden: d.timestamp || 0 });
+                });
+                const localSal = JSON.parse(localStorage.getItem("ego_salidas_historial") || "[]");
+                localSal.filter(i => i.unidad === uLimpia).forEach(d => {
+                    movimientos.push({ ...d, tipoMov: "SALIDA", fechaOrden: d.fecha || "", horaOrden: d.horaSalida || "", tsOrden: d.timestamp || 0 });
+                });
             } catch (e) {}
         }
 
-        if (encontrado) {
-            const calc = calcularTiempoEstadiaDetallado(encontrado.fechaEntrada, null, encontrado.horaEntrada);
-            alert(`🟢 UNIDAD EN PATIO (ACTIVA)\n\n` +
-                  `• Unidad: ${encontrado.unidad}\n` +
-                  `• Ruta: ${encontrado.ruta || obtenerRutaDeUnidad(encontrado.unidad)}\n` +
-                  `• Fecha Ingreso: ${encontrado.fechaEntrada} (${encontrado.horaEntrada || 'Sin hora'})\n` +
-                  `• Estadía Actual: ${calc.texto}\n` +
-                  `• Mantenimiento: ${encontrado.manto || 'N/A'}\n` +
-                  `• Folio Cita: ${encontrado.folioCita || 'Sin folio'}\n` +
-                  `• Reporte Mecánico: ${encontrado.comentarios || 'Sin observaciones'}`);
+        msgInicial.style.display = 'none';
+
+        // Renderizar tarjeta de estado actual
+        cajaResumen.style.display = 'block';
+        const rutaUnidad = (estadoPatio && estadoPatio.ruta) ? estadoPatio.ruta : obtenerRutaDeUnidad(uLimpia);
+
+        if (estadoPatio && estadoPatio.estatus === "EN_TALLER") {
+            const calc = calcularTiempoEstadiaDetallado(estadoPatio.fechaEntrada, null, estadoPatio.horaEntrada);
+            cajaResumen.style.background = "#f0fdf4";
+            cajaResumen.style.borderColor = "#16a34a";
+            cajaResumen.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <span style="font-size:15px; font-weight:bold; color:#15803d;">🟢 UNIDAD ${uLimpia} ACTUALMENTE EN PATIO (TALLER)</span>
+                    <span class="tag-estadia ${calc.tagClase}" style="font-size:12px;">⏱️ Estadía: ${calc.texto}</span>
+                </div>
+                <div style="margin-top:8px; font-size:12px; color:#1e293b; line-height:1.6;">
+                    <strong>Ruta:</strong> ${rutaUnidad} &nbsp;|&nbsp; <strong>Ingreso:</strong> ${estadoPatio.fechaEntrada} (${estadoPatio.horaEntrada || 'Sin hora'}) &nbsp;|&nbsp; <strong>Mtto:</strong> ${estadoPatio.manto || 'N/A'} &nbsp;|&nbsp; <strong>Folio:</strong> ${estadoPatio.folioCita || 'S/F'}<br>
+                    <strong>Reporte Mecánico:</strong> ${estadoPatio.comentarios || 'Sin observaciones'}
+                </div>
+            `;
+        } else if (estadoPatio && estadoPatio.estatus === "LIBERADO") {
+            const estadia = estadoPatio.tiempoEstadiaDetalle || (estadoPatio.diasEstadia !== undefined ? `${estadoPatio.diasEstadia} días` : "Calculada en entrega");
+            cajaResumen.style.background = "#f8fafc";
+            cajaResumen.style.borderColor = "#64748b";
+            cajaResumen.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <span style="font-size:15px; font-weight:bold; color:#334155;">⚪ UNIDAD ${uLimpia} EN OPERACIÓN (ÚLTIMA SALIDA REGISTRADA)</span>
+                    <span style="font-size:12px; font-weight:bold; color:#0f766e;">Estadía previa: ${estadia}</span>
+                </div>
+                <div style="margin-top:8px; font-size:12px; color:#334155; line-height:1.6;">
+                    <strong>Ruta:</strong> ${rutaUnidad} &nbsp;|&nbsp; <strong>Última Entrada:</strong> ${estadoPatio.fechaEntrada || '---'} &nbsp;|&nbsp; <strong>Última Salida:</strong> ${estadoPatio.fechaSalida || '---'} (${estadoPatio.horaSalida || ''})<br>
+                    <strong>Trabajo Liberado:</strong> ${estadoPatio.tipoSalidaManto || estadoPatio.manto || 'N/A'} — ${estadoPatio.comentariosSalida || 'Sin observaciones'}
+                </div>
+            `;
         } else {
-            alert(`⚪ LA UNIDAD ${uLimpia} NO ESTÁ EN PATIO\n\nNo tiene registro activo en el índice de estadía actual.`);
+            cajaResumen.style.background = "#f8fafc";
+            cajaResumen.style.borderColor = "#94a3b8";
+            cajaResumen.innerHTML = `
+                <span style="font-size:14px; font-weight:bold; color:#475569;">⚪ UNIDAD ${uLimpia} (${rutaUnidad}) — NO SE ENCUENTRA EN PATIO ACTUALMENTE</span>
+            `;
         }
+
+        // Ordenar movimientos del más reciente al más antiguo
+        movimientos.sort((a, b) => {
+            if (b.fechaOrden !== a.fechaOrden) return b.fechaOrden.localeCompare(a.fechaOrden);
+            return (b.tsOrden || 0) - (a.tsOrden || 0);
+        });
+
+        document.getElementById('lblUnidadHistorialTitulo').textContent = uLimpia;
+        document.getElementById('lblTotalMovimientosUnidad').textContent = movimientos.length;
+        contTabla.style.display = 'block';
+
+        if (movimientos.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 20px; color: #64748b; font-weight: bold; border: 1px solid #cbd5e1;">
+                        No hay registros históricos guardados para la unidad ${uLimpia}.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        movimientos.forEach(item => {
+            const tr = document.createElement('tr');
+            const esEntrada = item.tipoMov === "ENTRADA";
+            const badgeMov = esEntrada
+                ? `<span style="background:#dbeafe; color:#1e40af; padding:3px 7px; border-radius:4px; font-weight:bold; font-size:10px;">📥 ENTRADA</span>`
+                : `<span style="background:#fce7f3; color:#9d174d; padding:3px 7px; border-radius:4px; font-weight:bold; font-size:10px;">📤 SALIDA</span>`;
+
+            const kmTexto = item.km ? Number(item.km).toLocaleString('es-MX') : '---';
+            const datoExtraCol = esEntrada
+                ? `<strong>Folio:</strong> ${item.folioCita || 'N/A'}`
+                : `<strong>Estadía:</strong> ${item.tiempoEstadiaDetalle || (item.diasEstadia !== undefined ? item.diasEstadia + ' d' : '---')}`;
+
+            const mantoTexto = esEntrada ? (item.manto || 'N/A') : (item.tipoManto || item.tipoSalidaManto || 'PREVENTIVO');
+            const reporteTexto = esEntrada
+                ? `<b>Mec:</b> ${item.comentarios || 'Sin obs.'}${item.obsEsteticas ? `<br><small style="color:#64748b;"><b>Est:</b> ${item.obsEsteticas}</small>` : ''}`
+                : `${item.comentarios || 'Sin observaciones de salida'}`;
+
+            const uSafe = (item.unidad || uLimpia).replace(/'/g, "\\'");
+            const rSafe = (item.ruta || rutaUnidad).replace(/'/g, "\\'");
+            const kmSafe = String(item.km || '0').replace(/'/g, "\\'");
+            const fSafe = (item.fechaOrden || '').replace(/'/g, "\\'");
+            const mSafe = (mantoTexto || '').replace(/'/g, "\\'");
+            const cSafe = (item.comentarios || '').replace(/'/g, "\\'").replace(/\n/g, ' ');
+
+            let btnDoc = '';
+            if (esEntrada) {
+                const folSafe = (item.folioCita || 'N/A').replace(/'/g, "\\'");
+                const estSafe = (item.obsEsteticas || '').replace(/'/g, "\\'").replace(/\n/g, ' ');
+                const ffSafe = (item.fotoFrontal || '').replace(/'/g, "\\'");
+                const ftSafe = (item.fotoTrasera || '').replace(/'/g, "\\'");
+                const fdSafe = (item.fotoDerecha || '').replace(/'/g, "\\'");
+                const fiSafe = (item.fotoIzquierda || '').replace(/'/g, "\\'");
+                const flSafe = (item.fotoLicencia || '').replace(/'/g, "\\'");
+                btnDoc = `<button type="button" style="background:#ff9800; color:white; border:none; border-radius:4px; padding:4px 6px; font-size:10px; font-weight:bold; cursor:pointer; width:100%;" onclick="abrirHojaServicioGenerada('${uSafe}', '${rSafe}', '${kmSafe}', '${folSafe}', '${fSafe}', '${mSafe}', '${cSafe}', '${estSafe}', '${ffSafe}', '${ftSafe}', '${fdSafe}', '${fiSafe}', '${flSafe}')">📋 Hoja</button>`;
+            } else {
+                const flSafe = (item.fotoLicencia || item.fotoLicenciaSalida || '').replace(/'/g, "\\'");
+                btnDoc = `<button type="button" style="background:#e91e63; color:white; border:none; border-radius:4px; padding:4px 6px; font-size:10px; font-weight:bold; cursor:pointer; width:100%;" onclick="abrirHojaSalidaGenerada('${uSafe}', '${rSafe}', '${kmSafe}', '${fSafe}', '${mSafe}', '${cSafe}', '${flSafe}')">📋 Entrega</button>`;
+            }
+
+            tr.innerHTML = `
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;"><strong>${item.fechaOrden}</strong><br><small style="color:#475569;">${item.horaOrden || ''}</small></td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">${badgeMov}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8;">${item.ruta || rutaUnidad}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: right;">${kmTexto}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-size: 10px;">${datoExtraCol}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; text-align: center; font-weight: bold;">${mantoTexto}</td>
+                <td style="padding: 6px; border: 1px solid #94a3b8; font-size: 10.5px;">${reporteTexto}</td>
+                <td class="no-print" style="padding: 6px; border: 1px solid #94a3b8; text-align: center;">${btnDoc}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     function abrirModalRegistroEntradas() {
@@ -959,7 +1151,7 @@
 
         if (db) {
             try {
-                const snapshot = await db.collection("entradas_flota").where("fecha", "==", fechaFiltro).get();
+                const snapshot = await db.collection("entradas_flota").where("fecha", "==", fechaFiltro).limit(60).get();
                 snapshot.forEach(doc => cacheEntradasConsulta.push(doc.data()));
             } catch (err) {}
         }
@@ -1089,7 +1281,7 @@
 
         if (db) {
             try {
-                const snapshot = await db.collection("estadia_patio").where("estatus", "==", "EN_TALLER").get();
+                const snapshot = await db.collection("estadia_patio").where("estatus", "==", "EN_TALLER").limit(80).get();
                 snapshot.forEach(doc => cacheUnidadesEnPatio.push(doc.data()));
             } catch (err) {}
         }
@@ -1380,7 +1572,7 @@
 
         if (db) {
             try {
-                const snapshot = await db.collection("salidas_flota").where("fecha", "==", fechaFiltro).get();
+                const snapshot = await db.collection("salidas_flota").where("fecha", "==", fechaFiltro).limit(60).get();
                 snapshot.forEach(doc => cacheSalidasConsulta.push(doc.data()));
             } catch (err) {}
         }
