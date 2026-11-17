@@ -134,6 +134,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e; height: 10px; border-r
           <option value="M2">M2</option>
           <option value="M3">M3</option>
           <option value="M3-MFT">M3-MFT</option>
+          <option value="M3-M5">M3-M5</option>
           <option value="MD">MD</option>
           <option value="M4">M4</option>
           <option value="M5">M5</option>
@@ -245,7 +246,7 @@ function ficha(trabajos, transmision = false, diferencial = false, motor = true)
   };
 }
 
-// MANTENIMIENTOS M1 A M7 + M3-MFT + MD
+// MANTENIMIENTOS M1 A M7 + M3-MFT + M3-M5 + MD
 const MANTENIMIENTOS = {
   M1: ficha([
     ...BASE,
@@ -288,12 +289,29 @@ const MANTENIMIENTOS = {
     "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
     "REVISION DE BOBINAS Y ARNES DE BOBINAS",
     FILTROS_TRANSMISION
-  ], true, true, true), // Motor, Transmisión y Diferencial
+  ], true, true, true),
+
+  "M3-M5": ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    DIFERENCIAL_13L,
+    "REVISION Y AJUSTE EN TERMINALES DE DIRECCION",
+    "REVISION DE BOBINAS Y ARNES DE BOBINAS",
+    CLIMA,
+    "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    "CAMBIO DE SECADOR COMPLETO",
+    "REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO",
+    "CAMBIO DE CABLES Y BUJIAS",
+    "REVISION DE PERIFERICOS",
+    ...FILTROS_GAS
+  ], true, true, true),
 
   MD: ficha([
     DIFERENCIAL_13L,
     ENGRASADO
-  ], false, true, false), // Solo Diferencial
+  ], false, true, false),
 
   M4: ficha([
     ...BASE,
