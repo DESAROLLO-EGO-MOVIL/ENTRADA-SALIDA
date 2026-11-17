@@ -221,7 +221,7 @@ button:disabled{opacity:.6;cursor:wait}
   align-items:center;
   justify-content:center;
   text-align:center;
-  line-height:10.5pt;
+  line-height:9.6pt;
 }
 
 .jobs>div{width:100%}
@@ -451,6 +451,7 @@ button:disabled{opacity:.6;cursor:wait}
     <option value="M2">M2</option>
     <option value="M3">M3</option>
     <option value="M3-MFT">M3-MFT</option>
+    <option value="M3-M5">M3-M5</option>
     <option value="MD">MD</option>
     <option value="M4">M4</option>
     <option value="M5">M5</option>
@@ -754,7 +755,7 @@ function ficha(trabajos, transmision = false, diferencial = false, motor = true)
   };
 }
 
-// MANTENIMIENTOS
+// MANTENIMIENTOS M1 A M7 + M3-MFT + M3-M5 + MD
 const MANTENIMIENTOS = {
   M1: ficha([
     ...BASE,
@@ -797,6 +798,23 @@ const MANTENIMIENTOS = {
     "REVISION Y CALIBRACION DE CABLES Y BUJIAS",
     "REVISION DE BOBINAS Y ARNES DE BOBINAS",
     FILTROS_TRANSMISION
+  ], true, true, true),
+
+  "M3-M5": ficha([
+    ...BASE,
+    CAMBIO_BALATAS,
+    DIFERENCIAL_13L,
+    "REVISION Y AJUSTE EN TERMINALES DE DIRECCION",
+    "REVISION DE BOBINAS Y ARNES DE BOBINAS",
+    CLIMA,
+    "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    "CAMBIO DE SECADOR COMPLETO",
+    "REVISION FUNCIONAMIENTO EN SISTEMA ELECTRICO",
+    "CAMBIO DE CABLES Y BUJIAS",
+    "REVISION DE PERIFERICOS",
+    ...FILTROS_GAS
   ], true, true, true),
 
   MD: ficha([
