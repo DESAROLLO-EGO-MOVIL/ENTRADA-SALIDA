@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carátula Oficio de Entrega IMNL - EGO Móvil</title>
+
+<script src="catalogo.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #334155;
+  font-family: Arial, Calibri, sans-serif;
+  color: #0f172a;
+}
+
+/* PANEL DE CONTROL (NO SE IMPRIME) */
+.panel-control {
+  max-width: 860px;
+  margin: 0 auto 16px;
+  padding: 16px;
+  background: #1e293b;
+  color: #f8fafc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.panel-control h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: #38bdf8;
+}
+
+.seccion-panel {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.seccion-titulo {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.fila-controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.campo-ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.campo-ctrl label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #cbd5e1;
+}
+
+.campo-ctrl input, .campo-ctrl select {
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #fff;
+  font-size: 13px;
+}
+
+button {
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.btn-buscar { background: #0284c7; }
+.btn-buscar:hover { background: #0369a1; }
+.btn-agregar { background: #0d9488; }
+.btn-agregar:hover { background: #0f766e; }
+.btn-sec { background: #475569; font-size: 12px; padding: 6px 10px; }
+.btn-sec:hover { background: #64748b; }
+.btn-imprimir { background: #16a34a; margin-left: auto; }
+.btn-imprimir:hover { background: #15803d; }
+
+#estadoConsulta {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin-top: 8px;
+}
+
+/* RESULTADOS DE BÚSQUEDA PUNTUAL */
+.lista-resultados {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tarjeta-resultado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 5px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.badge-serie {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+.serie-3000 { background: #0369a1; color: #e0f2fe; }
+.serie-6000 { background: #7e22ce; color: #f3e8ff; }
+.serie-7000 { background: #b45309; color: #fef3c7; }
+.serie-OTRA { background: #475569; color: #f8fafc; }
+
+/* HOJA TAMAÑO CARTA OFICIAL */
+.hoja-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  overflow-x: auto;
+}
+
+.hoja-oficio {
+  width: 612pt;
+  min-height: 792pt;
+  background: #ffffff;
+  color: #000000;
+  padding: 36pt 48pt 40pt;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 9.5pt;
+  line-height: 1.35;
+}
+
+[contenteditable="true"] {
+  outline: none;
+  border-radius: 2px;
+}
+[contenteditable="true"]:hover { background: #fef9c3; }
+[contenteditable="true"]:focus { background: #fef08a; }
+
+.oficio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14pt;
+}
+
+.oficio-logo {
+  width: 85pt;
+  height: auto;
+  object-fit: contain;
+}
+
+.oficio-meta {
+  text-align: right;
+  font-size: 9.5pt;
+}
+
+.oficio-folio {
+  font-weight: bold;
+  font-size: 10pt;
+  margin-bottom: 4pt;
+}
+
+.oficio-destinatario {
+  font-weight: bold;
+  font-size: 9.5pt;
+  line-height: 1.25;
+  margin-bottom: 14pt;
+}
+
+.oficio-cuerpo p {
+  margin: 0 0 10pt;
+  text-align: justify;
+}
+
+/* TABLA CONCENTRADA */
+.tabla-oficio {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8pt 0 12pt;
+  font-size: 7.5pt;
+}
+
+.tabla-oficio thead {
+  display: table-header-group;
+}
+
+.tabla-oficio tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.tabla-oficio th {
+  background: #e2e8f0;
+  color: #000;
+  font-weight: bold;
+  border: 0.7pt solid #000;
+  padding: 4pt 3pt;
+  text-align: center;
+}
+
+.tabla-oficio td {
+  border: 0.7pt solid #000;
+  padding: 3.5pt 3pt;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.tabla-oficio td.col-servicio {
+  text-align: left;
+  font-size: 7pt;
+  line-height: 1.2;
+}
+
+.btn-quitar {
+  background: #dc2626;
+  color: #fff;
+  border: 0;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+/* FIRMA Y PIE */
+.bloque-cierre-firma {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.oficio-firma {
+  margin-top: 16pt;
+  text-align: center;
+  font-size: 9pt;
+  font-weight: bold;
+}
+
+.linea-firma {
+  width: 220pt;
+  border-top: 0.8pt solid #000;
+  margin: 34pt auto 4pt;
+}
+
+.oficio-pie {
+  margin-top: 14pt;
+  padding-top: 6pt;
+  border-top: 0.5pt solid #94a3b8;
+  text-align: center;
+  font-size: 7.5pt;
+  color: #334155;
+}
+
+@media print {
+  @page {
+    size: letter;
+    margin: 28pt 0;
+  }
+  body {
+    padding: 0;
+    background: #fff;
+  }
+  .panel-control, .no-print {
+    display: none !important;
+  }
+  .hoja-wrap {
+    max-width: none;
+    overflow: visible;
+  }
+  .hoja-oficio {
+    box-shadow: none;
+    width: 100%;
+    min-height: auto;
+    padding: 6pt 45pt 10pt;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="panel-control">
+  <h2>Carátula Oficio IMNL — Consulta Quirúrgica (Bajo Consumo Firebase)</h2>
+
+  <!-- 1. BÚSQUEDA QUIRÚRGICA POR UNIDAD -->
+  <div class="seccion-panel">
+    <div class="seccion-titulo">1. Buscar unidad específica (Solo lee los registros de ese camión · 1-3 lecturas)</div>
+    <div class="fila-controles">
+      <div class="campo-ctrl">
+        <label for="inputBuscarUnidad">Número Económico:</label>
+        <input type="text" id="inputBuscarUnidad" placeholder="Ej: 3116" style="width:130px;">
+      </div>
+      <button type="button" class="btn-buscar" id="btnBuscarUnidad">🔍 Buscar unidad</button>
+      <button type="button" class="btn-agregar" id="btnFilaManual">➕ Agregar fila manual</button>
+      <button type="button" class="btn-sec" id="btnLimpiarTabla" style="margin-left:auto;">🗑️ Vaciar tabla</button>
+    </div>
+
+    <div id="estadoConsulta">Escribe el número económico de la unidad para traer únicamente sus evidencias guardadas.</div>
+    <div class="lista-resultados" id="listaResultados"></div>
+  </div>
+
+  <!-- 2. CONFIGURACIÓN DEL OFICIO -->
+  <div class="seccion-panel" style="margin-bottom:0;">
+    <div class="seccion-titulo">2. Datos del Oficio, Periodo y Leyenda por Serie</div>
+    <div class="fila-controles">
+      <div class="campo-ctrl">
+        <label for="inputFolio">Folio Oficio:</label>
+        <input type="text" id="inputFolio" value="OFICIO MNTT 55-2026" style="width:165px;">
+      </div>
+
+      <div class="campo-ctrl">
+        <label for="fechaInicio">Periodo Desde:</label>
+        <input type="date" id="fechaInicio">
+      </div>
+
+      <div class="campo-ctrl">
+        <label for="fechaFin">Periodo Hasta:</label>
+        <input type="date" id="fechaFin">
+      </div>
+
+      <div class="campo-ctrl">
+        <label for="selectLeyenda">Contrato / Leyenda:</label>
+        <select id="selectLeyenda">
+          <option value="AUTO">Automática según unidades</option>
+          <option value="3000_6000">Series 3000 / 6000 (IMA/DAF-020523)</option>
+          <option value="7000">Serie 7000 (INV-IMA-01-2025)</option>
+        </select>
+      </div>
+
+      <button type="button" class="btn-imprimir" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOJA CARTA DEL OFICIO -->
+<div class="hoja-wrap">
+  <article class="hoja-oficio">
+    <div>
+      <div class="oficio-header">
+        <img class="oficio-logo" src="https://res.cloudinary.com/dygb7qjgt/image/upload/v1793691580/Picture1_fmvia9.png" alt="Logo EGO Móvil">
+
+        <div class="oficio-meta">
+          <div class="oficio-folio" id="docFolio" contenteditable="true">OFICIO MNTT 55-2026</div>
+          <div><b>ASUNTO:</b> <span contenteditable="true">Entrega de evidencias de mantenimiento preventivo.</span></div>
+          <div style="margin-top:4pt;">
+            Monterrey, Nuevo León, a <span id="docFechaHoy" contenteditable="true">18 de NOVIEMBRE de 2026</span>.
+          </div>
+        </div>
+      </div>
+
+      <div class="oficio-destinatario" contenteditable="true">
+        ING. JOSÉ FRANCISCO MACÍAS RAMÍREZ<br>
+        DIRECTOR DE GESTIÓN DEL TRANSPORTE DEL<br>
+        INSTITUTO DE MOVILIDAD Y ACCESIBILIDAD DE NUEVO LEÓN<br>
+        PRESENTE.-
+      </div>
+
+      <div class="oficio-cuerpo">
+        <p id="docParrafoLeyenda" contenteditable="true">
+          Por medio del presente reciba un cordial saludo, y al mismo tiempo me permito hacer entrega formal de las evidencias documentales correspondientes a los servicios de mantenimiento realizados a las unidades operadas por la empresa EGO MÓVIL, S.A. DE C.V., derivadas del cumplimiento de las obligaciones asumidas dentro del contrato número IMA/DAF-020523-AFS-LP-I, celebrado con ese Instituto.
+        </p>
+
+        <p contenteditable="true">
+          La presente entrega corresponde al periodo comprendido del
+          <b id="docPeriodoInicio">01 de OCTUBRE de 2026</b> al
+          <b id="docPeriodoFin">30 de OCTUBRE de 2026</b>, y se realiza con la finalidad de acreditar las acciones de mantenimientos preventivos efectuadas a las unidades, mismas que han sido ejecutadas conforme a los programas operativos, lineamientos técnicos y procedimientos internos aplicables para garantizar la continuidad, seguridad y correcta operación del servicio público de transporte.
+        </p>
+
+        <p contenteditable="true">
+          Como parte de la documentación anexa al presente oficio, se hace entrega de la relación de servicios efectuados a las unidades, conforme al siguiente concentrado:
+        </p>
+      </div>
+
+      <table class="tabla-oficio">
+        <thead>
+          <tr>
+            <th style="width:22pt;">No.</th>
+            <th style="width:34pt;">ECO</th>
+            <th style="width:102pt;">No. SERIE</th>
+            <th style="width:36pt;">RUTA</th>
+            <th style="width:54pt;">PROGRAMA</th>
+            <th style="width:54pt;">REAL</th>
+            <th style="width:50pt;">KMS</th>
+            <th>SERVICIO</th>
+            <th class="no-print" style="width:26pt;">Quitar</th>
+          </tr>
+        </thead>
+        <tbody id="cuerpoTablaOficio">
+          <tr>
+            <td colspan="9" style="padding:14pt; color:#64748b;">
+              Busca cada unidad arriba y haz clic en "Agregar al oficio" para armar tu relación.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bloque-cierre-firma">
+      <div class="oficio-cuerpo">
+        <p contenteditable="true">
+          Asimismo, se anexan las respectivas evidencias de mantenimiento preventivo relacionadas con los servicios realizados.
+        </p>
+        <p contenteditable="true">
+          Sin más por el momento, reiteramos nuestro compromiso de colaboración institucional y de cumplimiento con las obligaciones derivadas de la operación de las unidades objeto de prestación del servicio.
+        </p>
+      </div>
+
+      <div class="oficio-firma">
+        ATENTAMENTE
+        <div class="linea-firma"></div>
+        <div contenteditable="true">EDGAR LOZANO VEGA</div>
+        <div contenteditable="true">COORDINADOR OPERATIVO</div>
+        <div contenteditable="true">"EGO MOVIL S.A. DE C.V."</div>
+      </div>
+
+      <div class="oficio-pie" contenteditable="true">
+        Enrique Recio 121, Torres de Santo Domingo, 66440, San Nicolás de los Garza, Nuevo León
+      </div>
+    </div>
+  </article>
+</div>
+
+<script>
+"use strict";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDLywqH8iBbnlSwwRFhWVbZ4mjEkz6Xs_8",
+  authDomain: "gestion-servicios-ego.firebaseapp.com",
+  projectId: "gestion-servicios-ego",
+  storageBucket: "gestion-servicios-ego.firebasestorage.app",
+  messagingSenderId: "378018276879",
+  appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
+};
+
+const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+const db = app.firestore();
+const $ = id => document.getElementById(id);
+
+const MESES = [
+  "ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
+  "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"
+];
+
+const LEYENDA_3000_6000 =
+  "Por medio del presente reciba un cordial saludo, y al mismo tiempo me permito hacer entrega formal de las evidencias documentales correspondientes a los servicios de mantenimiento realizados a las unidades operadas por la empresa EGO MÓVIL, S.A. DE C.V., derivadas del cumplimiento de las obligaciones asumidas dentro del contrato número IMA/DAF-020523-AFS-LP-I, celebrado con ese Instituto.";
+
+const LEYENDA_7000 =
+  "Por medio del presente, reciba un cordial saludo. Asimismo, nos permitimos hacer entrega formal de las evidencias documentales correspondientes a los servicios de mantenimiento preventivo realizados a las unidades identificadas con números económicos de la serie 7000, objeto del Contrato número INV-IMA-01-2025, celebrado con ese Instituto.";
+
+// MAPA COMPLETO DE RUTAS POR UNIDAD (RESPALDO LOCAL 0 LECTURAS)
+const RUTAS_UNIDADES = {
+  "AEROPUERTO Y GRIEGA": ["6070","6074","6078","6083","6085","6086","6087","6089","6095","6097"],
+  "EXPO AEROPUERTO": ["7054","7055","7056","7057","7058","7059","7060","7061","7062"],
+  "ALIANZA REAL": ["6003","6013","6015","6026","6027","6028","6036","6038","6039","6044","6045","6047","6050","6053","6059","6065","6066","6075","6081","6082","6092","6096","6098","6099","6100"],
+  "CIENEGA DE FLORES": ["3386","3409","3415","3425","3427","3431","3433","3450","3459","3466","3544","3565","3579","3584","3585"],
+  "PALMIRAS": ["6048","6055","6076","6079","6093"],
+  "PRO VIVIENDA": ["6005","6008","6009","6011","6014","6019","6022","6029","6030","6031","6033","6037","6040","6041","6042","6052","6056","6058","6062","6063","6064","6067","6069"],
+  "1": ["3263","3289","3326","3384","3385","3410","3441","3474","3478","3479","3480","3484","3487","3495","3496","3505","3506","3520","3529","3530","3532","3534","3535","3536","3537","3539","3540","3541","3542","3543","3582"],
+  "2": ["3332","3360","3368","3392","3395","3407","3435","3445","3545","3555","3588","3591"],
+  "13": ["3329","3353","3418","3429","3442","3461","3470","3546","3549","3586"],
+  "20": ["6004","6012","6016","6017","6018","6020","6032","6034","6035","6043","6046","6049","6051","6057","6061","6068","6071","6072","6073","6084","6090","6091"],
+  "39": ["3240","3304","3345","3348","3351","3362","3381","3395","3397","3398","3417","3421","3422","3426","3436","3439","3446","3449","3472","3500","3501","3523","3528","3531","3559","3578","3590","3592"],
+  "41": ["3010","3196","3212","3224","3233","3247","3276","3284","3293","3296","3297","3298","3299","3300","3306","3307","3311","3316","3317","3322","3323","3324","3352","3383","3420","3423","3473","3483","3484","3485","3486","3490","3492","3504","3508","3509","3512","3548","3589","3597","7025","7026","7027","7028","7100"],
+  "68": ["3215","3242","3253","3254","3255","3256","3257","3259","3261","3264","3265","3266","3267","3268","3270","3271","3272","3273","3274","3275","3276","3277","3278","3279","3280","3281","3282","3283","3285","3286","3287","3288","3290","3291","3294","3295","3434","3463","3552","3593"],
+  "109": ["3050","3195","3197","3199","3200","3201","3202","3203","3204","3205","3207","3208","3209","3213","3217","3218","3219","3220","3225","3226","3229","3230","3231","3232","3234","3235","3238","3239","3241","3243","3245","3246","3248","3249","3252","3428","3430","3454","3482","3484","3489","3503","3511","3599","3600"],
+  "117": ["3163","3164","3165","3166","3167","3168","3169","3170","3171","3172","3173","3174","3175","3176","3177","3178","3179","3180","3181","3182","3183","3184","3185","3186","3187","3188","3189","3190","3191","3192"],
+  "160": ["7029","7030","7031","7032","7033","7034","7035","7036","7037","7038","7039","7040","7041","7042","7043","7044","7045","7046","7047","7048","7049","7050","7051","7052","7053"],
+  "201": ["3214","3223","3244","3258","3262","3302","3314","3437","3507","3538","3547","3563","3568","3574","3583"],
+  "218": ["3331","3333","3334","3336","3337","3338","3339","3341","3342","3350","3355","3356","3404","3406","3408","3412","3416","3419","3424","3432","3440","3454"],
+  "223": ["3206","3210","3211","3221","3228","3236","3237","3250","3269","3313","3328","3405","3414","3564","3595"],
+  "227": ["7001","7002","7003","7004","7005","7006","7007","7008","7009","7010","7011","7012","7013","7014","7015","7016","7017","7018","7019","7020","7021","7022","7023","7024"],
+  "228": ["3019","3021","3022","3023","3024","3025","3026","3027","3028","3029","3030","3031","3032","3033","3034","3035","3036","3037","3038","3039","3040","3041","3042","3043","3045","3046","3047","3048","3049","3052","3053","3054","3055","3056","3057","3058","3059","3060","3061","3062","3198","3216"],
+  "233": ["3001","3002","3003","3004","3005","3044","3123","3251","3305","3325","3340","3344","3380","3390","3399","3401","3448","3455","3476","3522","3554","3556","3561","3580","3587","3594","3598","7080","7081","7082","7083","7084","7085","7086","7087","7088","7089","7090","7091","7092","7093","7094","7095","7096","7097","7098","7099"],
+  "310": ["3011","3012","3013","3014","3015","3016","3017","3018","3020","3051","3088","3089","3090","3091","3092","3093","3094","3095","3096","3097","3098","3099","3100","3101","3102","3103","3104","3130","3131","3132","3133","3134","3135","3136","3137","3138","3139","3140","3141","3142","3143","3144","3145","3146","3147","3148","3149","3150","3151","3152","3153","3154","3155","3156","3157","3158","3159","3160","3161","3162","3447","3451","3457","3458","3465","3467","3550","3551","3557","3558","3560","3562","3566","3567","3569","3570","3571","3572","3573","3575","3577","3581","3596"],
+  "311": ["3227","3260","3292","3301","3308","3309","3310","3312","3315","3318","3319","3320","3321","3475","3477","3484","3488","3493","3494","3497","3498"],
+  "313": ["3499","3502","3510","3513","3514","3516","3517","3518","3519","3521","3524","3526","3527"],
+  "527": ["3063","3064","3065","3066","3067","3068","3069","3070","3071","3072","3073","3074","3075","3076","3077","3078","3079","3080","3081","3082","3083","3084","3085","3086","3087","3354","3358","3361","3363","3365","3366","3369","3370","3371","3372","3373","3375","3376","3377","3378","3379","3394","3400","3444","3453","3456","3460","3462","3464","3468","3469","3471"],
+  "601": ["3105","3106","3107","3108","3109","3110","3111","3112","3113","3114","3115","3116","3117","3118","3119","3120","3121","3122","3124","3125","3126","3127","3128","3129","3193","3330","3335","3343","3346","3347","3349","3357","3359","3364","3367","3382","3387","3388","3389","3391","3393","3396","3402","3411","3413"],
+  "685/198": ["3438","3374","3481","3525","3576"],
+  "VALLE SOLEADO": ["3006","3007","3008","3009","3194","3303","3327","3403","3443","3452","3491","3515","3533","3553","7063","7064","7065","7066","7067","7068","7069","7070","7071","7072","7073","7074","7075","7076","7077","7078","7079"],
+  "VISTAS DEL CARMEN": ["6001","6002","6006","6007","6010","6021","6023","6024","6025","6054","6060","6077","6080","6088","6094"]
+};
+
+// LISTA DE FILAS AGREGADAS AL OFICIO
+let filasOficio = [];
+
+function obtenerRutaUnidad(unidad) {
+  const u = String(unidad).trim();
+  const cat = window.catalogoUnidades?.[u];
+  if (cat && (cat.ruta || cat.r)) return String(cat.ruta || cat.r);
+
+  for (const [ruta, lista] of Object.entries(RUTAS_UNIDADES)) {
+    if (lista.includes(u)) return ruta;
+  }
+  return "---";
+}
+
+function obtenerVinUnidad(unidad) {
+  const u = String(unidad).trim();
+  const cat = window.catalogoUnidades?.[u];
+  return (cat && cat.vin) ? String(cat.vin) : "---";
+}
+
+function obtenerSerie(unidad) {
+  const num = Number(unidad);
+  if (num >= 7000 && num < 8000) return "7000";
+  if (num >= 6000 && num < 7000) return "6000";
+  if (num >= 3000 && num < 4000) return "3000";
+  return "OTRA";
+}
+
+function inicializarFechas() {
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+  const dd = String(hoy.getDate()).padStart(2, "0");
+
+  $("fechaInicio").value = `${yyyy}-${mm}-01`;
+  $("fechaFin").value = `${yyyy}-${mm}-${dd}`;
+  $("docFechaHoy").textContent = `${dd} de ${MESES[hoy.getMonth()]} de ${yyyy}`;
+  actualizarTextosPeriodo();
+}
+
+function fechaLarga(isoDate) {
+  if (!isoDate) return "---";
+  const [y, m, d] = isoDate.split("-");
+  const mesNombre = MESES[Number(m) - 1] || m;
+  return `${d} de ${mesNombre} de ${y}`;
+}
+
+function fechaCorta(val) {
+  if (!val) return "--/--/----";
+  const str = String(val).trim();
+  const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(str);
+  return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : str;
+}
+
+function actualizarTextosPeriodo() {
+  $("docPeriodoInicio").textContent = fechaLarga($("fechaInicio").value);
+  $("docPeriodoFin").textContent = fechaLarga($("fechaFin").value);
+}
+
+$("inputFolio").addEventListener("input", () => {
+  $("docFolio").textContent = $("inputFolio").value || "OFICIO MNTT";
+});
+$("fechaInicio").addEventListener("change", actualizarTextosPeriodo);
+$("fechaFin").addEventListener("change", actualizarTextosPeriodo);
+$("selectLeyenda").addEventListener("change", actualizarLeyendaSegunFilas);
+
+function formatearServicio(datos) {
+  const num = datos.numeroMantenimiento ? `MTTO ${datos.numeroMantenimiento}` : (datos.tipoMantenimiento || "MTTO");
+  const sis = datos.sistemasMantenimiento || {};
+  const activos = [];
+
+  if (sis.motor) activos.push("MOTOR");
+  if (sis.transmision) activos.push("TRANSMISION");
+  if (sis.diferencial) activos.push("DIFERENCIAL");
+
+  if (!activos.length) {
+    const t = String(datos.tipoMantenimiento || "").toUpperCase();
+    if (t === "MD") return `${num} - DIFERENCIAL`;
+    if (["M2", "M5", "M6"].includes(t)) return `${num} - MOTOR Y TRANSMISION`;
+    if (["M3", "M1-MD"].includes(t)) return `${num} - MOTOR Y DIFERENCIAL`;
+    if (["M3-MFT", "M3-M5", "M7"].includes(t)) return `${num} - MOTOR, TRANSMISION Y DIFERENCIAL`;
+    return `${num} - MOTOR`;
+  }
+
+  if (activos.length === 1) return `${num} - ${activos[0]}`;
+  if (activos.length === 2) return `${num} - ${activos[0]} Y ${activos[1]}`;
+  return `${num} - ${activos[0]}, ${activos[1]} Y ${activos[2]}`;
+}
+
+// BÚSQUEDA QUIRÚRGICA POR UNIDAD (1-3 LECTURAS EN FIRESTORE)
+async function buscarUnidadEspecifica() {
+  const unidad = $("inputBuscarUnidad").value.trim().toUpperCase();
+  if (!unidad) {
+    $("estadoConsulta").textContent = "Escribe un número económico para buscar.";
+    return;
+  }
+
+  $("btnBuscarUnidad").disabled = true;
+  $("estadoConsulta").textContent = `Buscando evidencias únicamente de la unidad ${unidad}...`;
+  $("listaResultados").replaceChildren();
+
+  try {
+    const valoresUnidad = [unidad];
+    if (!Number.isNaN(Number(unidad))) valoresUnidad.push(Number(unidad));
+
+    const [snap, legacyDoc] = await Promise.all([
+      db.collection("evidencias_mantenimiento")
+        .where("unidad", "in", valoresUnidad)
+        .limit(15)
+        .get(),
+      db.collection("evidencias_mantenimiento")
+        .doc("EV_" + unidad)
+        .get()
+    ]);
+
+    const mapaDocs = new Map();
+    snap.forEach(doc => mapaDocs.set(doc.id, { id: doc.id, datos: doc.data() }));
+    if (legacyDoc.exists && !mapaDocs.has(legacyDoc.id)) {
+      mapaDocs.set(legacyDoc.id, { id: legacyDoc.id, datos: legacyDoc.data() });
+    }
+
+    const resultados = [...mapaDocs.values()];
+    resultados.sort((a, b) => (Number(b.datos.timestamp) || 0) - (Number(a.datos.timestamp) || 0));
+
+    if (!resultados.length) {
+      $("estadoConsulta").textContent = `No hay evidencias guardadas en Firebase para la unidad ${unidad}. Puedes agregarla con "Agregar fila manual".`;
+      return;
+    }
+
+    $("estadoConsulta").textContent = `Se encontraron ${resultados.length} evidencia(s) para ECO ${unidad} (solo ${resultados.length} lectura(s) usadas):`;
+
+    resultados.forEach(reg => {
+      const d = reg.datos;
+      const serie = obtenerSerie(unidad);
+      const fechaTxt = fechaCorta(d.fecha);
+      const servTxt = formatearServicio(d);
+      const kmsTxt = d.km ? `${Number(d.km).toLocaleString("es-MX")} km` : "Sin km";
+
+      const card = document.createElement("div");
+      card.className = "tarjeta-resultado";
+
+      const info = document.createElement("div");
+      info.innerHTML = `<strong>ECO ${unidad}</strong> · ${fechaTxt} · ${kmsTxt} · <span style="color:#38bdf8;">${servTxt}</span>`;
+
+      const derecha = document.createElement("div");
+      derecha.style.display = "flex";
+      derecha.style.alignItems = "center";
+      derecha.style.gap = "8px";
+
+      const badge = document.createElement("span");
+      badge.className = `badge-serie serie-${serie}`;
+      badge.textContent = serie !== "OTRA" ? `${serie}s` : "Unidad";
+
+      const btnAdd = document.createElement("button");
+      btnAdd.type = "button";
+      btnAdd.className = "btn-agregar";
+      btnAdd.style.padding = "5px 10px";
+      btnAdd.style.fontSize = "12px";
+      btnAdd.textContent = "+ Agregar al oficio";
+      btnAdd.addEventListener("click", () => agregarRegistroAOficio(reg.id, unidad, d));
+
+      derecha.append(badge, btnAdd);
+      card.append(info, derecha);
+      $("listaResultados").appendChild(card);
+    });
+  } catch (err) {
+    console.error(err);
+    $("estadoConsulta").textContent = "Error al buscar unidad: " + err.message;
+  } finally {
+    $("btnBuscarUnidad").disabled = false;
+  }
+}
+
+$("btnBuscarUnidad").addEventListener("click", buscarUnidadEspecifica);
+$("inputBuscarUnidad").addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    buscarUnidadEspecifica();
+  }
+});
+
+// AGREGAR FILA DESDE FIREBASE (Y CONSULTAR FECHA PROGRAMA EN SERVICIOS SI EXISTE)
+async function agregarRegistroAOficio(docId, unidad, datos) {
+  if (filasOficio.some(f => f.uid === docId)) {
+    $("estadoConsulta").textContent = `Esa evidencia de la unidad ${unidad} ya está agregada en la tabla.`;
+    return;
+  }
+
+  const fechaReal = fechaCorta(datos.fecha);
+  let fechaPrograma = fechaReal;
+
+  // 1 lectura puntual opcional para intentar obtener fecha programada de 'servicios'
+  try {
+    const snapServ = await db.collection("servicios")
+      .where("unidad", "==", unidad)
+      .limit(5)
+      .get();
+
+    snapServ.forEach(sDoc => {
+      const s = sDoc.data();
+      if (s.fechaProgramada || s.fecha) {
+        fechaPrograma = fechaCorta(s.fechaProgramada || s.fecha);
+      }
+    });
+  } catch (_) {}
+
+  const kmsNum = Number(datos.km);
+  const kmsTxt = Number.isFinite(kmsNum) ? kmsNum.toLocaleString("es-MX") : (datos.km || "---");
+
+  filasOficio.push({
+    uid: docId,
+    eco: unidad,
+    serie: obtenerSerie(unidad),
+    vin: obtenerVinUnidad(unidad),
+    ruta: obtenerRutaUnidad(unidad),
+    programa: fechaPrograma,
+    real: fechaReal,
+    kms: kmsTxt,
+    servicio: formatearServicio(datos)
+  });
+
+  actualizarLeyendaSegunFilas();
+  renderizarTabla();
+  $("inputBuscarUnidad").value = "";
+  $("inputBuscarUnidad").focus();
+  $("estadoConsulta").textContent = `✅ ECO ${unidad} agregada (${filasOficio.length} unidad(es) en el oficio). Listo para buscar la siguiente.`;
+}
+
+// AGREGAR FILA MANUAL CON AUTOCOMPLETADO DE VIN Y RUTA
+$("btnFilaManual").addEventListener("click", () => {
+  const eco = ($("inputBuscarUnidad").value.trim() || prompt("Número económico de la unidad:") || "").trim().toUpperCase();
+  if (!eco) return;
+
+  filasOficio.push({
+    uid: "MANUAL_" + Date.now(),
+    eco,
+    serie: obtenerSerie(eco),
+    vin: obtenerVinUnidad(eco),
+    ruta: obtenerRutaUnidad(eco),
+    programa: fechaCorta($("fechaFin").value),
+    real: fechaCorta($("fechaFin").value),
+    kms: "---",
+    servicio: "MTTO 1 - MOTOR"
+  });
+
+  actualizarLeyendaSegunFilas();
+  renderizarTabla();
+});
+
+$("btnLimpiarTabla").addEventListener("click", () => {
+  if (!filasOficio.length) return;
+  filasOficio = [];
+  renderizarTabla();
+});
+
+function actualizarLeyendaSegunFilas() {
+  const modo = $("selectLeyenda").value;
+  if (modo === "7000") {
+    $("docParrafoLeyenda").textContent = LEYENDA_7000;
+    return;
+  }
+  if (modo === "3000_6000") {
+    $("docParrafoLeyenda").textContent = LEYENDA_3000_6000;
+    return;
+  }
+  if (!filasOficio.length) return;
+  const tiene7000 = filasOficio.some(f => f.serie === "7000");
+  $("docParrafoLeyenda").textContent = tiene7000 ? LEYENDA_7000 : LEYENDA_3000_6000;
+}
+
+function renderizarTabla() {
+  const tbody = $("cuerpoTablaOficio");
+  tbody.replaceChildren();
+
+  if (!filasOficio.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 9;
+    td.style.padding = "14pt";
+    td.style.color = "#64748b";
+    td.textContent = "Busca cada unidad arriba y haz clic en \"Agregar al oficio\" para armar tu relación.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  filasOficio.forEach((fila, idx) => {
+    const tr = document.createElement("tr");
+
+    const celdas = [
+      { texto: String(idx + 1), editable: false },
+      { texto: fila.eco, editable: true },
+      { texto: fila.vin, editable: true },
+      { texto: fila.ruta, editable: true },
+      { texto: fila.programa, editable: true },
+      { texto: fila.real, editable: true },
+      { texto: fila.kms, editable: true },
+      { texto: fila.servicio, editable: true, clase: "col-servicio" }
+    ];
+
+    celdas.forEach(c => {
+      const td = document.createElement("td");
+      td.textContent = c.texto;
+      if (c.editable) td.contentEditable = "true";
+      if (c.clase) td.className = c.clase;
+      tr.appendChild(td);
+    });
+
+    const tdAccion = document.createElement("td");
+    tdAccion.className = "no-print";
+    const btnDel = document.createElement("button");
+    btnDel.type = "button";
+    btnDel.className = "btn-quitar";
+    btnDel.textContent = "✕";
+    btnDel.title = "Quitar fila";
+    btnDel.addEventListener("click", () => {
+      filasOficio.splice(idx, 1);
+      actualizarLeyendaSegunFilas();
+      renderizarTabla();
+    });
+    tdAccion.appendChild(btnDel);
+    tr.appendChild(tdAccion);
+
+    tbody.appendChild(tr);
+  });
+}
+
+inicializarFechas();
+</script>
+</body>
+</html>
