@@ -41,6 +41,16 @@ body{
   width:100px;
 }
 
+#historialEvidencias {
+  width: auto;
+  min-width: 230px;
+  max-width: 100%;
+  background: #0f172a;
+  color: #38bdf8;
+  border: 1px solid #38bdf8;
+  font-weight: bold;
+}
+
 .toolbar small{
   width:100%;
   line-height:1.4;
@@ -443,6 +453,11 @@ button:disabled{opacity:.6;cursor:wait}
 
   <button id="btnCargar" type="button">Cargar</button>
 
+  <div id="contenedorHistorial" style="display:none; align-items:center; gap:6px;">
+    <label for="historialEvidencias" style="color:#38bdf8; font-weight:bold;">Evidencias:</label>
+    <select id="historialEvidencias"></select>
+  </div>
+
   <label for="seleccionTipo">Tipo:</label>
   <select id="seleccionTipo">
     <option value="">Selecciona...</option>
@@ -468,7 +483,7 @@ button:disabled{opacity:.6;cursor:wait}
   </button>
 
   <small>
-    El tipo, transportista e identificaciones INE se configuran automáticamente al ingresar la unidad.
+    Ingresa la unidad para consultar todo su historial de evidencias, tipo, transportista e INEs.
   </small>
 </div>
 
@@ -685,6 +700,8 @@ const $ = id => document.getElementById(id);
 let db = null;
 let cargando = false;
 let preparandoImpresion = false;
+let registrosUnidadActual = [];
+let avisoCatalogoActual = "";
 
 // ===== CATÁLOGO DE INES POR EMPRESA / TRANSPORTISTA =====
 const CATALOGO_INES_TRANSPORTISTAS = {
@@ -1126,7 +1143,29 @@ function mostrarImagen(clave, url) {
   });
 }
 
-// LIMPIAR LA UNIDAD ANTERIOR
+// LIMPIAR SOLO LAS FOTOS Y CAMPOS DEL MANTENIMIENTO
+function limpiarEvidenciaActual() {
+  $("txtKm").textContent = "---";
+  $("txtFecha").textContent = "--/--/----";
+  aplicarMantenimiento("", null);
+
+  for (const slot of slots.values()) {
+    slot.version++;
+    slot.cargando = false;
+    slot.img.removeAttribute("src");
+    slot.img.hidden = true;
+    slot.hint.hidden = false;
+    slot.hint.textContent = "📷 " + slot.titulo;
+    slot.input.value = "";
+
+    if (slot.urlLocal) {
+      URL.revokeObjectURL(slot.urlLocal);
+      slot.urlLocal = null;
+    }
+  }
+}
+
+// LIMPIAR LA UNIDAD ANTERIOR COMPLETA
 function limpiarDatos(unidad) {
   const valores = {
     txtUnidad: unidad,
@@ -1145,22 +1184,7 @@ function limpiarDatos(unidad) {
 
   $("anexoUnidadFooter").textContent = unidad;
   actualizarIneTransportista("---");
-  aplicarMantenimiento("", null);
-
-  for (const slot of slots.values()) {
-    slot.version++;
-    slot.cargando = false;
-    slot.img.removeAttribute("src");
-    slot.img.hidden = true;
-    slot.hint.hidden = false;
-    slot.hint.textContent = "📷 " + slot.titulo;
-    slot.input.value = "";
-
-    if (slot.urlLocal) {
-      URL.revokeObjectURL(slot.urlLocal);
-      slot.urlLocal = null;
-    }
-  }
+  limpiarEvidenciaActual();
 }
 
 // DATOS GENERALES DESDE catalogo.js
@@ -1204,8 +1228,115 @@ function formatearFecha(valor) {
     : texto;
 }
 
-// CONSULTAR EVIDENCIAS EN FIRESTORE
-async function cargarUnidad() {
+// RENDERIZAR UNA EVIDENCIA ESPECÍFICA DEL HISTORIAL
+async function mostrarRegistroSeleccionado(registro) {
+  if (!registro) return;
+
+  limpiarEvidenciaActual();
+
+  const datos = registro.datos;
+  const unidad = datos.unidad || $("txtUnidad").textContent;
+  let avisos = avisoCatalogoActual;
+
+  if (
+    datos.km !== undefined &&
+    datos.km !== null &&
+    datos.km !== ""
+  ) {
+    const km = Number(datos.km);
+
+    $("txtKm").textContent = Number.isFinite(km)
+      ? km.toLocaleString("es-MX") + " KM"
+      : String(datos.km);
+  }
+
+  $("txtFecha").textContent = formatearFecha(datos.fecha);
+
+  aplicarMantenimiento(
+    datos.tipoMantenimiento || "",
+    datos.numeroMantenimiento ?? null,
+    datos.trabajosMantenimiento,
+    datos.sistemasMantenimiento
+  );
+
+  if (
+    !datos.tipoMantenimiento ||
+    datos.numeroMantenimiento === undefined ||
+    datos.numeroMantenimiento === null
+  ) {
+    avisos +=
+      "\nEste registro no tiene tipo o número de mantenimiento guardado." +
+      " Puedes indicarlos en la barra para imprimir.";
+  }
+
+  const fotos = datos.fotos || {};
+
+  const disponibles = posiciones.filter(([, clave]) => {
+    return typeof fotos[clave] === "string" &&
+           fotos[clave].trim();
+  });
+
+  if (!disponibles.length) {
+    mensaje(
+      "Datos cargados. El documento no contiene enlaces de fotografías." +
+      avisos,
+      true
+    );
+    return;
+  }
+
+  mensaje(`Cargando ${disponibles.length} fotografía(s)...`);
+
+  const resultados = await Promise.allSettled(
+    disponibles.map(([, clave]) => {
+      let url = fotos[clave].trim();
+      
+      if (url.includes('/upload/')) {
+        url = url.replace('/upload/', '/upload/q_auto,f_auto,w_800/');
+      }
+
+      if (!/^https?:\/\//i.test(url)) {
+        slots.get(clave).hint.textContent = "Enlace inválido";
+
+        return Promise.reject(new Error(
+          "La foto " + clave + " no contiene una URL HTTP/HTTPS."
+        ));
+      }
+
+      return mostrarImagen(clave, url);
+    })
+  );
+
+  const errores = resultados.filter(
+    resultado => resultado.status === "rejected"
+  );
+
+  const correctas = resultados.length - errores.length;
+
+  errores.forEach(resultado => {
+    console.error(resultado.reason);
+  });
+
+  const totalText = registrosUnidadActual.length > 1
+    ? ` (Mostrando 1 de ${registrosUnidadActual.length} evidencias guardadas)`
+    : "";
+
+  mensaje(
+    `Unidad ${unidad}: ${correctas} de ${disponibles.length} foto(s) cargadas.${totalText}` +
+    (datos.tipoMantenimiento
+      ? `\nMantenimiento: ${datos.tipoMantenimiento}` +
+      ` · Número: ${datos.numeroMantenimiento ?? "--"}`
+      : "") +
+    (errores.length
+      ? "\nHay enlaces que no se pudieron abrir. Revisa esas fotos."
+      : "") +
+    avisos,
+    errores.length > 0
+  );
+}
+
+// CONSULTAR TODAS LAS EVIDENCIAS DE LA UNIDAD EN FIRESTORE (LÍMITE 30)
+async function cargarUnidad(docPreferido = null) {
   if (cargando || preparandoImpresion) return;
 
   const unidad = $("buscarUnidad").value.trim();
@@ -1216,10 +1347,14 @@ async function cargarUnidad() {
   }
 
   cargando = true;
+  registrosUnidadActual = [];
+  $("contenedorHistorial").style.display = "none";
+  $("historialEvidencias").replaceChildren();
 
   const controles = [
     $("btnCargar"),
     $("buscarUnidad"),
+    $("historialEvidencias"),
     $("seleccionTipo"),
     $("seleccionNumero"),
     ...[...slots.values()].map(slot => slot.input)
@@ -1229,122 +1364,74 @@ async function cargarUnidad() {
   actualizarBotonImprimir();
   limpiarDatos(unidad);
 
-  let avisos = cargarCatalogo(unidad)
+  avisoCatalogoActual = cargarCatalogo(unidad)
     ? ""
     : "\nNo se encontró la unidad en catalogo.js. Completa sus datos manualmente.";
 
   try {
     if (!db) throw new Error("Firebase no está conectado.");
 
-    mensaje("Consultando evidencias de la unidad " + unidad + "...");
+    mensaje("Consultando historial de evidencias de la unidad " + unidad + "...");
 
-    const documento = await db.collection("evidencias_mantenimiento")
-      .doc("EV_" + unidad)
+    // Consulta única filtrada por unidad con tope de seguridad (30 registros)
+    const snap = await db.collection("evidencias_mantenimiento")
+      .where("unidad", "==", unidad)
+      .limit(30)
       .get();
 
-    if (!documento.exists) {
+    const lista = [];
+    snap.forEach(doc => {
+      lista.push({ id: doc.id, datos: doc.data() });
+    });
+
+    // Respaldo por si existe un registro antiguo creado sin el campo "unidad"
+    if (lista.length === 0) {
+      const legacyDoc = await db.collection("evidencias_mantenimiento")
+        .doc("EV_" + unidad)
+        .get();
+      if (legacyDoc.exists) {
+        lista.push({ id: legacyDoc.id, datos: legacyDoc.data() });
+      }
+    }
+
+    if (lista.length === 0) {
       mensaje(
         "No existen evidencias guardadas para la unidad " +
         unidad + ". Primero guárdalas desde taller.html." +
-        avisos,
+        avisoCatalogoActual,
         true
       );
       return;
     }
 
-    const datos = documento.data();
+    // Ordenar del mantenimiento más reciente al más antiguo
+    lista.sort((a, b) => (b.datos.timestamp || 0) - (a.datos.timestamp || 0));
+    registrosUnidadActual = lista;
 
-    if (
-      datos.km !== undefined &&
-      datos.km !== null &&
-      datos.km !== ""
-    ) {
-      const km = Number(datos.km);
-
-      $("txtKm").textContent = Number.isFinite(km)
-        ? km.toLocaleString("es-MX") + " KM"
-        : String(datos.km);
-    }
-
-    $("txtFecha").textContent = formatearFecha(datos.fecha);
-
-    aplicarMantenimiento(
-      datos.tipoMantenimiento || "",
-      datos.numeroMantenimiento ?? null,
-      datos.trabajosMantenimiento,
-      datos.sistemasMantenimiento
-    );
-
-    if (
-      !datos.tipoMantenimiento ||
-      datos.numeroMantenimiento === undefined ||
-      datos.numeroMantenimiento === null
-    ) {
-      avisos +=
-        "\nEste registro no tiene tipo o número de mantenimiento guardado." +
-        " Puedes indicarlos en la barra para imprimir.";
-    }
-
-    const fotos = datos.fotos || {};
-
-    const disponibles = posiciones.filter(([, clave]) => {
-      return typeof fotos[clave] === "string" &&
-             fotos[clave].trim();
+    // Llenar el selector desplegable de evidencias de la unidad
+    const selectHist = $("historialEvidencias");
+    lista.forEach((item, idx) => {
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      const f = formatearFecha(item.datos.fecha);
+      const t = item.datos.tipoMantenimiento || "S/T";
+      const n = item.datos.numeroMantenimiento ? `#${item.datos.numeroMantenimiento}` : "";
+      const k = item.datos.km ? ` · ${Number(item.datos.km).toLocaleString("es-MX")} km` : "";
+      opt.textContent = `${f} — ${t} ${n}${k}`;
+      selectHist.appendChild(opt);
     });
 
-    if (!disponibles.length) {
-      mensaje(
-        "Datos cargados. El documento no contiene enlaces de fotografías." +
-        avisos,
-        true
-      );
-      return;
+    $("contenedorHistorial").style.display = "flex";
+
+    let indiceInicial = 0;
+    if (docPreferido) {
+      const encontrado = lista.findIndex(item => item.id === docPreferido);
+      if (encontrado >= 0) indiceInicial = encontrado;
     }
+    selectHist.value = String(indiceInicial);
 
-    mensaje(`Cargando ${disponibles.length} fotografía(s)...`);
+    await mostrarRegistroSeleccionado(lista[indiceInicial]);
 
-    const resultados = await Promise.allSettled(
-      disponibles.map(([, clave]) => {
-        let url = fotos[clave].trim();
-        
-        if (url.includes('/upload/')) {
-          url = url.replace('/upload/', '/upload/q_auto,f_auto,w_800/');
-        }
-
-        if (!/^https?:\/\//i.test(url)) {
-          slots.get(clave).hint.textContent = "Enlace inválido";
-
-          return Promise.reject(new Error(
-            "La foto " + clave + " no contiene una URL HTTP/HTTPS."
-          ));
-        }
-
-        return mostrarImagen(clave, url);
-      })
-    );
-
-    const errores = resultados.filter(
-      resultado => resultado.status === "rejected"
-    );
-
-    const correctas = resultados.length - errores.length;
-
-    errores.forEach(resultado => {
-      console.error(resultado.reason);
-    });
-
-    mensaje(
-      `Unidad ${unidad}: ${correctas} de ${disponibles.length} foto(s) cargadas.` +
-      (datos.tipoMantenimiento
-        ? `\nMantenimiento: ${datos.tipoMantenimiento}` +
-        ` · Número: ${datos.numeroMantenimiento ?? "--"}`
-        : "") +
-      (errores.length
-        ? "\nHay enlaces que no se pudieron abrir. Revisa esas fotos."
-        : "") +
-      avisos,
-      errores.length > 0
-    );
   } catch (error) {
     console.error("Error al consultar evidencias:", error);
 
@@ -1358,6 +1445,23 @@ async function cargarUnidad() {
     actualizarBotonImprimir();
   }
 }
+
+// CAMBIAR ENTRE LAS EVIDENCIAS GUARDADAS DE LA UNIDAD
+$("historialEvidencias").addEventListener("change", async () => {
+  if (cargando || preparandoImpresion) return;
+  const idx = Number($("historialEvidencias").value);
+  const registro = registrosUnidadActual[idx];
+  if (!registro) return;
+
+  cargando = true;
+  actualizarBotonImprimir();
+  try {
+    await mostrarRegistroSeleccionado(registro);
+  } finally {
+    cargando = false;
+    actualizarBotonImprimir();
+  }
+});
 
 // AJUSTAR CASILLAS
 document.querySelectorAll(".chk").forEach(elemento => {
@@ -1380,7 +1484,7 @@ document.querySelectorAll('[contenteditable="true"]').forEach(campo => {
   });
 });
 
-$("btnCargar").addEventListener("click", cargarUnidad);
+$("btnCargar").addEventListener("click", () => cargarUnidad());
 
 $("buscarUnidad").addEventListener("keydown", evento => {
   if (evento.key === "Enter") {
@@ -1432,12 +1536,14 @@ async function imprimirFormato() {
 
 $("btnImprimir").addEventListener("click", imprimirFormato);
 
-// ABRIR DIRECTAMENTE CON ?unidad=3134
-const unidadInicial = new URLSearchParams(location.search).get("unidad");
+// ABRIR DIRECTAMENTE CON ?unidad=3134 (Y OPCIONALMENTE &doc=...)
+const paramsIniciales = new URLSearchParams(location.search);
+const unidadInicial = paramsIniciales.get("unidad");
+const docInicial = paramsIniciales.get("doc");
 
 if (unidadInicial) {
   $("buscarUnidad").value = unidadInicial;
-  cargarUnidad();
+  cargarUnidad(docInicial);
 }
 </script>
 </body>
