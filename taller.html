@@ -170,9 +170,8 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e; height: 10px; border-r
     <div id="despues" class="fotos"></div>
 
     <p class="nota">
-      Puedes subir una o varias fotos. Las posiciones que no
-      selecciones conservarán sus enlaces anteriores.
-      El tipo y el número se guardarán junto con las evidencias.
+      Cada mantenimiento se guarda en el historial de la unidad sin sobrescribir anteriores.
+      Si vuelves a subir fotos con la misma fecha y número de preventivo, se actualizará ese registro.
     </p>
 
     <button id="btnSubmit" type="submit">
@@ -198,9 +197,9 @@ const firebaseConfig = {
   appId: "1:378018276879:web:310b4d30b0d3d4e8c6257a"
 };
 
-// CLOUDINARY
-const CLOUD_NAME = "dygb7qjgt";
-const UPLOAD_PRESET = "ego_fotos";
+// CLOUDINARY (CUENTA NUEVA)
+const CLOUD_NAME = "zw5m1cx1";
+const UPLOAD_PRESET = "EGO-FOTOS";
 
 const $ = id => document.getElementById(id);
 let db = null;
@@ -647,7 +646,7 @@ async function uploadCloudinary(blob) {
   }
 }
 
-// SUBIR Y GUARDAR EVIDENCIAS CON TIPO Y NÚMERO
+// SUBIR Y GUARDAR EVIDENCIAS EN HISTORIAL POR UNIDAD
 $("formulario").addEventListener("submit", async evento => {
   evento.preventDefault();
   if (ocupado) return;
@@ -757,11 +756,14 @@ $("formulario").addEventListener("submit", async evento => {
 
     etapa = "Firestore";
     fotoActual = "";
-    mensaje("Guardando mantenimiento y fotografías en Firestore...");
+    mensaje("Guardando mantenimiento y fotografías en el historial...");
     $("progreso").value = 95;
 
+    // ID único por unidad + fecha + número de preventivo para conservar historial
+    const docId = `EV_${unidad}_${fecha}_N${numeroMantenimiento}`;
+
     await db.collection("evidencias_mantenimiento")
-      .doc("EV_" + unidad)
+      .doc(docId)
       .set({
         unidad,
         km,
@@ -777,15 +779,14 @@ $("formulario").addEventListener("submit", async evento => {
     $("progreso").value = 100;
 
     mensaje(
-      `✅ Guardado confirmado.\n` +
-      `Unidad: ${unidad}\n` +
-      `Tipo: ${tipoMantenimiento}\n` +
-      `Número de mantenimiento: ${numeroMantenimiento}\n` +
+      `✅ Guardado en historial.\n` +
+      `Unidad: ${unidad} · Fecha: ${fecha}\n` +
+      `Tipo: ${tipoMantenimiento} · Preventivo #${numeroMantenimiento}\n` +
       `Fotografías guardadas: ${seleccionadas.length}`
     );
 
     $("verFormato").href =
-      "formato-manto.html?unidad=" + encodeURIComponent(unidad);
+      `formato-manto.html?unidad=${encodeURIComponent(unidad)}&doc=${encodeURIComponent(docId)}`;
     $("verFormato").hidden = false;
 
     seleccionadas.forEach(item => {
