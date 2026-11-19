@@ -471,6 +471,7 @@ button:disabled{opacity:.6;cursor:wait}
     <option value="M4">M4</option>
     <option value="M5">M5</option>
     <option value="M6">M6</option>
+    <option value="M6-MD">M6-MD</option>
     <option value="M7">M7</option>
   </select>
 
@@ -871,6 +872,19 @@ const MANTENIMIENTOS = {
     ...FILTROS_GAS,
     "CAMBIO DE 1 FILTRO HIDRAULICO"
   ], true, false),
+
+  "M6-MD": ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    CLIMA,
+    "CAMBIO DE BALEROS DELANTEROS Y TRASEROS",
+    "REVISION NIVEL DE ACEITE DE TRANSMISION",
+    FILTROS_TRANSMISION,
+    "CAMBIO DE 1 FILTRO DE SECADOR",
+    ...FILTROS_GAS,
+    "CAMBIO DE 1 FILTRO HIDRAULICO",
+    DIFERENCIAL_13L
+  ], true, true, true),
 
   M7: ficha([
     ...BASE,
