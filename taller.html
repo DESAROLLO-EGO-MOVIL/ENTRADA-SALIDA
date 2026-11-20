@@ -131,6 +131,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e; height: 10px; border-r
           <option value="">Selecciona...</option>
           <option value="M1">M1</option>
           <option value="M1-MD">M1-MD</option>
+          <option value="M1-MFT">M1-MFT</option>
           <option value="M2">M2</option>
           <option value="M3">M3</option>
           <option value="M3-MFT">M3-MFT</option>
@@ -261,6 +262,13 @@ const MANTENIMIENTOS = {
     DIFERENCIAL_13L,
     "REVISION Y AJUSTE EN TERMINALES DE DIRECCION"
   ], false, true),
+
+  "M1-MFT": ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    CLIMA,
+    FILTROS_TRANSMISION
+  ], true, false, true),
 
   M2: ficha([
     ...BASE,
