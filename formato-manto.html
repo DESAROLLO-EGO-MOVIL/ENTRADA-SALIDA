@@ -464,6 +464,7 @@ button:disabled{opacity:.6;cursor:wait}
     <option value="M1">M1</option>
     <option value="M1-MD">M1-MD</option>
     <option value="M1-MFT">M1-MFT</option>
+    <option value="M1-MT">M1-MT</option>
     <option value="M2">M2</option>
     <option value="M3">M3</option>
     <option value="M3-MFT">M3-MFT</option>
@@ -794,6 +795,14 @@ const MANTENIMIENTOS = {
     ...BASE,
     REVISION_BALATAS,
     CLIMA,
+    FILTROS_TRANSMISION
+  ], true, false, true),
+
+  "M1-MT": ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    CLIMA,
+    "CAMBIO DE 19 LITROS DE ACEITE DE TRANSMISION",
     FILTROS_TRANSMISION
   ], true, false, true),
 
