@@ -137,6 +137,7 @@ progress{width:100%;margin-top:16px;accent-color:#22c55e; height: 10px; border-r
           <option value="M3-M5">M3-M5</option>
           <option value="MD">MD</option>
           <option value="M4">M4</option>
+          <option value="M4-MFT">M4-MFT</option>
           <option value="M5">M5</option>
           <option value="M6">M6</option>
           <option value="M6-MD">M6-MD</option>
@@ -319,6 +320,14 @@ const MANTENIMIENTOS = {
     "REVISION EN SISTEMA DE ENFRIAMIENTO",
     "CAMBIO DE 35 LITROS DE ANTICONGELANTE"
   ]),
+
+  "M4-MFT": ficha([
+    ...BASE,
+    REVISION_BALATAS,
+    "REVISION EN SISTEMA DE ENFRIAMIENTO",
+    "CAMBIO DE 35 LITROS DE ANTICONGELANTE",
+    FILTROS_TRANSMISION
+  ], true, false, true),
 
   M5: ficha([
     ...BASE,
